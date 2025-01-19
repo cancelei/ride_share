@@ -13,5 +13,7 @@ class CreateVehicles < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
+
+    add_reference :driver_profiles, :selected_vehicle, foreign_key: { to_table: :vehicles }
   end
 end

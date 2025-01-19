@@ -29,6 +29,11 @@
   </div>
 
   <div class="field">
+    <%= f.label :role %><br />
+    <%= f.select :role, [['Driver', 'driver'], ['Passenger', 'passenger']], autofocus: true, autocomplete: "country" %>
+  </div>
+
+  <div class="field">
     <%= f.label :password %>
     <% if @minimum_password_length %>
     <em>(<%= @minimum_password_length %> characters minimum)</em>

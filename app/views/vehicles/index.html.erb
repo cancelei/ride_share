@@ -7,7 +7,7 @@
 
   <div class="flex justify-between items-center">
     <h1 class="font-bold text-4xl">Vehicles</h1>
-    <%= link_to "New vehicle", new_vehicle_path, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
+    <%= link_to "New vehicle", new_driver_profile_vehicle_path, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
   </div>
 
   <div id="vehicles" class="min-w-full">
@@ -15,7 +15,7 @@
       <% @vehicles.each do |vehicle| %>
         <%= render vehicle %>
         <p>
-          <%= link_to "Show this vehicle", vehicle, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
+          <%= link_to "Show this vehicle", [@driver_profile, vehicle], class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
         </p>
       <% end %>
     <% else %>

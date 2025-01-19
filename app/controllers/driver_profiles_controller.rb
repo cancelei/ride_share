@@ -1,5 +1,6 @@
 class DriverProfilesController < ApplicationController
   before_action :set_driver_profile, only: %i[ show edit update destroy ]
+  before_action :check_existing_profile, only: %i[ new create ]
 
   # GET /driver_profiles or /driver_profiles.json
   def index
@@ -61,6 +62,10 @@ class DriverProfilesController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_driver_profile
       @driver_profile = DriverProfile.find(params.expect(:id))
+    end
+
+    def check_existing_profile
+      redirect_back(fallback_location: root_path, notice: "You already have a driver profile.") if current_use.driver_profile.present?
     end
 
     # Only allow a list of trusted parameters through.

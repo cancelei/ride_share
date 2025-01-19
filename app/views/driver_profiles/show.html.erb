@@ -9,6 +9,7 @@
 
   <%= render @driver_profile %>
 
+  <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(driver_profile_id: @driver_profile.id), class: "mt-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
   <%= link_to "Edit this driver profile", edit_driver_profile_path(@driver_profile), class: "mt-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
   <%= link_to "Back to driver profiles", driver_profiles_path, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
   <div class="inline-block ml-2">

@@ -1,4 +1,4 @@
-<%= form_with(model: vehicle, class: "contents") do |form| %>
+<%= form_with(model: [@driver_profile, vehicle], class: "contents") do |form| %>
   <% if vehicle.errors.any? %>
     <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(vehicle.errors.count, "error") %> prohibited this vehicle from being saved:</h2>
@@ -11,10 +11,7 @@
     </div>
   <% end %>
 
-  <div class="my-5">
-    <%= form.label :driver_profile_id %>
-    <%= form.text_field :driver_profile_id, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:driver_profile_id].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:driver_profile_id].any?}] %>
-  </div>
+  <%= form.hidden_field :driver_profile_id, value: @driver_profile.id %>
 
   <div class="my-5">
     <%= form.label :registration_number %>

@@ -1,5 +1,6 @@
 class VehiclesController < ApplicationController
   before_action :set_vehicle, only: %i[ show edit update destroy ]
+  before_action :set_driver_profile
 
   # GET /vehicles or /vehicles.json
   def index
@@ -12,7 +13,7 @@ class VehiclesController < ApplicationController
 
   # GET /vehicles/new
   def new
-    @vehicle = Vehicle.new
+    @vehicle = @driver_profile.vehicles.new
   end
 
   # GET /vehicles/1/edit
@@ -25,13 +26,18 @@ class VehiclesController < ApplicationController
 
     respond_to do |format|
       if @vehicle.save
-        format.html { redirect_to @vehicle, notice: "Vehicle was successfully created." }
+        format.html { redirect_to [ @driver_profile, @vehicle ], notice: "Vehicle was successfully created." }
         format.json { render :show, status: :created, location: @vehicle }
       else
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @vehicle.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  def select
+    @driver_profile.update!(selected_vehicle_id: params[:id])
+    redirect_to driver_profile_vehicles_path(@driver_profile)
   end
 
   # PATCH/PUT /vehicles/1 or /vehicles/1.json
@@ -52,13 +58,17 @@ class VehiclesController < ApplicationController
     @vehicle.destroy!
 
     respond_to do |format|
-      format.html { redirect_to vehicles_path, status: :see_other, notice: "Vehicle was successfully destroyed." }
+      format.html { redirect_to driver_profile_vehicles_path(@driver_profile), status: :see_other, notice: "Vehicle was successfully destroyed." }
       format.json { head :no_content }
     end
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
+    def set_driver_profile
+      @driver_profile = DriverProfile.find(params[:driver_profile_id])
+    end
+
     def set_vehicle
       @vehicle = Vehicle.find(params.expect(:id))
     end

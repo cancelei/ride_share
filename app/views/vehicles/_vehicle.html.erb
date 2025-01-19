@@ -35,4 +35,7 @@
     <strong class="block font-medium mb-1">Has private insurance:</strong>
     <%= vehicle.has_private_insurance %>
   </p>
+  <% if @driver_profile.selected_vehicle == vehicle %>
+    Current Vehicle
+  <% end %>
 </div>
