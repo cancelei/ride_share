@@ -1,0 +1,62 @@
+<%= form_with(model: vehicle, class: "contents") do |form| %>
+  <% if vehicle.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+      <h2><%= pluralize(vehicle.errors.count, "error") %> prohibited this vehicle from being saved:</h2>
+
+      <ul class="list-disc ml-6">
+        <% vehicle.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="my-5">
+    <%= form.label :driver_profile_id %>
+    <%= form.text_field :driver_profile_id, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:driver_profile_id].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:driver_profile_id].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :registration_number %>
+    <%= form.text_field :registration_number, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:registration_number].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:registration_number].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :seating_capacity %>
+    <%= form.number_field :seating_capacity, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:seating_capacity].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:seating_capacity].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :brand %>
+    <%= form.text_field :brand, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:brand].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:brand].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :model %>
+    <%= form.text_field :model, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:model].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:model].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :color %>
+    <%= form.text_field :color, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:color].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:color].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :fuel_avg %>
+    <%= form.text_field :fuel_avg, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:fuel_avg].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:fuel_avg].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :built_year %>
+    <%= form.number_field :built_year, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:built_year].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:built_year].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :has_private_insurance %>
+    <%= form.checkbox :has_private_insurance, class: ["block shadow rounded-md border outline-none mt-2 h-5 w-5", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:has_private_insurance].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:has_private_insurance].any?}] %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+  </div>
+<% end %>

@@ -1,0 +1,32 @@
+<%= form_with(model: driver_profile, class: "contents") do |form| %>
+  <% if driver_profile.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+      <h2><%= pluralize(driver_profile.errors.count, "error") %> prohibited this driver_profile from being saved:</h2>
+
+      <ul class="list-disc ml-6">
+        <% driver_profile.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="my-5">
+    <%= form.label :user_id %>
+    <%= form.text_field :user_id, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:user_id].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:user_id].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :license %>
+    <%= form.text_field :license, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:license].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:license].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :license_issuer %>
+    <%= form.text_field :license_issuer, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:license_issuer].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:license_issuer].any?}] %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+  </div>
+<% end %>

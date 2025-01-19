@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  driver_profile: one
+  registration_number: MyString
+  seating_capacity: 1
+  brand: MyString
+  model: MyString
+  color: MyString
+  fuel_avg: 1.5
+  built_year: 1
+  has_private_insurance: false
+
+two:
+  driver_profile: two
+  registration_number: MyString
+  seating_capacity: 1
+  brand: MyString
+  model: MyString
+  color: MyString
+  fuel_avg: 1.5
+  built_year: 1
+  has_private_insurance: false

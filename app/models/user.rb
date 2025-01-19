@@ -5,4 +5,6 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   enum :role, { admin: 0, driver: 1, passenger: 2 }
+
+  has_one :driver_profile, dependent: :destroy
 end
