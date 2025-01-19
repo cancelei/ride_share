@@ -1,0 +1,29 @@
+<%= form_with(model: passenger_profile, class: "contents") do |form| %>
+  <% if passenger_profile.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+      <h2><%= pluralize(passenger_profile.errors.count, "error") %> prohibited this passenger_profile from being saved:</h2>
+
+      <ul class="list-disc ml-6">
+        <% passenger_profile.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form.hidden_field :user_id, value: current_user.id %>
+
+  <div class="my-5">
+    <%= form.label :whatsapp_number %>
+    <%= form.text_field :whatsapp_number, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": passenger_profile.errors[:whatsapp_number].none?, "border-red-400 focus:outline-red-600": passenger_profile.errors[:whatsapp_number].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :telegram_username %>
+    <%= form.text_field :telegram_username, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": passenger_profile.errors[:telegram_username].none?, "border-red-400 focus:outline-red-600": passenger_profile.errors[:telegram_username].any?}] %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+  </div>
+<% end %>

@@ -65,7 +65,7 @@ class DriverProfilesController < ApplicationController
     end
 
     def check_existing_profile
-      redirect_back(fallback_location: root_path, notice: "You already have a driver profile.") if current_use.driver_profile.present?
+      redirect_back(fallback_location: root_path, notice: "You already have a driver profile.") if current_user.driver_profile.present?
     end
 
     # Only allow a list of trusted parameters through.

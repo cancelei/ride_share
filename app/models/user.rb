@@ -7,4 +7,5 @@ class User < ApplicationRecord
   enum :role, { admin: 0, driver: 1, passenger: 2 }, prefix: true
 
   has_one :driver_profile, dependent: :destroy
+  has_one :passenger_profile, dependent: :destroy
 end

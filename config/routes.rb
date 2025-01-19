@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :passenger_profiles
   resources :driver_profiles do
     resources :vehicles do
       member do
