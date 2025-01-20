@@ -8,7 +8,7 @@ class CreateRides < ActiveRecord::Migration[8.0]
       t.string :ride_type, null: false, limit: 50
       t.string :invitation_code, limit: 20
       t.datetime :scheduled_time
-      t.integer :available_seats, null: false, default: 0
+      t.integer :available_seats, default: 0
       t.string :status, null: false, limit: 20
 
       # Optional feedback fields
@@ -16,7 +16,7 @@ class CreateRides < ActiveRecord::Migration[8.0]
       t.text :review
 
       # Pricing and cost details
-      t.decimal :price, precision: 10, scale: 2, null: false, default: 0.0
+      t.decimal :price, precision: 10, scale: 2, default: 0.0
       t.decimal :discount, precision: 10, scale: 2, default: 0.0
 
       # Metrics
