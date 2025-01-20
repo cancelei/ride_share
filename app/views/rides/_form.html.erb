@@ -1,0 +1,87 @@
+<%= form_with(model: ride, class: "contents") do |form| %>
+  <% if ride.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+      <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
+
+      <ul class="list-disc ml-6">
+        <% ride.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="my-5">
+    <%= form.label :pickup %>
+    <%= form.text_field :pickup, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:pickup].none?, "border-red-400 focus:outline-red-600": ride.errors[:pickup].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :dropoff %>
+    <%= form.text_field :dropoff, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:dropoff].none?, "border-red-400 focus:outline-red-600": ride.errors[:dropoff].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :ride_type %>
+    <%= form.text_field :ride_type, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:ride_type].none?, "border-red-400 focus:outline-red-600": ride.errors[:ride_type].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :invitation_code %>
+    <%= form.text_field :invitation_code, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:invitation_code].none?, "border-red-400 focus:outline-red-600": ride.errors[:invitation_code].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :scheduled_time %>
+    <%= form.datetime_field :scheduled_time, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:scheduled_time].none?, "border-red-400 focus:outline-red-600": ride.errors[:scheduled_time].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :available_seats %>
+    <%= form.number_field :available_seats, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:available_seats].none?, "border-red-400 focus:outline-red-600": ride.errors[:available_seats].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :status %>
+    <%= form.text_field :status, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:status].none?, "border-red-400 focus:outline-red-600": ride.errors[:status].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :rating %>
+    <%= form.number_field :rating, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:rating].none?, "border-red-400 focus:outline-red-600": ride.errors[:rating].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :review %>
+    <%= form.text_field :review, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:review].none?, "border-red-400 focus:outline-red-600": ride.errors[:review].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :price %>
+    <%= form.text_field :price, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:price].none?, "border-red-400 focus:outline-red-600": ride.errors[:price].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :discount %>
+    <%= form.text_field :discount, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:discount].none?, "border-red-400 focus:outline-red-600": ride.errors[:discount].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :distance %>
+    <%= form.text_field :distance, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:distance].none?, "border-red-400 focus:outline-red-600": ride.errors[:distance].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :estimated_time %>
+    <%= form.text_field :estimated_time, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:estimated_time].none?, "border-red-400 focus:outline-red-600": ride.errors[:estimated_time].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :time_taken %>
+    <%= form.text_field :time_taken, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": ride.errors[:time_taken].none?, "border-red-400 focus:outline-red-600": ride.errors[:time_taken].any?}] %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+  </div>
+<% end %>

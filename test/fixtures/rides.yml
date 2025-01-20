@@ -1,0 +1,35 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  driver: one
+  pickup: MyString
+  dropoff: MyString
+  ride_type: MyString
+  invitation_code: MyString
+  scheduled_time: 2025-01-20 10:20:46
+  available_seats: 1
+  status: MyString
+  rating: 1
+  review: MyString
+  price: 1.5
+  discount: 1.5
+  distance: MyString
+  estimated_time: MyString
+  time_taken: MyString
+
+two:
+  driver: two
+  pickup: MyString
+  dropoff: MyString
+  ride_type: MyString
+  invitation_code: MyString
+  scheduled_time: 2025-01-20 10:20:46
+  available_seats: 1
+  status: MyString
+  rating: 1
+  review: MyString
+  price: 1.5
+  discount: 1.5
+  distance: MyString
+  estimated_time: MyString
+  time_taken: MyString
