@@ -36,16 +36,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_20_162046) do
 
   create_table "rides", force: :cascade do |t|
     t.bigint "driver_id"
+    t.bigint "passenger_id"
     t.string "pickup", null: false
     t.string "dropoff", null: false
     t.string "ride_type", limit: 50, null: false
     t.string "invitation_code", limit: 20
     t.datetime "scheduled_time"
-    t.integer "available_seats", default: 0, null: false
+    t.integer "available_seats", default: 0
     t.string "status", limit: 20, null: false
     t.integer "rating", limit: 2
     t.text "review"
-    t.decimal "price", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "price", precision: 10, scale: 2, default: "0.0"
     t.decimal "discount", precision: 10, scale: 2, default: "0.0"
     t.string "distance", limit: 20
     t.string "estimated_time", limit: 20
@@ -53,6 +54,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_20_162046) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["driver_id"], name: "index_rides_on_driver_id"
+    t.index ["passenger_id"], name: "index_rides_on_passenger_id"
     t.index ["ride_type"], name: "index_rides_on_ride_type"
     t.index ["scheduled_time"], name: "index_rides_on_scheduled_time"
     t.index ["status"], name: "index_rides_on_status"
@@ -94,5 +96,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_20_162046) do
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id"
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
+  add_foreign_key "rides", "passenger_profiles", column: "passenger_id"
   add_foreign_key "vehicles", "driver_profiles"
 end

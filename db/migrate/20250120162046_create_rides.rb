@@ -2,6 +2,7 @@ class CreateRides < ActiveRecord::Migration[8.0]
   def change
     create_table :rides do |t|
       t.references :driver, foreign_key: { to_table: :driver_profiles }
+      t.references :passenger, foreign_key: { to_table: :passenger_profiles }
       # Ride details
       t.string :pickup, null: false
       t.string :dropoff, null: false
