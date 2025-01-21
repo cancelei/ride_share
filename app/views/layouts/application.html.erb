@@ -22,10 +22,18 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <p class="notice"><%= notice %></p>
-    <p class="alert"><%= alert %></p>
-    <main class="container mx-auto mt-28 px-5 flex">
+  <body class="min-h-screen bg-gray-50">
+    <%= render "shared/navbar" %>
+    
+    <% if notice.present? %>
+      <p class="notice py-2 px-3 bg-green-50 text-green-500 font-medium"><%= notice %></p>
+    <% end %>
+    
+    <% if alert.present? %>
+      <p class="alert py-2 px-3 bg-red-50 text-red-500 font-medium"><%= alert %></p>
+    <% end %>
+
+    <main class="container mx-auto mt-8 px-4 sm:px-6 lg:px-8">
       <%= yield %>
     </main>
   </body>
