@@ -1,12 +1,21 @@
 class Ride < ApplicationRecord
-  belongs_to :driver, class_name: "DriverProfile", foreign_key: "driver_id", optional: true
+  belongs_to :driver, class_name: "DriverProfile", foreign_key: :driver_id
+  has_many :bookings
 
-  enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed", cancelled: "cancelled" }
-  enum :ride_type, { shared_public: "shared_public", shared_private: "shared_private", solo_private: "solo_private" }
+  before_create :set_status
+  after_save :update_booking, -> { booking_id.present? }
 
-  before_save :set_default_values
+  attr_accessor :booking_id
 
-  def set_default_values
-    self.status ||= "pending"
+  enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed" }
+
+  def set_status
+    self.status = "pending"
+  end
+
+  def update_booking
+    Booking.where(id: self.booking_id).update_all(status: "accepted", ride_id: self.id)
+
+    self.booking_id = nil
   end
 end

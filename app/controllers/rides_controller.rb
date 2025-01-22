@@ -1,6 +1,5 @@
 class RidesController < ApplicationController
   before_action :set_ride, only: %i[ show edit update destroy ]
-  before_action :authenticate_passenger, only: %i[ new create ]
 
   # GET /rides or /rides.json
   def index
@@ -59,18 +58,13 @@ class RidesController < ApplicationController
   end
 
   private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_ride
+      @ride = Ride.find(params.expect(:id))
+    end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_ride
-    @ride = Ride.find(params.expect(:id))
-  end
-
-  def authenticate_passenger
-    redirect_back(fallback_location: root_path, notice: "Only passengers can book rides") unless current_user.role_passenger?
-  end
-
-  # Only allow a list of trusted parameters through.
-  def ride_params
-    params.expect(ride: [ :driver_id, :passenger_id, :pickup, :dropoff, :ride_type, :invitation_code, :scheduled_time, :available_seats, :status, :rating, :review, :price, :discount, :distance, :estimated_time, :time_taken ])
-  end
+    # Only allow a list of trusted parameters through.
+    def ride_params
+      params.expect(ride: [ :driver_id, :booking_id, :invitation_code, :status, :rating, :available_seats ])
+    end
 end

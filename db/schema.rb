@@ -10,9 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_20_162046) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_22_163416) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "bookings", force: :cascade do |t|
+    t.bigint "passenger_id", null: false
+    t.bigint "ride_id"
+    t.string "pickup"
+    t.string "dropoff"
+    t.datetime "scheduled_time"
+    t.string "status"
+    t.integer "requested_seats"
+    t.text "special_instructions"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["passenger_id"], name: "index_bookings_on_passenger_id"
+    t.index ["ride_id"], name: "index_bookings_on_ride_id"
+  end
 
   create_table "driver_profiles", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -35,29 +50,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_20_162046) do
   end
 
   create_table "rides", force: :cascade do |t|
-    t.bigint "driver_id"
-    t.bigint "passenger_id"
-    t.string "pickup", null: false
-    t.string "dropoff", null: false
-    t.string "ride_type", limit: 50, null: false
-    t.string "invitation_code", limit: 20
-    t.datetime "scheduled_time"
-    t.integer "available_seats", default: 0
-    t.string "status", limit: 20, null: false
-    t.integer "rating", limit: 2
-    t.text "review"
-    t.decimal "price", precision: 10, scale: 2, default: "0.0"
-    t.decimal "discount", precision: 10, scale: 2, default: "0.0"
-    t.string "distance", limit: 20
-    t.string "estimated_time", limit: 20
-    t.string "time_taken", limit: 20
+    t.bigint "driver_id", null: false
+    t.string "invitation_code"
+    t.string "status"
+    t.float "rating"
+    t.integer "available_seats"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["driver_id"], name: "index_rides_on_driver_id"
-    t.index ["passenger_id"], name: "index_rides_on_passenger_id"
-    t.index ["ride_type"], name: "index_rides_on_ride_type"
-    t.index ["scheduled_time"], name: "index_rides_on_scheduled_time"
-    t.index ["status"], name: "index_rides_on_status"
   end
 
   create_table "users", force: :cascade do |t|
@@ -92,10 +92,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_20_162046) do
     t.index ["driver_profile_id"], name: "index_vehicles_on_driver_profile_id"
   end
 
+  add_foreign_key "bookings", "passenger_profiles", column: "passenger_id"
+  add_foreign_key "bookings", "rides"
   add_foreign_key "driver_profiles", "users"
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id"
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
-  add_foreign_key "rides", "passenger_profiles", column: "passenger_id"
   add_foreign_key "vehicles", "driver_profiles"
 end

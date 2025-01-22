@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  resources :bookings do
+    collection do
+      get :pending
+    end
+  end
   resources :rides
   resources :passenger_profiles
   resources :driver_profiles do

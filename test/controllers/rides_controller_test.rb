@@ -17,7 +17,7 @@ class RidesControllerTest < ActionDispatch::IntegrationTest
 
   test "should create ride" do
     assert_difference("Ride.count") do
-      post rides_url, params: { ride: { available_seats: @ride.available_seats, discount: @ride.discount, distance: @ride.distance, driver_id: @ride.driver_id, dropoff: @ride.dropoff, estimated_time: @ride.estimated_time, invitation_code: @ride.invitation_code, pickup: @ride.pickup, price: @ride.price, rating: @ride.rating, review: @ride.review, ride_type: @ride.ride_type, scheduled_time: @ride.scheduled_time, status: @ride.status, time_taken: @ride.time_taken } }
+      post rides_url, params: { ride: { available_seats: @ride.available_seats, driver_id: @ride.driver_id, invitation_code: @ride.invitation_code, rating: @ride.rating, status: @ride.status } }
     end
 
     assert_redirected_to ride_url(Ride.last)
@@ -34,7 +34,7 @@ class RidesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update ride" do
-    patch ride_url(@ride), params: { ride: { available_seats: @ride.available_seats, discount: @ride.discount, distance: @ride.distance, driver_id: @ride.driver_id, dropoff: @ride.dropoff, estimated_time: @ride.estimated_time, invitation_code: @ride.invitation_code, pickup: @ride.pickup, price: @ride.price, rating: @ride.rating, review: @ride.review, ride_type: @ride.ride_type, scheduled_time: @ride.scheduled_time, status: @ride.status, time_taken: @ride.time_taken } }
+    patch ride_url(@ride), params: { ride: { available_seats: @ride.available_seats, driver_id: @ride.driver_id, invitation_code: @ride.invitation_code, rating: @ride.rating, status: @ride.status } }
     assert_redirected_to ride_url(@ride)
   end
 
