@@ -12,7 +12,11 @@ class BookingsController < ApplicationController
 
   # GET /bookings/new
   def new
-    @booking = Booking.new
+    if current_user.passenger_profile.nil?
+      redirect_to new_passenger_profile_path, notice: "Please create a passenger profile first."
+    else
+      @booking = Booking.new
+    end
   end
 
   # GET /bookings/1/edit

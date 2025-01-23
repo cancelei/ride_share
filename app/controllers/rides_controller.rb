@@ -12,7 +12,11 @@ class RidesController < ApplicationController
 
   # GET /rides/new
   def new
-    @ride = Ride.new
+    if current_user.driver_profile.nil?
+      redirect_to new_driver_profile_path, notice: "Please create a driver profile first."
+    else
+      @ride = Ride.new
+    end
   end
 
   # GET /rides/1/edit
