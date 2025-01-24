@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_22_163416) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_24_162121) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_22_163416) do
     t.text "special_instructions"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "distance_km"
+    t.integer "estimated_duration_minutes"
+    t.integer "remaing_durantion_minutes"
+    t.integer "total_travel_duration_minutes"
     t.index ["passenger_id"], name: "index_bookings_on_passenger_id"
     t.index ["ride_id"], name: "index_bookings_on_ride_id"
   end
@@ -38,6 +42,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_22_163416) do
     t.bigint "selected_vehicle_id"
     t.index ["selected_vehicle_id"], name: "index_driver_profiles_on_selected_vehicle_id"
     t.index ["user_id"], name: "index_driver_profiles_on_user_id"
+  end
+
+  create_table "locations", force: :cascade do |t|
+    t.string "address", null: false
+    t.decimal "latitude", precision: 10, scale: 6, null: false
+    t.decimal "longitude", precision: 10, scale: 6, null: false
+    t.string "location_type", null: false
+    t.bigint "booking_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["booking_id"], name: "index_locations_on_booking_id"
   end
 
   create_table "passenger_profiles", force: :cascade do |t|
@@ -96,6 +111,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_22_163416) do
   add_foreign_key "bookings", "rides"
   add_foreign_key "driver_profiles", "users"
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id"
+  add_foreign_key "locations", "bookings"
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
   add_foreign_key "vehicles", "driver_profiles"

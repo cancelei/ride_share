@@ -73,6 +73,24 @@ class BookingsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def booking_params
-      params.expect(booking: [ :passenger_id, :pickup, :dropoff, :scheduled_time, :status, :requested_seats, :special_instructions ])
+      params.require(:booking).permit(
+        :passenger_id,
+        :pickup,
+        :dropoff,
+        :scheduled_time,
+        :status,
+        :requested_seats,
+        :special_instructions,
+        :distance_km,
+        :estimated_duration_minutes,
+        :remaining_duration_minutes,
+        :total_travel_duration_minutes,
+        locations_attributes: [
+          :address,
+          :latitude,
+          :longitude,
+          :location_type
+        ]
+      )
     end
 end
