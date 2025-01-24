@@ -24,7 +24,7 @@
   </div>
 
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Pending Bookings</h2>
+    <h2 class="text-xl font-semibold mb-4">Future Bookings</h2>
     <% if @pending_bookings.any? %>
       <div class="space-y-4">
         <% @pending_bookings.each do |booking| %>
@@ -37,7 +37,7 @@
         <% end %>
       </div>
     <% else %>
-      <p class="text-gray-500">No pending bookings</p>
+      <p class="text-gray-500">No future bookings</p>
     <% end %>
   </div>
 
