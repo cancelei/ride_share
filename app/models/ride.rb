@@ -1,13 +1,18 @@
+require "net/http"
+require "uri"
+require "json"
+
 class Ride < ApplicationRecord
   belongs_to :driver, class_name: "DriverProfile", foreign_key: :driver_id
   has_many :bookings
 
   before_create :set_status
+  before_save :save_participants
   after_save :update_booking, -> { booking_id.present? }
 
   attr_accessor :booking_id
 
-  enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed" }
+  enum :status, { accepted: "accepted", ongoing: "ongoing", completed: "completed" }
 
   scope :active, -> { where("start_time >= ?", Time.current) }
   scope :past, -> { where("start_time < ?", Time.current) }
@@ -37,7 +42,7 @@ class Ride < ApplicationRecord
   end
 
   def google_maps_url
-    origin = CGI.escape(bookings.first.pickup.to_s)
+    origin = "My+Location"
     destination = CGI.escape(bookings.first.dropoff.to_s)
 
     # If there are multiple bookings, add them as waypoints
@@ -48,9 +53,13 @@ class Ride < ApplicationRecord
     end
 
     url = "https://www.google.com/maps/dir/?api=1&origin=#{origin}&destination=#{destination}"
-    url += "&waypoints=#{waypoints}" if waypoints.present?
+    url += "&waypoints=via:#{CGI.escape(bookings.first.pickup.to_s)}|#{waypoints}" if waypoints.present?
     url += "&travelmode=driving"
 
     url
+  end
+
+  def save_participants
+    self.participants_count = bookings.sum(:requested_seats)
   end
 end
