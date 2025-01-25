@@ -4,12 +4,14 @@ class RidesController < ApplicationController
   # GET /rides or /rides.json
   def index
     @active_rides = Ride.includes(:driver, :bookings)
+                       .where(driver: current_user.driver_profile)
                        .where("rides.status IN (?)",
                              [ "accepted" ])
                        .order("bookings.scheduled_time ASC")
                        .distinct
 
     @past_rides = Ride.includes(:driver, :bookings)
+                     .where(driver: current_user.driver_profile)
                      .where("rides.status = ?",
                            "completed")
                      .order("bookings.scheduled_time DESC")
