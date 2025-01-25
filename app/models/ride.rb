@@ -13,7 +13,7 @@ class Ride < ApplicationRecord
   scope :past, -> { where("start_time < ?", Time.current) }
 
   def set_status
-    self.status = "pending"
+    self.status = "accepted"
   end
 
   def update_booking
@@ -34,5 +34,23 @@ class Ride < ApplicationRecord
   def can_join?(user)
     return false unless user
     status == "scheduled" && !participants.include?(user)
+  end
+
+  def google_maps_url
+    origin = CGI.escape(bookings.first.pickup.to_s)
+    destination = CGI.escape(bookings.first.dropoff.to_s)
+
+    # If there are multiple bookings, add them as waypoints
+    waypoints = if bookings.count > 1
+      bookings[1..-1].map do |booking|
+        "via:#{CGI.escape(booking.pickup.to_s)}|via:#{CGI.escape(booking.dropoff.to_s)}"
+      end.join("|")
+    end
+
+    url = "https://www.google.com/maps/dir/?api=1&origin=#{origin}&destination=#{destination}"
+    url += "&waypoints=#{waypoints}" if waypoints.present?
+    url += "&travelmode=driving"
+
+    url
   end
 end

@@ -3,8 +3,17 @@ class RidesController < ApplicationController
 
   # GET /rides or /rides.json
   def index
-    @active_rides = Ride.active.includes(:participants).order(start_time: :asc)
-    @past_rides = Ride.past.includes(:participants).order(start_time: :desc)
+    @active_rides = Ride.includes(:driver, :bookings)
+                       .where("rides.status IN (?)",
+                             [ "accepted" ])
+                       .order("bookings.scheduled_time ASC")
+                       .distinct
+
+    @past_rides = Ride.includes(:driver, :bookings)
+                     .where("rides.status = ?",
+                           "completed")
+                     .order("bookings.scheduled_time DESC")
+                     .distinct
   end
 
   # GET /rides/1 or /rides/1.json
