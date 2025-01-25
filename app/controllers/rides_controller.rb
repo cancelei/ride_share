@@ -3,7 +3,8 @@ class RidesController < ApplicationController
 
   # GET /rides or /rides.json
   def index
-    @rides = Ride.all
+    @active_rides = Ride.active.includes(:participants).order(start_time: :asc)
+    @past_rides = Ride.past.includes(:participants).order(start_time: :desc)
   end
 
   # GET /rides/1 or /rides/1.json

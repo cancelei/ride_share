@@ -29,4 +29,6 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "dashboard#show"
+
+  post "driver/update_location", to: "driver_profiles#update_location"
 end

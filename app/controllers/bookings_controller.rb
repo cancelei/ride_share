@@ -3,7 +3,7 @@ class BookingsController < ApplicationController
 
   # GET /bookings or /bookings.json
   def index
-    @bookings = Booking.all
+    @bookings = Booking.where(passenger: current_user.passenger_profile)
   end
 
   # GET /bookings/1 or /bookings/1.json

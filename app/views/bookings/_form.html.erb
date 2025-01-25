@@ -19,7 +19,7 @@
         class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", 
         {"border-gray-400 focus:outline-blue-600": booking.errors[:pickup].none?, 
         "border-red-400 focus:outline-red-600": booking.errors[:pickup].any?}],
-        data: { places_autocomplete_target: "pickup" } %>
+        data: { places_autocomplete_target: "pickup" }, required: true %>
   </div>
 
   <div class="my-5">
@@ -28,17 +28,17 @@
         class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", 
         {"border-gray-400 focus:outline-blue-600": booking.errors[:dropoff].none?, 
         "border-red-400 focus:outline-red-600": booking.errors[:dropoff].any?}],
-        data: { places_autocomplete_target: "dropoff" } %>
+        data: { places_autocomplete_target: "dropoff" }, required: true %>
   </div>
 
   <div class="my-5">
     <%= form.label :scheduled_time %>
-    <%= form.datetime_field :scheduled_time, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": booking.errors[:scheduled_time].none?, "border-red-400 focus:outline-red-600": booking.errors[:scheduled_time].any?}] %>
+    <%= form.datetime_field :scheduled_time, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": booking.errors[:scheduled_time].none?, "border-red-400 focus:outline-red-600": booking.errors[:scheduled_time].any?}], required: true %>
   </div>
 
   <div class="my-5">
     <%= form.label :requested_seats %>
-    <%= form.number_field :requested_seats, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": booking.errors[:requested_seats].none?, "border-red-400 focus:outline-red-600": booking.errors[:requested_seats].any?}] %>
+    <%= form.number_field :requested_seats, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": booking.errors[:requested_seats].none?, "border-red-400 focus:outline-red-600": booking.errors[:requested_seats].any?}], required: true %>
   </div>
 
   <div class="my-5">

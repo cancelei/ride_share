@@ -4,7 +4,7 @@ class VehiclesController < ApplicationController
 
   # GET /vehicles or /vehicles.json
   def index
-    @vehicles = Vehicle.all
+    @vehicles = Vehicle.where(driver_profile: @driver_profile)
   end
 
   # GET /vehicles/1 or /vehicles/1.json

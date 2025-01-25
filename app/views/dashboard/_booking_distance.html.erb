@@ -1,0 +1,14 @@
+<div id="booking-<%= booking.id %>-distance" 
+     class="mt-2 text-sm text-gray-600"
+     data-controller="location"
+     data-location-booking-address-value="<%= booking.pickup %>"
+     data-location-google-api-key-value="<%= ENV['GOOGLE_MAPS_API_KEY'] %>">
+  <p>
+    <strong>Distance to pickup:</strong>
+    <span data-location-target="distance" class="text-gray-700">Calculating...</span>
+  </p>
+  <p>
+    <strong>Estimated time to pickup:</strong>
+    <span data-location-target="time" class="text-gray-700">Calculating...</span>
+  </p>
+</div> 

@@ -4,7 +4,7 @@ class DriverProfilesController < ApplicationController
 
   # GET /driver_profiles or /driver_profiles.json
   def index
-    @driver_profiles = DriverProfile.all
+    @driver_profiles = DriverProfile.where(user: current_user)
   end
 
   # GET /driver_profiles/1 or /driver_profiles/1.json
@@ -56,6 +56,15 @@ class DriverProfilesController < ApplicationController
       format.html { redirect_to driver_profiles_path, status: :see_other, notice: "Driver profile was successfully destroyed." }
       format.json { head :no_content }
     end
+  end
+
+  def update_location
+    latitude = params[:latitude]
+    longitude = params[:longitude]
+
+    current_user.broadcast_location(latitude, longitude)
+
+    head :ok
   end
 
   private
