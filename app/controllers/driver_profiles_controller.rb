@@ -59,11 +59,10 @@ class DriverProfilesController < ApplicationController
   end
 
   def update_location
-    latitude = params[:latitude]
-    longitude = params[:longitude]
+    latitude = params[:latitude].to_f
+    longitude = params[:longitude].to_f
 
-    current_user.broadcast_location(latitude, longitude)
-
+    current_user.update_location(latitude, longitude)
     head :ok
   end
 

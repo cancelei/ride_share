@@ -3,6 +3,9 @@ Rails.application.routes.draw do
     collection do
       get :pending
     end
+    member do
+      get :driver_location
+    end
   end
   resources :rides
   resources :passenger_profiles

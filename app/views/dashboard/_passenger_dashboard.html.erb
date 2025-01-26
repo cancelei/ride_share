@@ -1,44 +1,64 @@
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Passenger Profile</h2>
-    <% if @passenger_profile %>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <%# Profile Section - Left Sidebar %>
+  <div class="lg:col-span-1">
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">User Information</h2>
       <div class="space-y-4">
-        <p><strong>WhatsApp:</strong> <%= @passenger_profile.whatsapp_number %></p>
-        <p><strong>Telegram:</strong> <%= @passenger_profile.telegram_username %></p>
-        <%= link_to "Edit Profile", edit_passenger_profile_path(@passenger_profile), 
-            class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+        <p><strong>Name:</strong> <%= current_user.full_name %></p>
+        <p><strong>Email:</strong> <%= current_user.email %></p>
       </div>
-    <% else %>
-      <%= link_to "Create Passenger Profile", new_passenger_profile_path, 
-          class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-    <% end %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">Passenger Profile</h2>
+      <%= turbo_frame_tag "passenger_profile" do %>
+        <% if @passenger_profile %>
+          <div class="space-y-4">
+            <p><strong>WhatsApp:</strong> <%= @passenger_profile.whatsapp_number %></p>
+            <p><strong>Telegram:</strong> <%= @passenger_profile.telegram_username %></p>
+            <%= link_to "Edit Profile", edit_passenger_profile_path(@passenger_profile), 
+                class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+          </div>
+        <% else %>
+          <%= link_to "Create Passenger Profile", new_passenger_profile_path, 
+              class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+        <% end %>
+      <% end %>
+    </div>
   </div>
 
-  <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Recent Bookings</h2>
-      <%= link_to "Book a Ride", new_booking_path, 
-          class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-    </div>
-    
-    <% if @my_bookings.any? %>
-      <div class="space-y-4">
-        <% @my_bookings.each do |booking| %>
-          <div class="border-b pb-4">
-            <p><strong>Status:</strong> <%= booking.status.titleize %></p>
-            <p><strong>Scheduled Time:</strong> <%= booking.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></p>
-            <p><strong>From:</strong> <%= booking.pickup %></p>
-            <p><strong>To:</strong> <%= booking.dropoff %></p>
-            <p><strong>Distance:</strong> <%= booking.distance_km %> km</p>
-            <p><strong>Estimated Duration:</strong> <%= booking.estimated_duration_minutes %> minutes</p>
-            <p><strong>Total Travel Duration:</strong> <%= booking.total_travel_duration_minutes %> minutes</p>
-            <%= link_to "View Details", booking_path(booking), 
-                class: "mt-2 inline-block px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-          </div>
-        <% end %>
+  <%# Bookings Section - Right Content %>
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">My Rides</h2>
+        <%= link_to "Book a Ride", new_booking_path, 
+            class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
       </div>
-    <% else %>
-      <p class="text-gray-500">No bookings yet</p>
-    <% end %>
+
+      <%# Tabs Navigation %>
+      <div class="border-b border-gray-200 mb-6">
+        <nav class="flex space-x-4" aria-label="Tabs">
+          <%= link_to "Active Rides", "#active-rides",
+              class: "px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600",
+              data: { turbo_frame: "rides_content" } %>
+          <%= link_to "Past Rides", "#past-rides",
+              class: "px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700",
+              data: { turbo_frame: "rides_content" } %>
+        </nav>
+      </div>
+
+      <%# Rides Content %>
+      <%= turbo_frame_tag "rides_content" do %>
+        <div class="space-y-4">
+          <% @my_bookings.active.each do |booking| %>
+            <%= render "bookings/booking_card", booking: booking %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   </div>
-</div> 
+</div>
+
+<%# Partial for booking card to be rendered %>
+<%# Create a new partial: app/views/bookings/_booking_card.html.erb %> 

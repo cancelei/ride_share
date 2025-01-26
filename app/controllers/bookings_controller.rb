@@ -69,6 +69,20 @@ class BookingsController < ApplicationController
     @bookings = Booking.where(status: :pending)
   end
 
+  def driver_location
+    @booking = Booking.find(params[:id])
+
+    if @booking.ride&.driver&.user
+      render json: {
+        location: @booking.ride.driver.user.current_location,
+        distance_to_pickup: @booking.calculate_distance_to_driver,
+        eta_minutes: @booking.calculate_eta_minutes
+      }
+    else
+      render json: { error: "Driver not found" }, status: :not_found
+    end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_booking
