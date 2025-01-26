@@ -7,11 +7,11 @@
             RideShare
           <% end %>
         </div>
-        
+
         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-          <%= link_to "Dashboard", root_path, 
+          <%= link_to "Dashboard", root_path,
               class: "#{current_page?(root_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
-          
+
           <%= link_to "Bookings", bookings_path,
               class: "#{current_page?(bookings_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
           <% if current_user&.role_driver? %>
@@ -22,8 +22,8 @@
           <% if current_user&.role_passenger? %>
             <%= link_to "My Passenger Profile", passenger_profiles_path,
                 class: "#{current_page?(passenger_profiles_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
-            <%= link_to "Book a Ride", new_ride_path,
-                class: "#{current_page?(new_ride_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
+            <%= link_to "Book a Ride", new_booking_path,
+                class: "#{current_page?(new_booking_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
           <% end %>
 
           <%= link_to "My Rides", rides_path,
@@ -36,17 +36,17 @@
           <div class="ml-3 relative">
             <div class="flex items-center space-x-4">
               <span class="text-gray-700"><%= current_user.email %></span>
-              <%= button_to "Sign out", destroy_user_session_path, method: :delete, 
+              <%= button_to "Sign out", destroy_user_session_path, method: :delete,
                   class: "text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium" %>
             </div>
           </div>
         <% else %>
-          <%= link_to "Sign in", new_user_session_path, 
+          <%= link_to "Sign in", new_user_session_path,
               class: "text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium" %>
-          <%= link_to "Sign up", new_user_registration_path, 
+          <%= link_to "Sign up", new_user_registration_path,
               class: "bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-md text-sm font-medium" %>
         <% end %>
       </div>
     </div>
   </div>
-</nav> 
+</nav>
