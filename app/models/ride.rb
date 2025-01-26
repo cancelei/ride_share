@@ -44,7 +44,7 @@ class Ride < ApplicationRecord
   end
 
   def google_maps_url
-    origin = "My+Location"
+    origin = CGI.escape(bookings.first.pickup.to_s)
     destination = CGI.escape(bookings.first.dropoff.to_s)
 
     # If there are multiple bookings, add them as waypoints

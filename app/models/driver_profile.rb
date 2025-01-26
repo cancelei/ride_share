@@ -3,7 +3,7 @@ class DriverProfile < ApplicationRecord
 
   validates :license, :license_issuer, presence: true
 
-  validate :only_one_active_driver_profile_per_user
+  validate :only_one_active_driver_profile_per_user, on: :create
 
   def only_one_active_driver_profile_per_user
     if DriverProfile.where(user: user).count > 0

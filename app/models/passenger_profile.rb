@@ -1,7 +1,7 @@
 class PassengerProfile < ApplicationRecord
   belongs_to :user
 
-  validate :only_one_active_passenger_profile_per_user
+  validate :only_one_active_passenger_profile_per_user, on: :create
 
   def only_one_active_passenger_profile_per_user
     if PassengerProfile.where(user: user).count > 0

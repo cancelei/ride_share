@@ -26,7 +26,7 @@ class VehiclesController < ApplicationController
 
     respond_to do |format|
       if @vehicle.save
-        format.html { redirect_to driver_profile_vehicle_path(@driver_profile, @vehicle), notice: "Vehicle was successfully created." }
+        format.html { redirect_to root_path, notice: "Vehicle was successfully created." }
         format.json { render :show, status: :created, location: @vehicle }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -39,7 +39,7 @@ class VehiclesController < ApplicationController
   def update
     respond_to do |format|
       if @vehicle.update(vehicle_params)
-        format.html { redirect_to driver_profile_vehicle_path(@driver_profile, @vehicle), notice: "Vehicle was successfully updated." }
+        format.html { redirect_to root_path, notice: "Vehicle was successfully updated." }
         format.json { render :show, status: :ok, location: @vehicle }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -53,13 +53,13 @@ class VehiclesController < ApplicationController
     @vehicle.destroy!
 
     respond_to do |format|
-      format.html { redirect_to driver_profile_vehicles_path(@driver_profile), notice: "Vehicle was successfully destroyed." }
+      format.html { redirect_to root_path, notice: "Vehicle was successfully destroyed." }
       format.json { head :no_content }
     end
   end
 
   def select
-    @driver_profile.update(selected_vehicle: @vehicle)
+    @driver_profile.update!(selected_vehicle_id: @vehicle.id)
     redirect_to root_path, notice: "Vehicle was successfully set as current."
   end
 

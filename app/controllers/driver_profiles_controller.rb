@@ -26,7 +26,7 @@ class DriverProfilesController < ApplicationController
 
     respond_to do |format|
       if @driver_profile.save
-        format.html { redirect_to @driver_profile, notice: "Driver profile was successfully created." }
+        format.html { redirect_to root_path, notice: "Driver profile was successfully created." }
         format.json { render :show, status: :created, location: @driver_profile }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -39,7 +39,7 @@ class DriverProfilesController < ApplicationController
   def update
     respond_to do |format|
       if @driver_profile.update(driver_profile_params)
-        format.html { redirect_to @driver_profile, notice: "Driver profile was successfully updated." }
+        format.html { redirect_to root_path, notice: "Driver profile was successfully updated." }
         format.json { render :show, status: :ok, location: @driver_profile }
       else
         format.html { render :edit, status: :unprocessable_entity }
