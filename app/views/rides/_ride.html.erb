@@ -19,4 +19,16 @@
     <strong class="block font-medium mb-1">Available seats:</strong>
     <%= ride.available_seats %>
   </p>
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Status:</strong>
+    <%= ride.status %>
+  </p>
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Booking:</strong>
+    <%= ride.booking_id %>
+  </p>
+
+  <% if ride.status == "pending" %>
+    <%= link_to "Accept", accept_ride_path(ride), class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+  <% end %>
 </div>

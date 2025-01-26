@@ -10,6 +10,10 @@ class PassengerProfilesController < ApplicationController
   def show
   end
 
+  def shared_bookings
+    @shared_bookings = Booking.where(passenger: @passenger_profile)
+  end
+
   # GET /passenger_profiles/new
   def new
     @passenger_profile = PassengerProfile.new

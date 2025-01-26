@@ -1,10 +1,10 @@
 class VehiclesController < ApplicationController
-  before_action :set_vehicle, only: %i[ show edit update destroy ]
   before_action :set_driver_profile
+  before_action :set_vehicle, only: %i[ show edit update destroy select ]
 
   # GET /vehicles or /vehicles.json
   def index
-    @vehicles = Vehicle.where(driver_profile: @driver_profile)
+    @vehicles = @driver_profile.vehicles
   end
 
   # GET /vehicles/1 or /vehicles/1.json
@@ -13,7 +13,7 @@ class VehiclesController < ApplicationController
 
   # GET /vehicles/new
   def new
-    @vehicle = @driver_profile.vehicles.new
+    @vehicle = @driver_profile.vehicles.build
   end
 
   # GET /vehicles/1/edit
@@ -22,11 +22,11 @@ class VehiclesController < ApplicationController
 
   # POST /vehicles or /vehicles.json
   def create
-    @vehicle = Vehicle.new(vehicle_params)
+    @vehicle = @driver_profile.vehicles.build(vehicle_params)
 
     respond_to do |format|
       if @vehicle.save
-        format.html { redirect_to [ @driver_profile, @vehicle ], notice: "Vehicle was successfully created." }
+        format.html { redirect_to driver_profile_vehicle_path(@driver_profile, @vehicle), notice: "Vehicle was successfully created." }
         format.json { render :show, status: :created, location: @vehicle }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -35,16 +35,11 @@ class VehiclesController < ApplicationController
     end
   end
 
-  def select
-    @driver_profile.update!(selected_vehicle_id: params[:id])
-    redirect_to driver_profile_vehicles_path(@driver_profile)
-  end
-
   # PATCH/PUT /vehicles/1 or /vehicles/1.json
   def update
     respond_to do |format|
       if @vehicle.update(vehicle_params)
-        format.html { redirect_to @vehicle, notice: "Vehicle was successfully updated." }
+        format.html { redirect_to driver_profile_vehicle_path(@driver_profile, @vehicle), notice: "Vehicle was successfully updated." }
         format.json { render :show, status: :ok, location: @vehicle }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -58,23 +53,27 @@ class VehiclesController < ApplicationController
     @vehicle.destroy!
 
     respond_to do |format|
-      format.html { redirect_to driver_profile_vehicles_path(@driver_profile), status: :see_other, notice: "Vehicle was successfully destroyed." }
+      format.html { redirect_to driver_profile_vehicles_path(@driver_profile), notice: "Vehicle was successfully destroyed." }
       format.json { head :no_content }
     end
   end
 
+  def select
+    @driver_profile.update(selected_vehicle: @vehicle)
+    redirect_to root_path, notice: "Vehicle was successfully set as current."
+  end
+
   private
-    # Use callbacks to share common setup or constraints between actions.
     def set_driver_profile
       @driver_profile = DriverProfile.find(params[:driver_profile_id])
     end
 
     def set_vehicle
-      @vehicle = Vehicle.find(params.expect(:id))
+      @vehicle = @driver_profile.vehicles.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def vehicle_params
-      params.expect(vehicle: [ :driver_profile_id, :registration_number, :seating_capacity, :brand, :model, :color, :fuel_avg, :built_year, :has_private_insurance ])
+      params.require(:vehicle).permit(:registration_number, :seating_capacity, :brand, :model, :color, :fuel_avg, :built_year, :has_private_insurance)
     end
 end

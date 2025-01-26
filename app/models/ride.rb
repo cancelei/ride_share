@@ -17,6 +17,8 @@ class Ride < ApplicationRecord
   scope :active, -> { where("start_time >= ?", Time.current) }
   scope :past, -> { where("start_time < ?", Time.current) }
 
+  validate :driver_has_vehicle
+
   def set_status
     self.status = "accepted"
   end
@@ -59,7 +61,36 @@ class Ride < ApplicationRecord
     url
   end
 
+  def participants_count
+    bookings.sum(:requested_seats)
+  end
+
+  private
+
   def save_participants
-    self.participants_count = bookings.sum(:requested_seats)
+    # Get the driver's vehicle capacity
+    vehicle_capacity = driver.selected_vehicle&.seating_capacity ||
+                      driver.vehicles.first&.seating_capacity || 0
+
+    # Set initial available seats to vehicle capacity if not set
+    self.available_seats ||= vehicle_capacity
+
+    # Calculate total requested seats from all accepted bookings
+    total_requested_seats = bookings.sum(:requested_seats)
+
+    # If this is a new booking being added
+    if booking_id.present?
+      new_booking = Booking.find_by(id: booking_id)
+      total_requested_seats += new_booking.requested_seats if new_booking
+    end
+
+    # Update available seats
+    self.available_seats = [ vehicle_capacity - total_requested_seats, 0 ].max
+  end
+
+  def driver_has_vehicle
+    unless driver&.vehicles&.any?
+      errors.add(:base, "Driver must have at least one vehicle")
+    end
   end
 end

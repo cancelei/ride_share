@@ -1,25 +1,93 @@
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-start mb-4">
+      <h2 class="text-xl font-semibold">Current Vehicle</h2>
+      <% if current_user.driver_profile&.vehicles&.any? %>
+        <%= link_to "Add Another Vehicle", 
+            new_driver_profile_vehicle_path(current_user.driver_profile), 
+            class: "text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500" %>
+      <% end %>
+    </div>
+
+    <% if current_user.driver_profile&.vehicles&.any? %>
+      <% vehicle = current_user.driver_profile.selected_vehicle || current_user.driver_profile.vehicles.first %>
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-gray-600">Vehicle</p>
+            <p class="font-medium"><%= "#{vehicle.brand} #{vehicle.model} (#{vehicle.built_year})" %></p>
+          </div>
+          <div>
+            <p class="text-gray-600">Registration</p>
+            <p class="font-medium"><%= vehicle.registration_number %></p>
+          </div>
+          <div>
+            <p class="text-gray-600">Color</p>
+            <p class="font-medium"><%= vehicle.color %></p>
+          </div>
+          <div>
+            <p class="text-gray-600">Seating Capacity</p>
+            <p class="font-medium"><%= vehicle.seating_capacity %> seats</p>
+          </div>
+          <% if vehicle.fuel_avg.present? %>
+            <div>
+              <p class="text-gray-600">Fuel Average</p>
+              <p class="font-medium"><%= vehicle.fuel_avg %> km/l</p>
+            </div>
+          <% end %>
+        </div>
+        
+        <div class="mt-4 flex space-x-3">
+          <%= link_to "Edit Vehicle", 
+              edit_driver_profile_vehicle_path(current_user.driver_profile, vehicle), 
+              class: "text-sm px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" %>
+          
+          <% unless vehicle == current_user.driver_profile.selected_vehicle %>
+            <%= button_to "Set as Current", 
+                select_driver_profile_vehicle_path(current_user.driver_profile, vehicle),
+                method: :post,
+                class: "text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500" %>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="bg-yellow-50 text-yellow-800 p-4 rounded-md">
+        <p>You need to add at least one vehicle to your driver profile before creating rides.</p>
+        <%= link_to "Add Vehicle", 
+            new_driver_profile_vehicle_path(current_user.driver_profile), 
+            class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+      </div>
+    <% end %>
+  </div>
 
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-semibold mb-4">Future Bookings</h2>
-    <% if @pending_bookings.any? %>
-      <div class="space-y-4">
-        <% @pending_bookings.each do |booking| %>
-          <div class="border-b pb-4" id="booking-<%= booking.id %>">
-            <h2><%= booking.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></h2>
-            <%= render 'dashboard/booking_distance', booking: booking, current_coordinates: @current_coordinates %>
-            <p><strong>From:</strong> <%= booking.pickup %></p>
-            <p><strong>To:</strong> <%= booking.dropoff %></p>
-            <p><strong>Seats:</strong> <%= booking.requested_seats %></p>
-            <p><strong>Distance:</strong> <%= booking.distance_km %> km</p>
-            <p><strong>Estimated Duration:</strong> <%= booking.estimated_duration_minutes %> minutes</p>
-            <p><strong>Total Travel Duration:</strong> <%= booking.total_travel_duration_minutes %> minutes</p>
-            <%= render 'rides/form', ride: Ride.new, booking_id: booking.id %>
-          </div>
-        <% end %>
-      </div>
+    <% if current_user.driver_profile&.vehicles&.any? %>
+      <% if @pending_bookings.any? %>
+        <div class="space-y-4">
+          <% @pending_bookings.each do |booking| %>
+            <div class="border-b pb-4" id="booking-<%= booking.id %>">
+              <h2><%= booking.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></h2>
+              <%= render 'dashboard/booking_distance', booking: booking, current_coordinates: @current_coordinates %>
+              <p><strong>From:</strong> <%= booking.pickup %></p>
+              <p><strong>To:</strong> <%= booking.dropoff %></p>
+              <p><strong>Seats:</strong> <%= booking.requested_seats %></p>
+              <p><strong>Distance:</strong> <%= booking.distance_km %> km</p>
+              <p><strong>Estimated Duration:</strong> <%= booking.estimated_duration_minutes %> minutes</p>
+              <p><strong>Total Travel Duration:</strong> <%= booking.total_travel_duration_minutes %> minutes</p>
+              <%= render 'rides/form', ride: Ride.new, booking_id: booking.id %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500">No future bookings</p>
+      <% end %>
     <% else %>
-      <p class="text-gray-500">No future bookings</p>
+      <div class="bg-yellow-50 text-yellow-800 p-4 rounded-md">
+        <p>You need to add at least one vehicle to your driver profile before creating rides.</p>
+        <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(current_user.driver_profile), 
+            class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+      </div>
     <% end %>
   </div>
 
@@ -30,13 +98,13 @@
         <% @active_rides.each do |ride| %>
           <div class="border-b pb-4">
             <p><strong>Status:</strong> <%= ride.status.titleize %></p>
-            <p><strong>Scheduled Time:</strong> <%= ride.bookings.first.scheduled_time.strftime("%A, %B %d, %Y at %I:%M %p") %></p>
-            <p><strong>Pickup:</strong> <%= ride.bookings.first.pickup %></p>
-            <p><strong>Dropoff:</strong> <%= ride.bookings.first.dropoff %></p>
-            <p><strong>Distance:</strong> <%= ride.bookings.first.distance_km %> km</p>
+            <p><strong>Scheduled Time:</strong> <%= ride.bookings.first&.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></p>
+            <p><strong>Pickup:</strong> <%= ride.bookings.first&.pickup %></p>
+            <p><strong>Dropoff:</strong> <%= ride.bookings.first&.dropoff %></p>
+            <p><strong>Distance:</strong> <%= ride.bookings.first&.distance_km %> km</p>
             <p><strong>Total Seats:</strong> <%= ride.bookings.sum(:requested_seats) %></p>
-            <p><strong>Estimated Duration:</strong> <%= ride.bookings.first.estimated_duration_minutes %> minutes</p>
-            <p><strong>Total Travel Duration:</strong> <%= ride.bookings.first.total_travel_duration_minutes %> minutes</p>
+            <p><strong>Estimated Duration:</strong> <%= ride.bookings.first&.estimated_duration_minutes %> minutes</p>
+            <p><strong>Total Travel Duration:</strong> <%= ride.bookings.first&.total_travel_duration_minutes %> minutes</p>
             <p><strong>Solicitors:</strong> <%= ride.bookings.count %></p>
             <%= link_to "View Details", ride_path(ride), 
                 class: "mt-2 inline-block px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
@@ -54,17 +122,6 @@
       <div class="space-y-4">
         <p><strong>License:</strong> <%= @driver_profile.license %></p>
         <p><strong>Issuer:</strong> <%= @driver_profile.license_issuer %></p>
-        
-        <% if @current_vehicle %>
-          <div class="mt-4">
-            <h3 class="font-medium">Current Vehicle</h3>
-            <p><%= @current_vehicle.brand %> <%= @current_vehicle.model %></p>
-            <p>Registration: <%= @current_vehicle.registration_number %></p>
-          </div>
-        <% else %>
-          <%= link_to "Add a Vehicle", new_driver_profile_vehicle_path(@driver_profile), 
-              class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-        <% end %>
       </div>
     <% else %>
       <%= link_to "Create Driver Profile", new_driver_profile_path, 

@@ -1,5 +1,6 @@
 class RidesController < ApplicationController
   before_action :set_ride, only: %i[ show edit update destroy ]
+  before_action :check_driver_requirements, only: %i[ new create ]
 
   # GET /rides or /rides.json
   def index
@@ -82,5 +83,12 @@ class RidesController < ApplicationController
     # Only allow a list of trusted parameters through.
     def ride_params
       params.expect(ride: [ :driver_id, :booking_id, :invitation_code, :status, :rating, :available_seats ])
+    end
+
+    def check_driver_requirements
+      unless current_user.driver_profile&.vehicles&.any?
+        redirect_to new_driver_profile_vehicle_path(current_user.driver_profile),
+          notice: "Please add at least one vehicle before creating rides."
+      end
     end
 end

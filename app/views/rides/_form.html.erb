@@ -1,20 +1,28 @@
-<%= form_with(model: ride, class: "contents") do |form| %>
-  <% if ride.errors.any? %>
-    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
-      <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
+<% if current_user.driver_profile&.vehicles&.any? %>
+  <%= form_with(model: ride, class: "contents") do |form| %>
+    <% if ride.errors.any? %>
+      <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+        <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
 
-      <ul class="list-disc ml-6">
-        <% ride.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
+        <ul class="list-disc ml-6">
+          <% ride.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%= form.hidden_field :driver_id, value: current_user.driver_profile.id %>
+    <%= form.hidden_field :booking_id, value: defined?(booking_id) ? booking_id : nil %>
+
+    <div class="inline">
+      <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
     </div>
   <% end %>
-
-  <%= form.hidden_field :driver_id, value: current_user.driver_profile.id %>
-  <%= form.hidden_field :booking_id, value: defined?(booking_id) ? booking_id : nil %>
-
-  <div class="inline">
-    <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+<% else %>
+  <div class="bg-yellow-50 text-yellow-800 p-4 rounded-md">
+    <p>You need to add at least one vehicle to your driver profile before creating rides.</p>
+    <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(current_user.driver_profile), 
+        class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" if current_user.driver_profile %>
   </div>
 <% end %>
