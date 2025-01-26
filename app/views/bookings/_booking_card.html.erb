@@ -8,17 +8,17 @@
         <%= booking.pickup %> → <%= booking.dropoff %>
       </p>
       <div class="text-sm text-gray-600">
-        <p><span class="font-medium">Status:</span> 
+        <p><span class="font-medium">Status:</span>
           <span class="<%= booking_status_color(booking.status) %>">
             <%= booking.status.titleize %>
           </span>
         </p>
-        <p><span class="font-medium">Scheduled:</span> 
+        <p><span class="font-medium">Scheduled:</span>
           <%= booking.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %>
         </p>
         <p><span class="font-medium">Distance:</span> <%= booking.distance_km %> km</p>
         <p><span class="font-medium">Duration:</span> <%= booking.estimated_duration_minutes %> min</p>
-        
+
         <% if booking.ride && booking.accepted? %>
           <div class="mt-4 p-4 bg-gray-50 rounded-lg">
             <h3 class="font-medium text-gray-900 mb-2">Driver Information</h3>
@@ -36,7 +36,7 @@
                 <%= booking.ride.driver.selected_vehicle.registration_number %>
               </p>
               <p>
-                <%= link_to "https://wa.me/#{booking.ride.driver.user.phone_number}", 
+                <%= link_to "https://wa.me/#{booking.ride.driver.user.phone_number}",
                     target: "_blank",
                     class: "inline-flex items-center text-green-600 hover:text-green-700" do %>
                   <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -47,10 +47,10 @@
               </p>
             </div>
 
-            <div class="mt-4" data-driver-location-target="location">
+            <div class="mt-4">
               <p class="text-sm">
                 <span class="font-medium">Driver's Location:</span>
-                <span class="text-gray-600">Updating...</span>
+                <span class="text-gray-600" data-driver-location-target="location">Updating...</span>
               </p>
               <p class="text-sm">
                 <span class="font-medium">Distance to Pickup:</span>
@@ -65,7 +65,7 @@
         <% end %>
       </div>
     </div>
-    <%= link_to "View Details", booking_path(booking), 
+    <%= link_to "View Details", booking_path(booking),
         class: "px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-500 text-sm" %>
   </div>
-</div> 
+</div>
