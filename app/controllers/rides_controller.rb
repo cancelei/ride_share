@@ -1,5 +1,5 @@
 class RidesController < ApplicationController
-  before_action :set_ride, only: %i[ show edit update destroy ]
+  before_action :set_ride, only: %i[ show edit update destroy start finish ]
   before_action :check_driver_requirements, only: %i[ new create ]
 
   # GET /rides or /rides.json
@@ -7,7 +7,7 @@ class RidesController < ApplicationController
     @active_rides = Ride.includes(:driver, :bookings)
                        .where(driver: current_user.driver_profile)
                        .where("rides.status IN (?)",
-                             [ "accepted" ])
+                             [ "accepted", "ongoing" ])
                        .order("bookings.scheduled_time ASC")
                        .distinct
 
@@ -21,12 +21,12 @@ class RidesController < ApplicationController
 
   def start
     @ride.start!
-    redirect_to dashboard_path, notice: "Ride was successfully started."
+    redirect_to root_path, notice: "Ride was successfully started."
   end
 
   def finish
     @ride.finish!
-    redirect_to dashboard_path, notice: "Ride was successfully finished."
+    redirect_to root_path, notice: "Ride was successfully finished."
   end
 
   # GET /rides/1 or /rides/1.json

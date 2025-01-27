@@ -20,6 +20,14 @@ class Ride < ApplicationRecord
   validate :driver_has_vehicle
   validate :only_one_active_ride, on: :create
 
+  def can_start?(user)
+    user.driver_profile == self.driver && self.status == "accepted"
+  end
+
+  def can_finish?(user)
+    user.driver_profile == self.driver && self.status == "ongoing"
+  end
+
   def start!
     self.start_time = Time.current
     self.status = "ongoing"

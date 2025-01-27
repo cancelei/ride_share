@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_26_162458) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_24_161438) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,12 +23,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_26_162458) do
     t.string "status"
     t.integer "requested_seats"
     t.text "special_instructions"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.decimal "distance_km"
+    t.decimal "distance_km", precision: 10, scale: 6
     t.integer "estimated_duration_minutes"
     t.integer "remaing_durantion_minutes"
     t.integer "total_travel_duration_minutes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["passenger_id"], name: "index_bookings_on_passenger_id"
     t.index ["ride_id"], name: "index_bookings_on_ride_id"
   end
@@ -66,16 +66,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_26_162458) do
 
   create_table "rides", force: :cascade do |t|
     t.bigint "driver_id", null: false
+    t.datetime "start_time"
+    t.datetime "end_time"
     t.string "invitation_code"
     t.string "status"
     t.float "rating"
     t.integer "available_seats"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "start_time"
     t.string "title"
     t.string "location"
     t.integer "participants_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["driver_id"], name: "index_rides_on_driver_id"
   end
 

@@ -8,6 +8,9 @@ class CreateRides < ActiveRecord::Migration[8.0]
       t.string :status
       t.float :rating
       t.integer :available_seats
+      t.string :title
+      t.string :location
+      t.integer :participants_count, default: 0
 
       t.timestamps
     end
