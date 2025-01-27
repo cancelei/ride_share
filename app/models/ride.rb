@@ -18,6 +18,25 @@ class Ride < ApplicationRecord
   scope :past, -> { where("start_time < ?", Time.current) }
 
   validate :driver_has_vehicle
+  validate :only_one_active_ride, on: :create
+
+  def start!
+    self.start_time = Time.current
+    self.status = "ongoing"
+    save!
+  end
+
+  def finish!
+    self.end_time = Time.current
+    self.status = "completed"
+    save!
+  end
+
+  def only_one_active_ride
+    if Ride.where(driver: driver).where(status: [ "accepted", "ongoing" ]).exists?
+      errors.add(:base, "Driver already has an active ride, finish ride first of reach out to customer support.")
+    end
+  end
 
   def set_status
     self.status = "accepted"

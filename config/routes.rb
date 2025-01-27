@@ -7,7 +7,13 @@ Rails.application.routes.draw do
       get :driver_location
     end
   end
-  resources :rides
+  resources :rides do
+    member do
+      post :start
+      post :finish
+    end
+  end
+
   resources :passenger_profiles
   resources :driver_profiles do
     resources :vehicles do

@@ -40,6 +40,9 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.0]
       t.string :last_name, null: true
       t.string :phone_number, null: true
       t.string :country, null: true
+      t.decimal :current_latitude, precision: 10, scale: 6
+      t.decimal :current_longitude, precision: 10, scale: 6
+      t.datetime :location_updated_at
     end
 
     add_index :users, :email,                unique: true

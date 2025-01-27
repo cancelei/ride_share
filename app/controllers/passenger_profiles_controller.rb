@@ -29,7 +29,7 @@ class PassengerProfilesController < ApplicationController
 
     respond_to do |format|
       if @passenger_profile.save
-        format.html { redirect_to @passenger_profile, notice: "Passenger profile was successfully created." }
+        format.html { redirect_to root_path, notice: "Passenger profile was successfully created." }
         format.json { render :show, status: :created, location: @passenger_profile }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -42,7 +42,7 @@ class PassengerProfilesController < ApplicationController
   def update
     respond_to do |format|
       if @passenger_profile.update(passenger_profile_params)
-        format.html { redirect_to @passenger_profile, notice: "Passenger profile was successfully updated." }
+        format.html { redirect_to root_path, notice: "Passenger profile was successfully updated." }
         format.json { render :show, status: :ok, location: @passenger_profile }
       else
         format.html { render :edit, status: :unprocessable_entity }

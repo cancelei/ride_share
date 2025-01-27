@@ -26,6 +26,7 @@ class VehiclesController < ApplicationController
 
     respond_to do |format|
       if @vehicle.save
+        @driver_profile.update(selected_vehicle_id: @vehicle.id) if @driver_profile.selected_vehicle_id.blank?
         format.html { redirect_to root_path, notice: "Vehicle was successfully created." }
         format.json { render :show, status: :created, location: @vehicle }
       else

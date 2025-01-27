@@ -19,6 +19,16 @@ class RidesController < ApplicationController
                      .distinct
   end
 
+  def start
+    @ride.start!
+    redirect_to dashboard_path, notice: "Ride was successfully started."
+  end
+
+  def finish
+    @ride.finish!
+    redirect_to dashboard_path, notice: "Ride was successfully finished."
+  end
+
   # GET /rides/1 or /rides/1.json
   def show
   end
@@ -55,7 +65,7 @@ class RidesController < ApplicationController
   def update
     respond_to do |format|
       if @ride.update(ride_params)
-        format.html { redirect_to @ride, notice: "Ride was successfully updated." }
+        format.html { redirect_to dashboard_path, notice: "Ride was successfully updated." }
         format.json { render :show, status: :ok, location: @ride }
       else
         format.html { render :edit, status: :unprocessable_entity }

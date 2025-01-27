@@ -10,6 +10,11 @@ class CreateBookings < ActiveRecord::Migration[8.0]
       t.integer :requested_seats
       t.text :special_instructions
 
+      t.decimal :distance_km, precision: 10, scale: 6
+      t.integer :estimated_duration_minutes
+      t.integer :remaing_durantion_minutes
+      t.integer :total_travel_duration_minutes
+
       t.timestamps
     end
   end
