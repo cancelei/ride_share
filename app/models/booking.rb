@@ -7,7 +7,7 @@ class Booking < ApplicationRecord
 
   before_save :set_status
 
-  enum :status, { pending: "pending", accepted: "accepted", rejected: "rejected" }
+  enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }
 
   accepts_nested_attributes_for :locations
 

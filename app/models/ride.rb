@@ -31,12 +31,14 @@ class Ride < ApplicationRecord
   def start!
     self.start_time = Time.current
     self.status = "ongoing"
+    self.bookings.update_all(status: :in_progress)
     save!
   end
 
   def finish!
     self.end_time = Time.current
     self.status = "completed"
+    self.bookings.update_all(status: :completed)
     save!
   end
 

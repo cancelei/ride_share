@@ -17,6 +17,8 @@
           <% if current_user&.role_driver? %>
             <%= link_to "My Vehicles", driver_profile_vehicles_path(current_user.driver_profile),
                 class: "#{current_page?(driver_profile_vehicles_path(current_user.driver_profile)) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" if current_user.driver_profile %>
+            <%= link_to "My Rides", rides_path,
+                class: "#{current_page?(rides_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
           <% end %>
 
           <% if current_user&.role_passenger? %>
@@ -25,10 +27,7 @@
             <%= link_to "Book a Ride", new_booking_path,
                 class: "#{current_page?(new_booking_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
           <% end %>
-
-          <%= link_to "My Rides", rides_path,
-              class: "#{current_page?(rides_path) ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" %>
-        </div>
+          </div>
       </div>
 
       <div class="flex items-center">
