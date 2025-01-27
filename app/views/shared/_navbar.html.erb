@@ -31,6 +31,14 @@
       </div>
 
       <div class="flex items-center">
+        <%= link_to "https://github.com/cancelei/ride_share/issues", 
+            target: "_blank",
+            rel: "noopener noreferrer",
+            class: "mr-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+          <i class="fab fa-github mr-2"></i>
+          Open Issue
+        <% end %>
+
         <% if user_signed_in? %>
           <div class="ml-3 relative">
             <div class="flex items-center space-x-4">

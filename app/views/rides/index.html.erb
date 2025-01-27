@@ -100,7 +100,7 @@
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap"><%= ride.title %></td>
                 <td class="px-6 py-4 whitespace-nowrap"><%= ride.start_time %></td>
-                <td class="px-6 py-4 whitespace-nowrap"><%= ride.location %></td>
+                <td class="px-6 py-4 whitespace-nowrap"><%= ride.bookings.first.pickup %> <strong> --> </strong> <br> <%= ride.bookings.first.dropoff %></td>
                 <td class="px-6 py-4 whitespace-nowrap"><%= ride.participants_count %></td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 text-sm rounded-full <%= ride.status_color %>">
