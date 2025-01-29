@@ -26,7 +26,6 @@ class VehiclesController < ApplicationController
 
     respond_to do |format|
       if @vehicle.save
-        @driver_profile.update(selected_vehicle_id: @vehicle.id) if @driver_profile.selected_vehicle_id.blank?
         format.html { redirect_to root_path, notice: "Vehicle was successfully created." }
         format.json { render :show, status: :created, location: @vehicle }
       else
@@ -75,6 +74,16 @@ class VehiclesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def vehicle_params
-      params.require(:vehicle).permit(:registration_number, :seating_capacity, :brand, :model, :color, :fuel_avg, :built_year, :has_private_insurance)
+      params.require(:vehicle).permit(
+        :driver_profile_id,
+        :registration_number,
+        :seating_capacity,
+        :brand,
+        :model,
+        :color,
+        :fuel_avg,
+        :built_year,
+        :has_private_insurance
+      )
     end
 end

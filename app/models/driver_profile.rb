@@ -1,5 +1,6 @@
 class DriverProfile < ApplicationRecord
   belongs_to :user
+  has_many :rides
 
   validates :license, :license_issuer, presence: true
 

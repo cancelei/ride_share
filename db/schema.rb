@@ -37,6 +37,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_24_161438) do
     t.bigint "user_id", null: false
     t.string "license", null: false
     t.string "license_issuer", null: false
+    t.string "bitcoin_address"
+    t.string "icc_address"
+    t.string "ethereum_address"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "selected_vehicle_id"

@@ -31,6 +31,22 @@ class BookingsController < ApplicationController
   def create
     @booking = Booking.new(booking_params)
 
+    # Create pickup location
+    @booking.locations.build(
+      address: params[:booking][:booking_pickup_location_attributes_address],
+      latitude: params[:booking][:booking_pickup_location_attributes_latitude],
+      longitude: params[:booking][:booking_pickup_location_attributes_longitude],
+      location_type: "pickup"
+    )
+
+    # Create dropoff location
+    @booking.locations.build(
+      address: params[:booking][:booking_dropoff_location_attributes_address],
+      latitude: params[:booking][:booking_dropoff_location_attributes_latitude],
+      longitude: params[:booking][:booking_dropoff_location_attributes_longitude],
+      location_type: "dropoff"
+    )
+
     respond_to do |format|
       if @booking.save
         format.html { redirect_to @booking, notice: "Booking was successfully created." }
@@ -73,11 +89,16 @@ class BookingsController < ApplicationController
     @booking = Booking.find(params[:id])
 
     if @booking.ride&.driver&.user
-      render json: {
-        location: @booking.ride.driver.user.current_location,
-        distance_to_pickup: @booking.calculate_distance_to_driver,
-        eta_minutes: @booking.calculate_eta_minutes
-      }
+      begin
+        render json: {
+          location: @booking.ride.driver.user.current_location,
+          distance_to_pickup: @booking.calculate_distance_to_driver,
+          eta_minutes: @booking.calculate_eta_minutes
+        }
+      rescue => e
+        Rails.logger.error("Error calculating driver location: #{e.message}")
+        render json: { error: "Unable to calculate distance" }, status: :unprocessable_entity
+      end
     else
       render json: { error: "Driver not found" }, status: :not_found
     end
@@ -93,22 +114,13 @@ class BookingsController < ApplicationController
     def booking_params
       params.require(:booking).permit(
         :passenger_id,
-        :pickup,
-        :dropoff,
         :scheduled_time,
-        :status,
         :requested_seats,
         :special_instructions,
         :distance_km,
         :estimated_duration_minutes,
         :remaining_duration_minutes,
-        :total_travel_duration_minutes,
-        locations_attributes: [
-          :address,
-          :latitude,
-          :longitude,
-          :location_type
-        ]
+        :total_travel_duration_minutes
       )
     end
 end

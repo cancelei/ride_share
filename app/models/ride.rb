@@ -5,6 +5,7 @@ require "json"
 class Ride < ApplicationRecord
   belongs_to :driver, class_name: "DriverProfile", foreign_key: :driver_id
   has_many :bookings
+  has_many :passengers, through: :bookings
 
   before_create :set_status
   before_save :save_participants
@@ -12,7 +13,7 @@ class Ride < ApplicationRecord
 
   attr_accessor :booking_id
 
-  enum :status, { accepted: "accepted", ongoing: "ongoing", completed: "completed" }
+  enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed", cancelled: "cancelled" }
 
   scope :active, -> { where("start_time >= ?", Time.current) }
   scope :past, -> { where("start_time < ?", Time.current) }

@@ -11,8 +11,6 @@
     </div>
   <% end %>
 
-  <%= form.hidden_field :driver_profile_id, value: @driver_profile.id %>
-
   <div class="my-5">
     <%= form.label :registration_number %>
     <%= form.text_field :registration_number, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": vehicle.errors[:registration_number].none?, "border-red-400 focus:outline-red-600": vehicle.errors[:registration_number].any?}] %>

@@ -120,7 +120,7 @@
       <div class="space-y-4">
         <% @active_rides.each do |ride| %>
           <div class="border-b pb-4">
-            <p><strong>Status:</strong> <%= ride.status.titleize %></p>
+            <p><strong>Status:</strong> <%= ride.status.titleize if ride.status %></p>
             <p><strong>Scheduled Time:</strong> <%= ride.bookings.first&.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></p>
             <p><strong>Pickup:</strong> <%= ride.bookings.first&.pickup %></p>
             <p><strong>Dropoff:</strong> <%= ride.bookings.first&.dropoff %></p>
@@ -145,6 +145,11 @@
       <div class="space-y-4">
         <p><strong>License:</strong> <%= @driver_profile.license %></p>
         <p><strong>Issuer:</strong> <%= @driver_profile.license_issuer %></p>
+        <p><strong>Payment Method beyond Cash:</strong>
+        <p><strong>Bitcoin:</strong> <%= @driver_profile.bitcoin_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.bitcoin_address}');" %>
+        <p><strong>ICC:</strong> <%= @driver_profile.icc_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.icc_address}');" %>
+        <p><strong>Ethereum:</strong> <%= @driver_profile.ethereum_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.ethereum_address}');" %>
+        </p>
       </div>
       <%= link_to "Edit Driver Profile", edit_driver_profile_path(@driver_profile), 
           class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>

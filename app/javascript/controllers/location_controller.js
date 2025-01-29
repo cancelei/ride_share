@@ -31,15 +31,30 @@ export default class extends Controller {
   async initializeGoogleMaps() {
     if (window.google) return Promise.resolve()
     
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${this.googleApiKeyValue}&libraries=geometry`
-      script.async = true
-      script.defer = true
-      script.onload = () => resolve()
-      script.onerror = () => reject(new Error('Google Maps failed to load'))
-      document.head.appendChild(script)
-    })
+    const apiKey = this.googleApiKeyValue || document.querySelector('meta[name="google-maps-api-key"]')?.content;
+    if (!apiKey) {
+      throw new Error("Google Maps API key not found");
+    }
+
+    // Create the script loader
+    const loader = new Promise((resolve, reject) => {
+      // Create callback for when API is loaded
+      window.initGoogleMaps = () => {
+        resolve(window.google);
+        delete window.initGoogleMaps;
+      };
+
+      // Create script element
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMaps&loading=async`;
+      script.async = true;
+      script.onerror = () => reject(new Error("Google Maps failed to load"));
+      
+      // Append the script to the DOM
+      document.head.appendChild(script);
+    });
+
+    return loader;
   }
 
   startLocationTracking() {

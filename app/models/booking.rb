@@ -9,13 +9,17 @@ class Booking < ApplicationRecord
 
   enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }
 
-  accepts_nested_attributes_for :locations
+  accepts_nested_attributes_for :locations, allow_destroy: true
 
   scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
   scope :past, -> { where(status: [ "completed", "cancelled" ]) }
 
-  def set_status
-    self.status = "pending"
+  def pickup
+    pickup_location&.address
+  end
+
+  def dropoff
+    dropoff_location&.address
   end
 
   def calculate_distance_to_driver
@@ -35,5 +39,11 @@ class Booking < ApplicationRecord
 
     # Assuming average speed of 40 km/h in city traffic
     (distance_to_pickup * 1.5).round
+  end
+
+  private
+
+  def set_status
+    self.status = "pending"
   end
 end

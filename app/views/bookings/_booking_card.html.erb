@@ -10,7 +10,7 @@
       <div class="text-sm text-gray-600">
         <p><span class="font-medium">Status:</span>
           <span class="<%= booking_status_color(booking.status) %>">
-            <%= booking.status.titleize %>
+            <%= booking.status if booking.status %>
           </span>
         </p>
         <p><span class="font-medium">Scheduled:</span>
@@ -19,7 +19,7 @@
         <p><span class="font-medium">Distance:</span> <%= booking.distance_km %> km</p>
         <p><span class="font-medium">Duration:</span> <%= booking.estimated_duration_minutes %> min</p>
 
-        <% if booking.ride && booking.accepted? %>
+        <% if booking.ride %>
           <div class="mt-4 p-4 bg-gray-50 rounded-lg">
             <h3 class="font-medium text-gray-900 mb-2">Driver Information</h3>
             <div class="space-y-2">
@@ -29,13 +29,23 @@
               </p>
               <p>
                 <span class="font-medium">Vehicle:</span>
-                <%= "#{booking.ride.driver.selected_vehicle.brand} #{booking.ride.driver.selected_vehicle.model} (#{booking.ride.driver.selected_vehicle.color})" %>
+                <%= "#{booking.ride.driver.selected_vehicle&.brand} #{booking.ride.driver.selected_vehicle&.model} (#{booking.ride.driver.selected_vehicle&.color})" %>
               </p>
               <p>
                 <span class="font-medium">Registration:</span>
-                <%= booking.ride.driver.selected_vehicle.registration_number %>
+                <%= booking.ride.driver.selected_vehicle&.registration_number %>
               </p>
               <p>
+                <span class="font-medium">Payment Method:</span>
+                <% if booking.ride.driver.bitcoin_address.present? %>
+                  <p><strong>Bitcoin Address:</strong> <%= booking.ride.driver.bitcoin_address %> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{booking.ride.driver.bitcoin_address}');" %></p>
+                <% end %>
+                <% if booking.ride.driver.icc_address.present? %>
+                  <p><strong>ICC Address:</strong> <%= booking.ride.driver.icc_address %> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{booking.ride.driver.icc_address}');" %></p>
+                <% end %>
+                <% if booking.ride.driver.ethereum_address.present? %>
+                  <p><strong>Ethereum Address:</strong> <%= booking.ride.driver.ethereum_address %> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{booking.ride.driver.ethereum_address}');" %></p>
+                <% end %>
                 <%= link_to "https://wa.me/#{booking.ride.driver.user.phone_number}",
                     target: "_blank",
                     class: "inline-flex items-center text-green-600 hover:text-green-700" do %>

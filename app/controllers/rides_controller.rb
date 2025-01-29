@@ -7,14 +7,14 @@ class RidesController < ApplicationController
     @active_rides = Ride.includes(:driver, :bookings)
                        .where(driver: current_user.driver_profile)
                        .where("rides.status IN (?)",
-                             [ "accepted", "ongoing" ])
+                             [ "pending", "accepted", "ongoing" ])
                        .order("bookings.scheduled_time ASC")
                        .distinct
 
     @past_rides = Ride.includes(:driver, :bookings)
                      .where(driver: current_user.driver_profile)
-                     .where("rides.status = ?",
-                           "completed")
+                     .where("rides.status IN (?)",
+                           [ "completed", "cancelled" ])
                      .order("bookings.scheduled_time DESC")
                      .distinct
   end

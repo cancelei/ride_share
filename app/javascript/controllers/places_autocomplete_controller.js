@@ -4,29 +4,43 @@ export default class extends Controller {
   static targets = ["pickup", "dropoff"]
 
   connect() {
-    if (typeof google === 'undefined') {
-      this.loadGoogleMapsScript()
-    } else {
-      this.initializePlacesAutocomplete()
-    }
+    this.initializeGoogleMaps().then(() => {
+      this.initializeAutocomplete()
+    }).catch(error => {
+      console.error("Failed to initialize Google Maps:", error)
+    })
   }
 
-  loadGoogleMapsScript() {
-    const apiKey = this.getApiKey()
+  async initializeGoogleMaps() {
+    if (window.google) return Promise.resolve()
+    
+    const apiKey = this.getApiKey();
     if (!apiKey) {
-      console.error("Google Maps API key not found")
-      return
+      throw new Error("Google Maps API key not found");
     }
 
-    const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
-    script.async = true
-    script.defer = true
-    script.onload = () => this.initializePlacesAutocomplete()
-    document.head.appendChild(script)
+    // Create the script loader
+    const loader = new Promise((resolve, reject) => {
+      // Create callback for when API is loaded
+      window.initGoogleMaps = () => {
+        resolve(window.google);
+        delete window.initGoogleMaps;
+      };
+
+      // Create script element
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps&loading=async`;
+      script.async = true;
+      script.onerror = () => reject(new Error("Google Maps failed to load"));
+      
+      // Append the script to the DOM
+      document.head.appendChild(script);
+    });
+
+    return loader;
   }
 
-  initializePlacesAutocomplete() {
+  initializeAutocomplete() {
     const options = {
       componentRestrictions: { country: "hn" },
       fields: ["formatted_address", "geometry", "name"],
