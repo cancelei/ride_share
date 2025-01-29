@@ -69,7 +69,7 @@ class DriverProfilesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_driver_profile
-      @driver_profile = DriverProfile.find(params.expect(:id))
+      @driver_profile = DriverProfile.find(params.require(:id))
     end
 
     def check_existing_profile
@@ -78,6 +78,6 @@ class DriverProfilesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def driver_profile_params
-      params.expect(driver_profile: [ :user_id, :license, :license_issuer, :bitcoin_address, :icc_address, :ethereum_address ])
+      params.require(:driver_profile).permit(:user_id, :license, :license_issuer, :bitcoin_address, :icc_address, :ethereum_address)
     end
 end
