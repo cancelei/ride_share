@@ -3,7 +3,7 @@ class PassengerProfilesController < ApplicationController
 
   # GET /passenger_profiles or /passenger_profiles.json
   def index
-    @passenger_profiles = PassengerProfile.all
+    @passenger_profiles = PassengerProfile.where(user: current_user)
   end
 
   # GET /passenger_profiles/1 or /passenger_profiles/1.json
