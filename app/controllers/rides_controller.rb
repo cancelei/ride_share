@@ -92,7 +92,15 @@ class RidesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def ride_params
-      params.expect(ride: [ :driver_id, :booking_id, :invitation_code, :status, :rating, :available_seats ])
+      params.require(:ride).permit(
+        :driver_id,
+        :booking_id,
+        :invitation_code,
+        :status,
+        :rating,
+        :available_seats,
+        :vehicle_id
+      )
     end
 
     def check_driver_requirements

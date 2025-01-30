@@ -80,7 +80,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_24_161438) do
     t.integer "participants_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "vehicle_id", null: false
     t.index ["driver_id"], name: "index_rides_on_driver_id"
+    t.index ["vehicle_id"], name: "index_rides_on_vehicle_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -125,5 +127,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_24_161438) do
   add_foreign_key "locations", "bookings"
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
+  add_foreign_key "rides", "vehicles"
   add_foreign_key "vehicles", "driver_profiles"
 end

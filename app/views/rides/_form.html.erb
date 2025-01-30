@@ -15,6 +15,8 @@
     <%= form.hidden_field :driver_id, value: current_user.driver_profile.id %>
     <%= form.hidden_field :booking_id, value: defined?(booking_id) ? booking_id : nil %>
 
+    <%= form.hidden_field :vehicle_id, value: current_user.driver_profile.selected_vehicle_id %>
+
     <div class="inline">
       <%= form.submit class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
     </div>

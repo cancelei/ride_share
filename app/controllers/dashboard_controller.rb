@@ -13,6 +13,7 @@ class DashboardController < ApplicationController
     when "passenger"
       @passenger_profile = @user.passenger_profile
       @my_bookings = Booking.where(passenger: @passenger_profile).order(created_at: :desc).limit(5)
+      @past_rides = Ride.where(passenger: @passenger_profile).order(created_at: :desc).limit(5)
       @my_rides = Ride.joins(:bookings)
                       .where(bookings: { passenger: @passenger_profile })
                       .order(created_at: :desc)
@@ -32,5 +33,10 @@ class DashboardController < ApplicationController
                          .where(driver: @driver_profile)
                          .order(created_at: :desc)
     end
+  end
+
+  def rides
+    @my_bookings = current_user.passenger_profile.bookings
+    render partial: "dashboard/rides_content"
   end
 end

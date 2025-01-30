@@ -1,0 +1,12 @@
+<%= turbo_frame_tag "rides_content" do %>
+  <div class="space-y-4">
+    <% bookings = params[:type] == 'past' ? @my_bookings.past : @my_bookings.active %>
+    <% if bookings.any? %>
+      <% bookings.each do |booking| %>
+        <%= render "bookings/booking_card", booking: booking %>
+      <% end %>
+    <% else %>
+      <p class="text-gray-500 text-center py-4">No <%= params[:type] == 'past' ? 'past' : 'active' %> rides found.</p>
+    <% end %>
+  </div>
+<% end %> 

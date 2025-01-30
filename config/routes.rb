@@ -40,4 +40,6 @@ Rails.application.routes.draw do
   root "dashboard#show"
 
   post "driver/update_location", to: "driver_profiles#update_location"
+
+  get "dashboard/rides", to: "dashboard#rides"
 end

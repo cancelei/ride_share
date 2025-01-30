@@ -29,11 +29,11 @@
               </p>
               <p>
                 <span class="font-medium">Vehicle:</span>
-                <%= "#{booking.ride.driver.selected_vehicle&.brand} #{booking.ride.driver.selected_vehicle&.model} (#{booking.ride.driver.selected_vehicle&.color})" %>
+                <%= "#{booking.ride.vehicle&.brand} #{booking.ride.vehicle&.model} (#{booking.ride.vehicle&.color})" %>
               </p>
               <p>
                 <span class="font-medium">Registration:</span>
-                <%= booking.ride.driver.selected_vehicle&.registration_number %>
+                <%= booking.ride.vehicle&.registration_number %>
               </p>
               <p>
                 <span class="font-medium">Payment Method:</span>

@@ -6,6 +6,7 @@ class Ride < ApplicationRecord
   belongs_to :driver, class_name: "DriverProfile", foreign_key: :driver_id
   has_many :bookings
   has_many :passengers, through: :bookings
+  belongs_to :vehicle
 
   before_create :set_status
   before_save :save_participants

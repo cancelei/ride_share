@@ -13,6 +13,8 @@ class CreateRides < ActiveRecord::Migration[8.0]
       t.integer :participants_count, default: 0
 
       t.timestamps
+
+      t.references :vehicle, null: false, foreign_key: true
     end
   end
 end
