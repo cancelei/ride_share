@@ -5,7 +5,12 @@ class Booking < ApplicationRecord
   has_one :pickup_location, -> { where(location_type: "pickup") }, class_name: "Location"
   has_one :dropoff_location, -> { where(location_type: "dropoff") }, class_name: "Location"
 
-  before_save :set_status
+  before_create :set_status
+  before_save :set_estimated_ride_price, if: :ride_id_changed?
+
+  def set_estimated_ride_price
+    Ride.where(id: self.ride_id).update_all(estimated_price: (Booking.where(ride_id: self.ride_id).pluck(:distance_km) + [ self.distance_km ]).sum * 2)
+  end
 
   enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }
 
