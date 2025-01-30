@@ -10,6 +10,7 @@ class Ride < ApplicationRecord
 
   before_create :set_status
   before_save :save_participants
+  before_save :perform_estimated_price_calculation
   after_save :update_booking, -> { booking_id.present? }
 
   attr_accessor :booking_id
@@ -28,6 +29,10 @@ class Ride < ApplicationRecord
 
   def can_finish?(user)
     user.driver_profile == self.driver && self.status == "ongoing"
+  end
+
+  def perform_estimated_price_calculation
+    self.estimated_price = bookings.sum(:distance_km) * 2
   end
 
   def start!
