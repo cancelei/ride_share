@@ -55,7 +55,7 @@ class Ride < ApplicationRecord
   end
 
   def update_booking
-    Booking.find_by(id: self.booking_id).update(status: "accepted", ride_id: self.id)
+    Booking.find_by(id: self.booking_id)&.update(status: "accepted", ride_id: self.id)
 
     self.booking_id = nil
   end
