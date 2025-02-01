@@ -38,7 +38,7 @@
 
         <div>
           <%= f.label :country, class: "block text-sm font-medium text-gray-700" %>
-          <%= f.text_field :country, autocomplete: "country",
+          <%= f.select :country, country_options, { include_blank: "Select Country" }, 
               class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
         </div>
 

@@ -99,6 +99,9 @@ GEM
       xpath (~> 3.2)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.0)
+    countries (4.2.3)
+      i18n_data (~> 0.16.0)
+      sixarm_ruby_unaccent (~> 1.1)
     crass (1.0.6)
     csv (3.3.2)
     date (3.4.1)
@@ -130,6 +133,8 @@ GEM
       activesupport (>= 6.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
+    i18n_data (0.16.0)
+      simple_po_parser (~> 1.1)
     importmap-rails (2.1.0)
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -312,6 +317,8 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    simple_po_parser (1.1.6)
+    sixarm_ruby_unaccent (1.2.2)
     solid_cable (3.0.7)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -397,6 +404,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   capybara
+  countries (~> 4.2)
   debug
   devise (~> 4.9)
   dotenv-rails
