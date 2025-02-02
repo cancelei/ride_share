@@ -13,7 +13,7 @@ class DashboardController < ApplicationController
       @past_rides = Ride.where(driver: @driver_profile, status: :completed).order(created_at: :desc).limit(5)
     when "passenger"
       @passenger_profile = @user.passenger_profile
-      @my_bookings = Booking.where(passenger: @passenger_profile).order(created_at: :desc).limit(5)
+      @my_bookings = Booking.where(passenger: @passenger_profile).order(scheduled_time: :desc).limit(5)
       @past_rides = Ride.where(passenger: @passenger_profile).order(created_at: :desc).limit(5)
       @my_rides = Ride.joins(:bookings)
                       .where(bookings: { passenger: @passenger_profile })
