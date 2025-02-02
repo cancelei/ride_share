@@ -12,7 +12,7 @@ class Booking < ApplicationRecord
     Ride.where(id: self.ride_id).update_all(estimated_price: (Booking.where(ride_id: self.ride_id).pluck(:distance_km) + [ self.distance_km ]).sum * 2)
   end
 
-  enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }
+  enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
 
   accepts_nested_attributes_for :locations, allow_destroy: true
 
@@ -30,7 +30,7 @@ class Booking < ApplicationRecord
   def calculate_distance_to_driver
     return nil unless ride&.driver&.user&.current_latitude && ride&.driver&.user&.current_longitude
 
-    pickup_coords = Geocoder.coordinates(pickup)
+    pickup_coords = Geocoder.coordinates(status_accepted? ? pickup : dropoff)
     return nil unless pickup_coords
 
     driver_coords = [ ride.driver.user.current_latitude, ride.driver.user.current_longitude ]
