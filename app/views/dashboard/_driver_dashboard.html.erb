@@ -88,6 +88,7 @@
         <div class="space-y-4">
           <% @pending_bookings.each do |booking| %>
             <div class="border-b pb-4" id="booking-<%= booking.id %>">
+              <%= render 'dashboard/booking_distance', booking: booking %>
               <h2><%= booking.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></h2>
               <p><strong>From:</strong> <%= booking.pickup %></p>
               <p><strong>To:</strong> <%= booking.dropoff %></p>

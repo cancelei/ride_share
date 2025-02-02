@@ -6,6 +6,9 @@ export default class extends Controller {
     bookingId: String,
     interval: Number,
     googleApiKey: String,
+    locationLatitude: String,
+    locationLongitude: String,
+    locationAddress: String,
     pickupLat: Number,
     pickupLng: Number,
   };
@@ -90,23 +93,38 @@ export default class extends Controller {
 
   async updateLocation() {
     try {
-      const response = await fetch(
-        `/bookings/${this.bookingIdValue}/driver_location`
-      );
-      const data = await response.json();
+      let locationData = {};
+      if (this.hasLocationLatitudeValue) {
+        locationData.location = {
+          address: this.locationAddressValue,
+          coordinates: {
+            latitude: this.locationLatitudeValue,
+            longitude: this.locationLongitudeValue,
+          },
+        };
+      } else {
+        const response = await fetch(
+          `/bookings/${this.bookingIdValue}/driver_location`
+        );
+        const data = await response.json();
+        locationData = data;
+      }
 
-      if (data.location) {
+      if (locationData.location) {
         this.locationTarget.textContent =
-          data.location?.address || "Location not available";
-        this.distanceTarget.textContent = data.distance_to_pickup
-          ? `${data.distance_to_pickup} km`
+          locationData.location?.address || "Location not available";
+        this.distanceTarget.textContent = locationData.distance_to_pickup
+          ? `${locationData.distance_to_pickup} km`
           : "Calculating...";
-        this.etaTarget.textContent = data.eta_minutes
-          ? `${data.eta_minutes} minutes`
+        this.etaTarget.textContent = locationData.eta_minutes
+          ? `${locationData.eta_minutes} minutes`
           : "Calculating...";
 
-        if (!data.distance_to_pickup && data.location?.coordinates) {
-          this.calculateDistanceClientSide(data.location.coordinates);
+        if (
+          !locationData.distance_to_pickup &&
+          locationData.location?.coordinates
+        ) {
+          this.calculateDistanceClientSide(locationData.location.coordinates);
         }
       }
     } catch (error) {
