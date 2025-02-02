@@ -10,6 +10,7 @@ class DashboardController < ApplicationController
       @current_vehicle = @driver_profile&.selected_vehicle
       @pending_bookings = Booking.where(status: :pending)
       @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :ongoing ])
+      @past_rides = Ride.where(driver: @driver_profile, status: :completed).order(created_at: :desc).limit(5)
     when "passenger"
       @passenger_profile = @user.passenger_profile
       @my_bookings = Booking.where(passenger: @passenger_profile).order(created_at: :desc).limit(5)

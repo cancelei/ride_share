@@ -49,7 +49,7 @@ class BookingsController < ApplicationController
 
     respond_to do |format|
       if @booking.save
-        format.html { redirect_to @booking, notice: "Booking was successfully created." }
+        format.html { redirect_to root_path, notice: "Booking was successfully created." }
         format.json { render :show, status: :created, location: @booking }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -62,7 +62,7 @@ class BookingsController < ApplicationController
   def update
     respond_to do |format|
       if @booking.update(booking_params)
-        format.html { redirect_to @booking, notice: "Booking was successfully updated." }
+        format.html { redirect_to root_path, notice: "Booking was successfully updated." }
         format.json { render :show, status: :ok, location: @booking }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -76,7 +76,7 @@ class BookingsController < ApplicationController
     @booking.destroy!
 
     respond_to do |format|
-      format.html { redirect_to bookings_path, status: :see_other, notice: "Booking was successfully destroyed." }
+      format.html { redirect_to root_path, status: :see_other, notice: "Booking was successfully destroyed." }
       format.json { head :no_content }
     end
   end

@@ -52,7 +52,7 @@ class RidesController < ApplicationController
 
     respond_to do |format|
       if @ride.save
-        format.html { redirect_to @ride, notice: "Ride was successfully created." }
+        format.html { redirect_to root_path, notice: "Ride was successfully created." }
         format.json { render :show, status: :created, location: @ride }
       else
         format.html { render :new, status: :unprocessable_entity }
