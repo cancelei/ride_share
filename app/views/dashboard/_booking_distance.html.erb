@@ -1,13 +1,15 @@
-<div id="booking-<%= booking.id %>-distance" 
+<div id="booking-<%= booking.id %>-distance"
      class="mt-2 text-sm text-gray-600"
      data-controller="driver-location"
      data-driver-location-booking-id-value="<%= booking.id %>"
+     data-driver-location-pickup-lat-value="<%= booking.pickup_location&.latitude %>"
+     data-driver-location-pickup-lng-value="<%= booking.pickup_location&.longitude %>"
      data-driver-location-interval-value="60000"
      data-driver-location-google-api-key-value="<%= ENV['GOOGLE_MAPS_API_KEY'] %>">
   <p>
     <strong>Location:</strong>
-    <span data-driver-location-target="location" 
-          data-address="<%= booking.pickup %>" 
+    <span data-driver-location-target="location"
+          data-address="<%= booking.pickup %>"
           class="text-gray-700">
       Calculating...
     </span>
@@ -24,4 +26,4 @@
       Calculating...
     </span>
   </p>
-</div> 
+</div>

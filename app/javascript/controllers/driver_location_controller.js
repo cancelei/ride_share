@@ -5,16 +5,22 @@ export default class extends Controller {
   static values = {
     bookingId: String,
     interval: Number,
-    googleApiKey: String
+    googleApiKey: String,
+    pickupLat: Number,
+    pickupLng: Number,
   };
 
   connect() {
     if (this.hasBookingIdValue) {
-      this.initializeGoogleMaps().then(() => {
-        this.startLocationUpdates();
-      }).catch(error => {
-        console.error("Failed to initialize Google Maps:", error);
-      });
+      this.intervalValue = this.intervalValue || 60000;
+      this.initializeGoogleMaps()
+        .then(() => {
+          this.startLocationTracking();
+          this.startLocationUpdates();
+        })
+        .catch((error) => {
+          console.error("Failed to initialize Google Maps:", error);
+        });
     }
   }
 
@@ -26,38 +32,60 @@ export default class extends Controller {
 
   async initializeGoogleMaps() {
     if (window.google) return Promise.resolve();
-    
-    const apiKey = this.googleApiKeyValue || document.querySelector('meta[name="google-maps-api-key"]')?.content;
+
+    const apiKey =
+      this.googleApiKeyValue ||
+      document.querySelector('meta[name="google-maps-api-key"]')?.content;
     if (!apiKey) {
       throw new Error("Google Maps API key not found");
     }
 
-    // Create the script loader
-    const loader = new Promise((resolve, reject) => {
-      // Create callback for when API is loaded
+    return new Promise((resolve, reject) => {
       window.initGoogleMaps = () => {
         resolve(window.google);
         delete window.initGoogleMaps;
       };
 
-      // Create script element
       const script = document.createElement("script");
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMaps&loading=async`;
       script.async = true;
       script.onerror = () => reject(new Error("Google Maps failed to load"));
-      
-      // Append the script to the DOM
       document.head.appendChild(script);
     });
-
-    return loader;
   }
 
   startLocationUpdates() {
     this.updateLocation();
     this.intervalId = setInterval(() => {
       this.updateLocation();
-    }, this.intervalValue || 60000);
+    }, this.intervalValue);
+  }
+
+  startLocationTracking() {
+    this.intervalId = setInterval(() => {
+      this.updateDriverLocation();
+    }, this.intervalValue); // 1 minute
+
+    // Initial update
+    this.updateDriverLocation();
+  }
+
+  async updateDriverLocation() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        // Send location to server
+        await fetch("/driver/update_location", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector('[name="csrf-token"]')
+              .content,
+          },
+          body: JSON.stringify({ latitude, longitude }),
+        });
+      });
+    }
   }
 
   async updateLocation() {
@@ -68,26 +96,32 @@ export default class extends Controller {
       const data = await response.json();
 
       if (data.location) {
-        this.locationTarget.textContent = data.location?.address || "Cannot get the location";
-        this.distanceTarget.textContent = `${data.distance_to_pickup || 'Calculating...'} km`;
-        this.etaTarget.textContent = `${data.eta_minutes || 'Calculating...'} minutes`;
-        
-        // If server-side calculation fails, fallback to client-side
+        this.locationTarget.textContent =
+          data.location?.address || "Location not available";
+        this.distanceTarget.textContent = data.distance_to_pickup
+          ? `${data.distance_to_pickup} km`
+          : "Calculating...";
+        this.etaTarget.textContent = data.eta_minutes
+          ? `${data.eta_minutes} minutes`
+          : "Calculating...";
+
         if (!data.distance_to_pickup && data.location?.coordinates) {
           this.calculateDistanceClientSide(data.location.coordinates);
         }
       }
     } catch (error) {
       console.error("Error fetching driver location:", error);
-      this.locationTarget.textContent = "Error getting location";
-      this.distanceTarget.textContent = "Unable to calculate";
-      this.etaTarget.textContent = "Unable to calculate";
+      this.locationTarget.textContent = "Location update failed";
+      this.distanceTarget.textContent = "Error";
+      this.etaTarget.textContent = "Error";
     }
   }
 
-  async calculateDistanceClientSide(coordinates) {
-    if (!window.google) {
-      console.error("Google Maps not loaded");
+  calculateDistanceClientSide(coordinates) {
+    if (!window.google || !this.hasPickupLatValue || !this.hasPickupLngValue) {
+      console.error("Required data for calculation not available");
+      this.distanceTarget.textContent = "Distance unavailable";
+      this.etaTarget.textContent = "ETA unavailable";
       return;
     }
 
@@ -97,25 +131,33 @@ export default class extends Controller {
         coordinates.latitude,
         coordinates.longitude
       );
-      const destination = this.locationTarget.dataset.address || this.locationTarget.textContent;
+      const destination = new google.maps.LatLng(
+        this.pickupLatValue,
+        this.pickupLngValue
+      );
 
-      const request = {
-        origins: [origin],
-        destinations: [destination],
-        travelMode: google.maps.TravelMode.DRIVING,
-      };
-
-      service.getDistanceMatrix(request, (response, status) => {
-        if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
-          const element = response.rows[0].elements[0];
-          this.distanceTarget.textContent = element.distance.text;
-          this.etaTarget.textContent = element.duration.text;
-        } else {
-          console.error('Distance calculation failed:', status);
+      service.getDistanceMatrix(
+        {
+          origins: [origin],
+          destinations: [destination],
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (response, status) => {
+          if (status === "OK" && response.rows[0].elements[0].status === "OK") {
+            const { distance, duration } = response.rows[0].elements[0];
+            this.distanceTarget.textContent = distance.text;
+            this.etaTarget.textContent = duration.text;
+          } else {
+            console.error("Distance calculation failed:", status);
+            this.distanceTarget.textContent = "Calculation failed";
+            this.etaTarget.textContent = "Calculation failed";
+          }
         }
-      });
+      );
     } catch (error) {
-      console.error('Error calculating distance:', error);
+      console.error("Error calculating distance:", error);
+      this.distanceTarget.textContent = "Error";
+      this.etaTarget.textContent = "Error";
     }
   }
 }

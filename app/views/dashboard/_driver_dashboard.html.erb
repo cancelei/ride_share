@@ -3,11 +3,11 @@
     <div class="flex justify-between items-start mb-4">
       <h2 class="text-xl font-semibold">Current Vehicle</h2>
       <% if current_user.driver_profile %>
-        <%= link_to "Add Another Vehicle", 
-            new_driver_profile_vehicle_path(current_user.driver_profile), 
+        <%= link_to "Add Another Vehicle",
+            new_driver_profile_vehicle_path(current_user.driver_profile),
             class: "text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500" %>
       <% else %>
-        <%= link_to "Create Driver Profile", new_driver_profile_path, 
+        <%= link_to "Create Driver Profile", new_driver_profile_path,
             class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
       <% end %>
     </div>
@@ -50,7 +50,7 @@
                 <div class="flex items-center justify-between">
                   <span class="text-sm flex-1 mr-2"><%= "#{v.brand} #{v.model} (#{v.built_year})" %></span>
                   <% if v.id != vehicle.id %>
-                    <%= button_to "Select", 
+                    <%= button_to "Select",
                         select_driver_profile_vehicle_path(current_user.driver_profile, v),
                         method: :post,
                         class: "text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 whitespace-nowrap" %>
@@ -62,10 +62,10 @@
             </div>
           </div>
         </div>
-        
+
         <div class="mt-4 flex space-x-3">
-          <%= link_to "Edit Vehicle", 
-              edit_driver_profile_vehicle_path(current_user.driver_profile, vehicle), 
+          <%= link_to "Edit Vehicle",
+              edit_driver_profile_vehicle_path(current_user.driver_profile, vehicle),
               class: "text-sm px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" %>
         </div>
       </div>
@@ -73,8 +73,8 @@
       <% if current_user.driver_profile %>
       <div class="bg-yellow-50 text-yellow-800 p-4 rounded-md">
         <p>You need to add at least one vehicle to your driver profile before creating rides.</p>
-        <%= link_to "Add Vehicle", 
-            new_driver_profile_vehicle_path(current_user.driver_profile), 
+        <%= link_to "Add Vehicle",
+            new_driver_profile_vehicle_path(current_user.driver_profile),
             class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
       </div>
       <% end %>
@@ -89,7 +89,6 @@
           <% @pending_bookings.each do |booking| %>
             <div class="border-b pb-4" id="booking-<%= booking.id %>">
               <h2><%= booking.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %></h2>
-              <%= render 'dashboard/booking_distance', booking: booking, current_coordinates: @current_coordinates %>
               <p><strong>From:</strong> <%= booking.pickup %></p>
               <p><strong>To:</strong> <%= booking.dropoff %></p>
               <p><strong>Seats:</strong> <%= booking.requested_seats %></p>
@@ -108,7 +107,7 @@
       <% if current_user.driver_profile %>
         <div class="bg-yellow-50 text-yellow-800 p-4 rounded-md">
           <p>You need to add at least one vehicle to your driver profile before creating rides.</p>
-          <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(current_user.driver_profile), 
+          <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(current_user.driver_profile),
             class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
         </div>
       <% end %>
@@ -130,7 +129,9 @@
                 <%= ride.status.titleize %>
               </span>
             </div>
-            
+
+            <%= render 'dashboard/booking_distance', booking: ride.bookings.first %>
+
             <div class="space-y-2">
               <p class="text-gray-600">
                 <strong>Scheduled Time:</strong> <%= ride.bookings.first&.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %>
@@ -141,11 +142,11 @@
             </div>
 
             <div class="flex flex-col gap-2 pt-2">
-              <%= link_to "View Details", ride_path(ride), 
+              <%= link_to "View Details", ride_path(ride),
                   class: "text-center rounded-md px-3.5 py-2 bg-gray-100 hover:bg-gray-50 font-medium" %>
-              
+
               <% if ride.bookings.any? %>
-                <%= link_to ride.google_maps_url, 
+                <%= link_to ride.google_maps_url,
                     target: "_blank",
                     rel: "noopener noreferrer",
                     class: "text-center items-center justify-center gap-2 rounded-md px-3.5 py-2 bg-green-600 hover:bg-green-500 text-white font-medium" do %>
@@ -157,13 +158,13 @@
               <% end %>
 
               <% if ride.can_start?(current_user) %>
-                <%= link_to "Start Ride", start_ride_path(ride), 
+                <%= link_to "Start Ride", start_ride_path(ride),
                     class: "text-center rounded-md px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium",
                     data: { turbo_method: :post } %>
               <% end %>
 
               <% if ride.can_finish?(current_user) %>
-                <%= link_to "Finish Ride", finish_ride_path(ride), 
+                <%= link_to "Finish Ride", finish_ride_path(ride),
                     class: "text-center rounded-md px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium",
                     data: { turbo_method: :post } %>
               <% end %>
@@ -204,7 +205,7 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <%= link_to "Details", ride_path(ride), 
+                  <%= link_to "Details", ride_path(ride),
                       class: "text-blue-600 hover:text-blue-900" %>
                 </td>
               </tr>
@@ -229,11 +230,11 @@
         <p><strong>Ethereum:</strong> <%= @driver_profile.ethereum_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.ethereum_address}');" %>
         </p>
       </div>
-      <%= link_to "Edit Driver Profile", edit_driver_profile_path(@driver_profile), 
+      <%= link_to "Edit Driver Profile", edit_driver_profile_path(@driver_profile),
           class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
     <% else %>
-      <%= link_to "Create Driver Profile", new_driver_profile_path, 
+      <%= link_to "Create Driver Profile", new_driver_profile_path,
           class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
     <% end %>
   </div>
-</div> 
+</div>
