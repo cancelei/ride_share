@@ -1,77 +1,83 @@
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-8 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md lg:max-w-4xl">
+    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 sm:text-4xl">
       Create your account
     </h2>
   </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md lg:max-w-4xl">
+    <div class="bg-white py-8 px-6 shadow-xl sm:rounded-2xl sm:px-10">
       <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-6" }) do |f| %>
         <%= render "devise/shared/error_messages", resource: resource %>
 
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div class="space-y-2">
             <%= f.label :first_name, class: "block text-sm font-medium text-gray-700" %>
             <%= f.text_field :first_name, autofocus: true, autocomplete: "first-name",
-                class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+                class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
           </div>
 
-          <div>
+          <div class="space-y-2">
             <%= f.label :last_name, class: "block text-sm font-medium text-gray-700" %>
             <%= f.text_field :last_name, autocomplete: "last-name",
-                class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+                class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
           </div>
         </div>
 
-        <div>
-          <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
-          <%= f.email_field :email, autocomplete: "email",
-              class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
-        </div>
+        <div class="space-y-6">
+          <div class="space-y-2">
+            <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+            <%= f.email_field :email, autocomplete: "email",
+                class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
+          </div>
 
-        <div>
-          <%= f.label :phone_number, class: "block text-sm font-medium text-gray-700" %>
-          <%= f.text_field :phone_number, autocomplete: "phone-number",
-              class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
-        </div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="space-y-2">
+              <%= f.label :phone_number, class: "block text-sm font-medium text-gray-700" %>
+              <%= f.text_field :phone_number, autocomplete: "tel",
+                  class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
+            </div>
 
-        <div>
-          <%= f.label :country, class: "block text-sm font-medium text-gray-700" %>
-          <%= f.select :country, country_options, { include_blank: "Select Country" }, 
-              class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
-        </div>
+            <div class="space-y-2">
+              <%= f.label :country, class: "block text-sm font-medium text-gray-700" %>
+              <%= f.select :country, country_options, { include_blank: "Select Country" }, 
+                  class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white" %>
+            </div>
+          </div>
 
-        <div>
-          <%= f.label :role, class: "block text-sm font-medium text-gray-700" %>
-          <%= f.select :role, 
-              [['Driver', 'driver'], ['Passenger', 'passenger']], 
-              {}, 
-              class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
-        </div>
+          <div class="space-y-2">
+            <%= f.label :role, class: "block text-sm font-medium text-gray-700" %>
+            <%= f.select :role, 
+                [['Driver', 'driver'], ['Passenger', 'passenger']], 
+                {}, 
+                class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white" %>
+          </div>
 
-        <div>
-          <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
-          <% if @minimum_password_length %>
-            <span class="text-xs text-gray-500">(<%= @minimum_password_length %> characters minimum)</span>
-          <% end %>
-          <%= f.password_field :password, autocomplete: "new-password",
-              class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
-        </div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="space-y-2">
+              <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+              <% if @minimum_password_length %>
+                <span class="text-xs text-gray-500">(<%= @minimum_password_length %> characters minimum)</span>
+              <% end %>
+              <%= f.password_field :password, autocomplete: "new-password",
+                  class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
+            </div>
 
-        <div>
-          <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password",
-              class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
-        </div>
+            <div class="space-y-2">
+              <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
+              <%= f.password_field :password_confirmation, autocomplete: "new-password",
+                  class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
+            </div>
+          </div>
 
-        <div>
-          <%= f.submit "Sign up", 
-              class: "w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+          <div class="pt-4">
+            <%= f.submit "Sign up", 
+                class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200" %>
+          </div>
         </div>
       <% end %>
 
-      <div class="mt-6">
+      <div class="mt-8 border-t border-gray-200 pt-6">
         <%= render "devise/shared/links" %>
       </div>
     </div>
