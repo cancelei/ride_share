@@ -23,18 +23,34 @@
     <%= javascript_importmap_tags %>
 
     <%= tag.meta name: "google-maps-api-key", content: ENV['GOOGLE_MAPS_API_KEY'] %>
-  <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
-    <script>
-        // Version: 2.0
-        window.Brevo = window.Brevo || [];
+<script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
+<script>
+    // Version: 2.0
+    window.Brevo = window.Brevo || [];
+    
+    Brevo.push([
+        "init",
+        {
+            client_key: "<%= ENV['BREVO_API_KEY'] %>",
+            // Optional: Add other initialization options
+        }
+    ]);
+
+    // Add user data if the user is logged in
+    document.addEventListener("DOMContentLoaded", function() {
+      <% if user_signed_in? %>
         Brevo.push([
-            "init",
+            "updateIntegrationData", 
             {
-                client_key: "<%= ENV['BREVO_API_KEY'] %>",
-                // Optional: Add other initialization options, see documentation
+                email: "<%= current_user.email %>",
+                firstName: "<%= current_user.first_name %>",
+                lastName: "<%= current_user.last_name %>"
             }
         ]);
-    </script>
+      <% end %>
+    });
+</script>
+
   </head>
 
   <body class="min-h-screen bg-gray-50">
