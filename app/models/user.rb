@@ -10,6 +10,16 @@ class User < ApplicationRecord
   has_one :driver_profile, dependent: :destroy
   has_one :passenger_profile, dependent: :destroy
 
+  after_create :send_welcome_email
+
+  def send_welcome_email
+    if Rails.env.production?
+      UserMailer.welcome_email(self).deliver_now
+    else
+      puts "Welcome email not sent in development environment"
+    end
+  end
+
   def full_name
     "#{first_name} #{last_name}"
   end

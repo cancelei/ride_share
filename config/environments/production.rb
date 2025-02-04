@@ -68,6 +68,15 @@ Rails.application.configure do
   #   port: 587,
   #   authentication: :plain
   # }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: "smtp-relay.brevo.com",
+    port: 587,
+    user_name: ENV["BREVO_SMTP_USERNAME"], # Use ENV variable
+    password: ENV["BREVO_SMTP_PASSWORD"],  # Use ENV variable
+    authentication: :login,
+    enable_starttls_auto: true
+  }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
