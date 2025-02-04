@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
   <head>
     <title><%= content_for(:title) || "Ride Flow" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -22,6 +23,18 @@
     <%= javascript_importmap_tags %>
 
     <%= tag.meta name: "google-maps-api-key", content: ENV['GOOGLE_MAPS_API_KEY'] %>
+  <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
+    <script>
+        // Version: 2.0
+        window.Brevo = window.Brevo || [];
+        Brevo.push([
+            "init",
+            {
+                client_key: "<%= ENV['BREVO_API_KEY'] %>",
+                // Optional: Add other initialization options, see documentation
+            }
+        ]);
+    </script>
   </head>
 
   <body class="min-h-screen bg-gray-50">
@@ -38,5 +51,8 @@
     <main class="container mx-auto mt-8 px-4 sm:px-6 lg:px-8">
       <%= yield %>
     </main>
+
+
+    
   </body>
 </html>
