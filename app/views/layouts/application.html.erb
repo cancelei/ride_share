@@ -26,7 +26,7 @@
     <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
     <script>
         window.Brevo = window.Brevo || [];
-
+        
         // Initialize Brevo Chat
         Brevo.push([
             "init",
@@ -35,16 +35,15 @@
             }
         ]);
 
-        // Function to update user information once Brevo is fully initialized
+        // Function to update user information once Brevo is fully loaded
         function updateBrevoUserData() {
-            if (!window.Brevo || typeof window.Brevo.push !== "function") {
-                console.warn("Brevo SDK not ready yet, retrying...");
+            if (typeof Brevo.push !== "function") {
+                console.warn("Brevo SDK not loaded yet, retrying...");
                 setTimeout(updateBrevoUserData, 500); // Retry after 500ms
                 return;
             }
 
             <% if user_signed_in? %>
-              console.log("Updating Brevo user data...");
               Brevo.push([
                   "updateIntegrationData",
                   {
@@ -56,15 +55,11 @@
             <% end %>
         }
 
-        // Ensure the script runs after the SDK is fully loaded
+        // Ensure the script runs after the DOM is fully loaded
         document.addEventListener("DOMContentLoaded", function () {
-            setTimeout(updateBrevoUserData, 1500); // Give extra time for SDK to initialize
+            setTimeout(updateBrevoUserData, 1000); // Delay execution slightly to avoid race conditions
         });
-
-        // Listen for Brevo ready event
-        document.addEventListener("BrevoReady", updateBrevoUserData);
     </script>
-
 
   </head>
 
