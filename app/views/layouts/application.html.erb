@@ -23,33 +23,43 @@
     <%= javascript_importmap_tags %>
 
     <%= tag.meta name: "google-maps-api-key", content: ENV['GOOGLE_MAPS_API_KEY'] %>
-<script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
-<script>
-    // Version: 2.0
-    window.Brevo = window.Brevo || [];
-    
-    Brevo.push([
-        "init",
-        {
-            client_key: "<%= ENV['BREVO_API_KEY'] %>",
-            // Optional: Add other initialization options
-        }
-    ]);
-
-    // Add user data if the user is logged in
-    document.addEventListener("DOMContentLoaded", function() {
-      <% if user_signed_in? %>
+    <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
+    <script>
+        window.Brevo = window.Brevo || [];
+        
+        // Initialize Brevo Chat
         Brevo.push([
-            "updateIntegrationData", 
+            "init",
             {
-                email: "<%= current_user.email %>",
-                firstName: "<%= current_user.first_name %>",
-                lastName: "<%= current_user.last_name %>"
+                client_key: "<%= ENV['BREVO_API_KEY'] %>",
             }
         ]);
-      <% end %>
-    });
-</script>
+
+        // Function to update user information once Brevo is fully loaded
+        function updateBrevoUserData() {
+            if (typeof Brevo.push !== "function") {
+                console.warn("Brevo SDK not loaded yet, retrying...");
+                setTimeout(updateBrevoUserData, 500); // Retry after 500ms
+                return;
+            }
+
+            <% if user_signed_in? %>
+              Brevo.push([
+                  "updateIntegrationData",
+                  {
+                      email: "<%= current_user.email %>",
+                      firstName: "<%= current_user.first_name %>",
+                      lastName: "<%= current_user.last_name %>"
+                  }
+              ]);
+            <% end %>
+        }
+
+        // Ensure the script runs after the DOM is fully loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(updateBrevoUserData, 1000); // Delay execution slightly to avoid race conditions
+        });
+    </script>
 
   </head>
 
