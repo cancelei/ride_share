@@ -36,12 +36,17 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-
-  resources :users
-
+  # Defines the root path route ("/")
   root "dashboard#show"
 
   post "driver/update_location", to: "driver_profiles#update_location"
 
   get "dashboard/rides", to: "dashboard#rides"
+
+  resources :users do
+    member do
+      patch :restore
+      delete :permanent_delete
+    end
+  end
 end

@@ -1,6 +1,10 @@
 class DriverProfile < ApplicationRecord
-  belongs_to :user
-  has_many :rides
+  include Discard::Model
+  default_scope -> { kept }
+
+  belongs_to :user, -> { with_discarded }
+  has_many :vehicles, -> { with_discarded }, dependent: :destroy
+  has_many :rides, -> { with_discarded }, foreign_key: "driver_id", dependent: :destroy
 
   validates :license, :license_issuer, presence: true
 
@@ -12,6 +16,5 @@ class DriverProfile < ApplicationRecord
     end
   end
 
-  has_many :vehicles, dependent: :destroy
   belongs_to :selected_vehicle, class_name: "Vehicle", optional: true
 end

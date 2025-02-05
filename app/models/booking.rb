@@ -1,7 +1,10 @@
 class Booking < ApplicationRecord
-  belongs_to :passenger, class_name: "PassengerProfile", foreign_key: :passenger_id
-  belongs_to :ride, optional: true
-  has_many :locations, dependent: :destroy
+  include Discard::Model
+  default_scope -> { kept }
+
+  belongs_to :passenger, -> { with_discarded }, class_name: "PassengerProfile", foreign_key: :passenger_id
+  belongs_to :ride, -> { with_discarded }, optional: true
+  has_many :locations, -> { with_discarded }, dependent: :destroy
   has_one :pickup_location, -> { where(location_type: "pickup") }, class_name: "Location"
   has_one :dropoff_location, -> { where(location_type: "dropoff") }, class_name: "Location"
 

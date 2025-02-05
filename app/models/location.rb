@@ -1,3 +1,6 @@
 class Location < ApplicationRecord
-  belongs_to :booking
+  include Discard::Model
+  default_scope -> { kept }
+
+  belongs_to :booking, -> { with_discarded }, optional: true
 end

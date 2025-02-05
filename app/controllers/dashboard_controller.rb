@@ -23,10 +23,13 @@ class DashboardController < ApplicationController
                                .where(passenger: @passenger_profile)
                                .order(scheduled_time: :desc)
     when "admin"
-      @total_users = User.count
-      @total_rides = Ride.count
-      @total_bookings = Booking.count
-      @recent_bookings = Booking.order(created_at: :desc).limit(10)
+      @total_users = User.with_discarded.count
+      @active_users = User.kept.count
+      @total_rides = Ride.with_discarded.count
+      @active_rides = Ride.kept.count
+      @total_bookings = Booking.with_discarded.count
+      @active_bookings = Booking.kept.count
+      @recent_bookings = Booking.with_discarded.order(created_at: :desc).limit(10)
     end
 
     if current_user.driver_profile

@@ -3,10 +3,13 @@ require "uri"
 require "json"
 
 class Ride < ApplicationRecord
-  belongs_to :driver, class_name: "DriverProfile", foreign_key: :driver_id
-  has_many :bookings
+  include Discard::Model
+  default_scope -> { kept }
+
+  belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id
+  has_many :bookings, -> { with_discarded }, dependent: :destroy
   has_many :passengers, through: :bookings
-  belongs_to :vehicle
+  belongs_to :vehicle, -> { with_discarded }
 
   before_create :set_status
   before_save :save_participants
