@@ -1,6 +1,6 @@
 <div id="<%= dom_id passenger_profile %>">
   <p class="my-5">
-    <strong class="block font-medium mb-1">User:</strong>
+    <strong class="block font-medium mb-1">User Identification:</strong>
     <%= passenger_profile.user_id %>
   </p>
   <p class="my-5">
@@ -10,5 +10,9 @@
   <p class="my-5">
     <strong class="block font-medium mb-1">Telegram username:</strong>
     <%= passenger_profile.telegram_username %>
+  </p>
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Country:</strong>
+    <%= current_user.country %>
   </p>
 </div>
