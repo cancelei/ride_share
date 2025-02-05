@@ -1,0 +1,127 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+  <%# Stats Cards %>
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+        <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+      <div class="ml-5">
+        <h3 class="text-lg font-medium text-gray-900">Total Users</h3>
+        <div class="mt-1 text-3xl font-semibold text-gray-700">
+          <%= @total_users %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+        <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </div>
+      <div class="ml-5">
+        <h3 class="text-lg font-medium text-gray-900">Active Rides</h3>
+        <div class="mt-1 text-3xl font-semibold text-gray-700">
+          <%= @total_rides %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+        <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="ml-5">
+        <h3 class="text-lg font-medium text-gray-900">Pending Bookings</h3>
+        <div class="mt-1 text-3xl font-semibold text-gray-700">
+          <%= @total_bookings %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+        <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      </div>
+      <div class="ml-5">
+        <h3 class="text-lg font-medium text-gray-900">Revenue (24h)</h3>
+        <div class="mt-1 text-3xl font-semibold text-gray-700">
+          $<%= Ride.where('created_at > ?', 24.hours.ago).sum(:estimated_price) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <%# Recent Bookings %>
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+      <h2 class="text-lg font-medium text-gray-900">Recent Bookings</h2>
+      <div class="mt-4">
+        <div class="flow-root">
+          <ul role="list" class="-my-5 divide-y divide-gray-200">
+            <% @recent_bookings.each do |booking| %>
+              <li class="py-4">
+                <div class="flex items-center space-x-4">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">
+                      <%= booking.passenger.user.full_name %>
+                    </p>
+                    <p class="text-sm text-gray-500 truncate">
+                      <%= booking.pickup %> → <%= booking.dropoff %>
+                    </p>
+                  </div>
+                  <div class="inline-flex items-center text-sm font-semibold text-blue-600">
+                    <%= link_to "View", booking_path(booking) %>
+                  </div>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# User Distribution %>
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+      <h2 class="text-lg font-medium text-gray-900">User Distribution</h2>
+      <div class="mt-4">
+        <dl class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div class="px-4 py-5 bg-gray-50 shadow rounded-lg overflow-hidden sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">Drivers</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+              <%= User.role_driver.count %>
+            </dd>
+          </div>
+          <div class="px-4 py-5 bg-gray-50 shadow rounded-lg overflow-hidden sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">Passengers</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+              <%= User.role_passenger.count %>
+            </dd>
+          </div>
+          <div class="px-4 py-5 bg-gray-50 shadow rounded-lg overflow-hidden sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">Admins</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+              <%= User.role_admin.count %>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div> 
