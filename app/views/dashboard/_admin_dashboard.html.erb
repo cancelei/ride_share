@@ -1,7 +1,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
   <%# Stats Cards %>
   <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex items-center">
+    <%= link_to users_path, class: "flex items-center hover:bg-gray-50 -m-6 p-6 rounded-lg transition-colors" do %>
       <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
         <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -13,7 +13,7 @@
           <%= @total_users %>
         </div>
       </div>
-    </div>
+    <% end %>
   </div>
 
   <div class="bg-white rounded-lg shadow p-6">

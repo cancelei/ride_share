@@ -1,0 +1,62 @@
+<%= form_with(model: user, class: "space-y-6") do |f| %>
+  <% if user.errors.any? %>
+    <div class="bg-red-50 p-4 rounded-md">
+      <h2 class="text-red-800 text-sm font-medium"><%= pluralize(user.errors.count, "error") %> prohibited this user from being saved:</h2>
+      <ul class="mt-2 text-red-700 text-sm">
+        <% user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+    <div class="sm:col-span-3">
+      <%= f.label :first_name, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :first_name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div class="sm:col-span-3">
+      <%= f.label :last_name, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :last_name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div class="sm:col-span-4">
+      <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.email_field :email, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div class="sm:col-span-2">
+      <%= f.label :role, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :role, User.roles.keys.map { |role| [role.titleize, role] }, {}, 
+          class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div class="sm:col-span-3">
+      <%= f.label :country, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :country, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <div class="sm:col-span-3">
+      <%= f.label :phone_number, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :phone_number, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+    </div>
+
+    <% if @user.new_record? %>
+      <div class="sm:col-span-3">
+        <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+        <%= f.password_field :password, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      </div>
+
+      <div class="sm:col-span-3">
+        <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
+        <%= f.password_field :password_confirmation, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <%= link_to "Cancel", users_path, class: "rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+    <%= f.submit class: "rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+  </div>
+<% end %> 
