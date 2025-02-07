@@ -1,4 +1,4 @@
-<% location_data = current_user.current_location %>
+<% location_data = defined?(current_user) ? current_user&.current_location : user&.current_location %>
 <div id="booking-<%= booking.id %>-distance"
      class="mt-2 text-sm text-gray-600"
      data-controller="driver-location"

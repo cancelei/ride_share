@@ -34,7 +34,6 @@ class User < ApplicationRecord
       current_longitude: longitude,
       location_updated_at: Time.current
     )
-    broadcast_location(latitude, longitude) if driver_profile.present?
   end
 
   def current_location
