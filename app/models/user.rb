@@ -30,19 +30,23 @@ class User < ApplicationRecord
       current_longitude: longitude,
       location_updated_at: Time.current
     )
-    broadcast_location(latitude, longitude) if driver_profile.present?
   end
 
   def current_location
-    return nil if current_latitude.blank? || current_longitude.blank?
-
-    coordinates = { latitude: current_latitude, longitude: current_longitude }
-    address = Geocoder.address([ current_latitude, current_longitude ])
+    return nil unless location_coordinates.present?
 
     {
-      coordinates: coordinates,
-      address: address,
-      updated_at: location_updated_at
+      coordinates: location_coordinates,
+      updated_at: location_updated_at,
+      address: location_address
     }
+  end
+
+  def location_coordinates
+    { latitude: current_latitude, longitude: current_longitude }
+  end
+
+  def location_address
+    Geocoder.address(location_coordinates)
   end
 end
