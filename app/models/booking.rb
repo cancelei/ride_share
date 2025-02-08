@@ -21,8 +21,6 @@ class Booking < ApplicationRecord
 
   scope :pending, -> { where(status: "pending") }
   scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
-  scope :pending, -> { where(status: :pending) }
-  scope :active, -> { where(status: [ "accepted", "in_progress" ]) }
   scope :past, -> { where(status: [ "completed", "cancelled" ]) }
 
   def pickup

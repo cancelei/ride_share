@@ -93,8 +93,8 @@
               <p><strong>From:</strong> <%= booking.pickup %></p>
               <p><strong>To:</strong> <%= booking.dropoff %></p>
               <p><strong>Seats:</strong> <%= booking.requested_seats %></p>
-              <p><strong>Estimated Price:</strong> <%= booking.distance_km * 2 %> USD</p>
-              <p><strong>Distance:</strong> <%= booking.distance_km %> km</p>
+              <p><strong>Estimated Price:</strong> <%= booking.distance_km.to_f * 2 %> USD</p>
+              <p><strong>Distance:</strong> <%= booking.distance_km.to_f %> km</p>
               <p><strong>Estimated Duration:</strong> <%= booking.estimated_duration_minutes %> minutes</p>
               <p><strong>Total Travel Duration:</strong> <%= booking.total_travel_duration_minutes %> minutes</p>
               <%= render 'rides/form', ride: Ride.new, booking_id: booking.id %>
