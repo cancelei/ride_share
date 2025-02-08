@@ -1,9 +1,13 @@
 class UsersController < ApplicationController
   before_action :require_admin!
-  before_action :set_user, only: [ :edit, :update, :destroy ]
+  before_action :set_user, only: [ :edit, :update, :destroy, :restore, :permanent_delete ]
 
   def index
-    @users = User.all.order(created_at: :desc)
+    @users = if params[:show_deleted]
+               User.with_discarded.order(created_at: :desc)
+    else
+               User.kept.order(created_at: :desc)
+    end
   end
 
   def new
@@ -32,8 +36,55 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    @user.destroy
-    redirect_to users_path, notice: "User was successfully deleted."
+    @user.discard
+    redirect_to users_path, notice: "User was successfully deactivated."
+  end
+
+  def permanent_delete
+    ActiveRecord::Base.transaction do
+      if @user.driver_profile.present?
+        # First handle rides and bookings
+        @user.driver_profile.rides.each do |ride|
+          ride.bookings.each do |booking|
+            booking.locations.destroy_all
+            booking.destroy!
+          end
+          ride.destroy!
+        end
+
+        # Clear the selected_vehicle reference before deleting vehicles
+        @user.driver_profile.update!(selected_vehicle: nil)
+
+        # Then handle vehicles
+        @user.driver_profile.vehicles.destroy_all
+
+        # Finally destroy the driver profile
+        @user.driver_profile.destroy!
+      end
+
+      if @user.passenger_profile.present?
+        # Handle passenger's bookings
+        @user.passenger_profile.bookings.each do |booking|
+          booking.locations.destroy_all
+          booking.destroy!
+        end
+
+        # Destroy the passenger profile
+        @user.passenger_profile.destroy!
+      end
+
+      # Finally destroy the user
+      @user.destroy!
+    end
+
+    redirect_to users_path, notice: "User was permanently deleted."
+  rescue ActiveRecord::RecordNotDestroyed => e
+    redirect_to users_path, alert: "Could not delete user: #{e.message}"
+  end
+
+  def restore
+    @user.undiscard
+    redirect_to users_path, notice: "User was successfully restored."
   end
 
   private
@@ -44,7 +95,7 @@ class UsersController < ApplicationController
   end
 
   def set_user
-    @user = User.find(params[:id])
+    @user = User.with_discarded.find(params[:id])
   end
 
   def user_params

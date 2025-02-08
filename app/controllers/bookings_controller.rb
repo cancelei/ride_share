@@ -31,21 +31,21 @@ class BookingsController < ApplicationController
   def create
     @booking = Booking.new(booking_params)
 
-    # Create pickup location
-    @booking.locations.build(
-      address: params[:booking][:booking_pickup_location_attributes_address],
-      latitude: params[:booking][:booking_pickup_location_attributes_latitude],
-      longitude: params[:booking][:booking_pickup_location_attributes_longitude],
-      location_type: "pickup"
-    )
-
-    # Create dropoff location
-    @booking.locations.build(
-      address: params[:booking][:booking_dropoff_location_attributes_address],
-      latitude: params[:booking][:booking_dropoff_location_attributes_latitude],
-      longitude: params[:booking][:booking_dropoff_location_attributes_longitude],
-      location_type: "dropoff"
-    )
+    # Build locations using nested attributes
+    @booking.locations_attributes = [
+      {
+        address: params[:booking][:booking_pickup_location_attributes_address],
+        latitude: params[:booking][:booking_pickup_location_attributes_latitude],
+        longitude: params[:booking][:booking_pickup_location_attributes_longitude],
+        location_type: "pickup"
+      },
+      {
+        address: params[:booking][:booking_dropoff_location_attributes_address],
+        latitude: params[:booking][:booking_dropoff_location_attributes_latitude],
+        longitude: params[:booking][:booking_dropoff_location_attributes_longitude],
+        location_type: "dropoff"
+      }
+    ]
 
     respond_to do |format|
       if @booking.save
@@ -120,7 +120,16 @@ class BookingsController < ApplicationController
         :distance_km,
         :estimated_duration_minutes,
         :remaining_duration_minutes,
-        :total_travel_duration_minutes
+        :total_travel_duration_minutes,
+        :pickup,
+        :dropoff,
+        locations_attributes: [
+          :id,
+          :address,
+          :latitude,
+          :longitude,
+          :location_type
+        ]
       )
     end
 end

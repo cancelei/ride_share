@@ -1,3 +1,7 @@
 class Vehicle < ApplicationRecord
-  belongs_to :driver_profile
+  include Discard::Model
+  default_scope -> { kept }
+
+  belongs_to :driver_profile, -> { with_discarded }
+  has_many :rides, -> { with_discarded }, dependent: :destroy
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_05_170157) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -29,6 +29,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.integer "total_travel_duration_minutes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_bookings_on_discarded_at"
     t.index ["passenger_id"], name: "index_bookings_on_passenger_id"
     t.index ["ride_id"], name: "index_bookings_on_ride_id"
   end
@@ -43,6 +45,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "selected_vehicle_id"
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_driver_profiles_on_discarded_at"
     t.index ["selected_vehicle_id"], name: "index_driver_profiles_on_selected_vehicle_id"
     t.index ["user_id"], name: "index_driver_profiles_on_user_id"
   end
@@ -55,7 +59,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.bigint "booking_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
     t.index ["booking_id"], name: "index_locations_on_booking_id"
+    t.index ["discarded_at"], name: "index_locations_on_discarded_at"
   end
 
   create_table "passenger_profiles", force: :cascade do |t|
@@ -64,6 +70,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.string "telegram_username"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_passenger_profiles_on_discarded_at"
     t.index ["user_id"], name: "index_passenger_profiles_on_user_id"
   end
 
@@ -83,6 +91,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.bigint "vehicle_id", null: false
     t.float "estimated_price"
     t.float "effective_price"
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_rides_on_discarded_at"
     t.index ["driver_id"], name: "index_rides_on_driver_id"
     t.index ["vehicle_id"], name: "index_rides_on_vehicle_id"
   end
@@ -103,6 +113,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.decimal "current_latitude", precision: 10, scale: 6
     t.decimal "current_longitude", precision: 10, scale: 6
     t.datetime "location_updated_at"
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_users_on_discarded_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -119,6 +131,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_30_161508) do
     t.boolean "has_private_insurance"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_vehicles_on_discarded_at"
     t.index ["driver_profile_id"], name: "index_vehicles_on_driver_profile_id"
   end
 

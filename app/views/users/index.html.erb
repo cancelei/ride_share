@@ -1,8 +1,15 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="sm:flex sm:items-center">
+  <div class="sm:flex sm:items-center mb-4">
     <div class="sm:flex-auto">
-      <h1 class="text-3xl font-semibold text-gray-900">Users</h1>
-      <p class="mt-2 text-sm text-gray-700">A list of all users in the system including their name, email, role, and actions.</p>
+      <%= link_to users_path(show_deleted: true), 
+          class: "text-sm text-gray-600 hover:text-gray-900 #{params[:show_deleted] ? 'font-bold' : ''}" do %>
+        Show Deleted Users
+      <% end %>
+      |
+      <%= link_to users_path, 
+          class: "text-sm text-gray-600 hover:text-gray-900 #{!params[:show_deleted] ? 'font-bold' : ''}" do %>
+        Show Active Users
+      <% end %>
     </div>
     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
       <%= link_to new_user_path, class: "inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" do %>
@@ -21,6 +28,7 @@
           <table class="min-w-full divide-y divide-gray-300">
             <thead class="bg-gray-50">
               <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Status</th>
                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
@@ -34,31 +42,50 @@
             <tbody class="divide-y divide-gray-200 bg-white">
               <%= turbo_frame_tag "users" do %>
                 <% @users.each do |user| %>
-                  <%= turbo_frame_tag dom_id(user) do %>
-                    <tr>
-                      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        <%= user.full_name %>
-                      </td>
-                      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= user.email %></td>
-                      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 
-                          <%= user.role_admin? ? 'bg-purple-100 text-purple-800' : 
-                              user.role_driver? ? 'bg-green-100 text-green-800' : 
-                              'bg-blue-100 text-blue-800' %>">
-                          <%= user.role.titleize %>
+                  <tr class="<%= user.discarded? ? 'bg-red-50' : '' %>">
+                    <td class="whitespace-nowrap px-3 py-4 text-sm">
+                      <% if user.discarded? %>
+                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                          Deleted
                         </span>
-                      </td>
-                      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= user.country %></td>
-                      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= user.created_at.strftime("%B %d, %Y") %></td>
-                      <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <div class="flex justify-end gap-2">
+                      <% else %>
+                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                          Active
+                        </span>
+                      <% end %>
+                    </td>
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                      <%= user.full_name %>
+                    </td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= user.email %></td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 
+                        <%= user.role_admin? ? 'bg-purple-100 text-purple-800' : 
+                            user.role_driver? ? 'bg-green-100 text-green-800' : 
+                            'bg-blue-100 text-blue-800' %>">
+                        <%= user.role.titleize %>
+                      </span>
+                    </td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= user.country %></td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= user.created_at.strftime("%B %d, %Y") %></td>
+                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                      <div class="flex justify-end gap-2">
+                        <% if user.discarded? %>
+                          <%= button_to "Restore", restore_user_path(user), method: :patch,
+                              class: "text-green-600 hover:text-green-900" %>
+                          <%= button_to "Delete Permanently", permanent_delete_user_path(user), 
+                              method: :delete,
+                              class: "text-red-600 hover:text-red-900",
+                              data: { turbo_confirm: "This action cannot be undone. Are you sure?" } %>
+                        <% else %>
                           <%= link_to "Edit", edit_user_path(user), class: "text-blue-600 hover:text-blue-900" %>
-                          <%= button_to "Delete", user_path(user), method: :delete, class: "text-red-600 hover:text-red-900", 
-                              data: { turbo_confirm: "Are you sure you want to delete this user?" } %>
-                        </div>
-                      </td>
-                    </tr>
-                  <% end %>
+                          <%= button_to "Deactivate", user_path(user), method: :delete,
+                              class: "text-red-600 hover:text-red-900",
+                              data: { turbo_confirm: "Are you sure you want to deactivate this user?" } %>
+                        <% end %>
+                      </div>
+                    </td>
+                  </tr>
                 <% end %>
               <% end %>
             </tbody>

@@ -6,8 +6,8 @@
   <% end %>
 
   <div class="flex justify-between items-center">
-    <h1 class="font-bold text-4xl">Passenger profiles</h1>
-    <%= link_to "New passenger profile", new_passenger_profile_path, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
+    <h1 class="font-bold text-4xl">My Profile</h1>
+    <%= link_to "Edit my profile", edit_passenger_profile_path(current_user.passenger_profile), class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
   </div>
 
   <div id="passenger_profiles" class="min-w-full">

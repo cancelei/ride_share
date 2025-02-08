@@ -1,5 +1,7 @@
 class User < ApplicationRecord
   include DriverLocationBroadcaster
+  include Discard::Model
+  default_scope -> { kept }
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
@@ -7,10 +9,12 @@ class User < ApplicationRecord
 
   enum :role, { admin: 0, driver: 1, passenger: 2 }, prefix: true
 
-  has_one :driver_profile, dependent: :destroy
-  has_one :passenger_profile, dependent: :destroy
+  has_one :driver_profile, -> { with_discarded }, dependent: :destroy
+  has_one :passenger_profile, -> { with_discarded }, dependent: :destroy
 
   after_create :send_welcome_email
+  before_discard :discard_profiles
+  before_undiscard :undiscard_profiles
 
   def send_welcome_email
     if Rails.env.production?
@@ -33,20 +37,27 @@ class User < ApplicationRecord
   end
 
   def current_location
-    return nil unless location_coordinates.present?
+    return nil if current_latitude.blank? || current_longitude.blank?
+
+    coordinates = { latitude: current_latitude, longitude: current_longitude }
+    address = Geocoder.address([ current_latitude, current_longitude ])
 
     {
-      coordinates: location_coordinates,
-      updated_at: location_updated_at,
-      address: location_address
+      coordinates: coordinates,
+      address: address,
+      updated_at: location_updated_at
     }
   end
 
-  def location_coordinates
-    { latitude: current_latitude, longitude: current_longitude }
+  private
+
+  def discard_profiles
+    driver_profile&.discard
+    passenger_profile&.discard
   end
 
-  def location_address
-    Geocoder.address(location_coordinates)
+  def undiscard_profiles
+    driver_profile&.undiscard
+    passenger_profile&.undiscard
   end
 end
