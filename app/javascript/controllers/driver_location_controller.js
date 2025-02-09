@@ -19,7 +19,6 @@ export default class extends Controller {
       this.initializeGoogleMaps()
         .then(() => {
           this.startLocationTracking();
-          this.startLocationUpdates();
         })
         .catch((error) => {
           console.error("Failed to initialize Google Maps:", error);
@@ -50,27 +49,21 @@ export default class extends Controller {
       };
 
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMaps&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps&loading=async`;
       script.async = true;
       script.onerror = () => reject(new Error("Google Maps failed to load"));
       document.head.appendChild(script);
     });
   }
 
-  startLocationUpdates() {
-    this.updateLocation();
-    this.intervalId = setInterval(() => {
-      this.updateLocation();
-    }, this.intervalValue);
-  }
-
   startLocationTracking() {
+    this.updateDriverLocation();
+    this.updateLocation();
+
     this.intervalId = setInterval(() => {
       this.updateDriverLocation();
-    }, this.intervalValue); // 1 minute
-
-    // Initial update
-    this.updateDriverLocation();
+      this.updateLocation();
+    }, this.intervalValue);
   }
 
   async updateDriverLocation() {
