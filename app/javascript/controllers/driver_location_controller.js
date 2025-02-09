@@ -49,7 +49,7 @@ export default class extends Controller {
       };
 
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMaps&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps&loading=async`;
       script.async = true;
       script.onerror = () => reject(new Error("Google Maps failed to load"));
       document.head.appendChild(script);
