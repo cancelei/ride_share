@@ -1,6 +1,9 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  allow_browser versions: :modern do |config|
+    # Customize the response for unsupported browsers
+    config.response = -> { render file: "public/406-unsupported-browser.html", layout: false }
+  end
 
   before_action :authenticate_user!
 
