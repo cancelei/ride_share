@@ -59,7 +59,7 @@ export default class extends Controller {
   startLocationTracking() {
     this.updateDriverLocation();
     this.updateLocation();
-    
+
     this.intervalId = setInterval(() => {
       this.updateDriverLocation();
       this.updateLocation();
