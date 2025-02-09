@@ -1,0 +1,28 @@
+<p>
+  <strong>My Location:</strong>
+  <span data-driver-location-target="location"
+        data-address="<%= booking.pickup %>"
+        class="text-gray-700">
+    Calculating...
+  </span>
+</p>
+<p>
+  <% if booking.status_accepted? %>
+    <strong>Distance to Pickup point:</strong>
+  <% else %>
+    <strong>Distance to Dropoff point:</strong>
+  <% end %>
+  <span data-driver-location-target="distance" class="text-gray-700">
+    Calculating...
+  </span>
+</p>
+<p>
+  <% if booking.status_accepted? %>
+    <strong>ETA to Pickup:</strong>
+  <% else %>
+    <strong>ETA to Dropoff:</strong>
+  <% end %>
+  <span data-driver-location-target="eta" class="text-gray-700">
+    Calculating...
+  </span>
+</p> 

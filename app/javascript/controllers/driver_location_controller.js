@@ -19,7 +19,6 @@ export default class extends Controller {
       this.initializeGoogleMaps()
         .then(() => {
           this.startLocationTracking();
-          this.startLocationUpdates();
         })
         .catch((error) => {
           console.error("Failed to initialize Google Maps:", error);
@@ -57,20 +56,14 @@ export default class extends Controller {
     });
   }
 
-  startLocationUpdates() {
-    this.updateLocation();
-    this.intervalId = setInterval(() => {
-      this.updateLocation();
-    }, this.intervalValue);
-  }
-
   startLocationTracking() {
+    this.updateDriverLocation();
+    this.updateLocation();
+    
     this.intervalId = setInterval(() => {
       this.updateDriverLocation();
-    }, this.intervalValue); // 1 minute
-
-    // Initial update
-    this.updateDriverLocation();
+      this.updateLocation();
+    }, this.intervalValue);
   }
 
   async updateDriverLocation() {
