@@ -1,24 +1,64 @@
-# README
+# Ride Flow - Network State Apps
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A Ruby on Rails application that helps you find the best ride for your trips, it has an extensive roadmap that could be already implemented without any updates on the readme.
 
-Things you may want to cover:
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-* Ruby version
+## Quick Start 🚀
 
-* System dependencies
+Configure Ruby envieroment with asdf or rbenv and install the correct version by looking at the .tool-versions or ruby-version file.
 
-* Configuration
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/your-project-name.git
+   cd your-project-name
+   ```
 
-* Database creation
+2. Install dependencies:
+   ```bash
+   bin/setup
+   ```
 
-* Database initialization
+3. Open your browser and navigate to `http://localhost:3000` to see the application in action.
 
-* How to run the test suite
+## Project Structure 📂
 
-* Services (job queues, cache servers, search engines, etc.)
+The project is organized into the following directories:
 
-* Deployment instructions
+- `app/`: Contains the main application files.
+- `config/`: Contains the configuration files.
+- `db/`: Contains the database files.
+- `lib/`: Contains the custom libraries.
+- `public/`: Contains the public files.
+- `spec/`: Contains the test files.
+- `vendor/`: Contains the vendor files.
 
-* ...
+## Configuration 🔧
+
+The configuration is done in the `config/application.rb` file.
+
+## Database 🗄️
+
+The database is created using the `rails db:prepare` command.
+
+## Testing 🧪
+
+The tests are run using the `rails test` command.
+
+## Deployment 📦
+
+The application is deployed using the `heroku` command.
+
+Migrate in production:
+
+```bash
+heroku run rails db:migrate --app your-app-name
+```
+
+Or act accordingly when using other hosting providers.
+
+## Contributing 🤝
+
+## License 📝
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
