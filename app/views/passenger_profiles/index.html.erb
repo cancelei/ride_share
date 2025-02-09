@@ -14,9 +14,6 @@
     <% if @passenger_profiles.any? %>
       <% @passenger_profiles.each do |passenger_profile| %>
         <%= render passenger_profile %>
-        <p>
-          <%= link_to "Show this passenger profile", passenger_profile, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-        </p>
       <% end %>
     <% else %>
       <p class="text-center my-10">No passenger profiles found.</p>
