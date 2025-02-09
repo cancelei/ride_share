@@ -86,7 +86,17 @@
         <% end %>
       </div>
     </div>
-    <%= link_to "View Details", booking_path(booking),
-        class: "px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-500 text-sm" %>
+    <div class="flex flex-col gap-2">
+      <%= button_to cancel_booking_path(booking),
+          method: :post,
+          class: "px-3 py-1 rounded-md text-sm w-full #{booking.status_pending? ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}",
+          disabled: !booking.status_pending?,
+          data: { 
+            turbo_confirm: "Are you sure you want to cancel this booking?",
+            turbo_method: :post 
+          } do %>
+        Cancel
+      <% end %>
+    </div>
   </div>
 </div>

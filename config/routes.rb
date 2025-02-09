@@ -4,6 +4,7 @@ Rails.application.routes.draw do
       get :pending
     end
     member do
+      post :cancel
       get :driver_location
     end
   end

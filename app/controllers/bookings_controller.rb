@@ -1,5 +1,5 @@
 class BookingsController < ApplicationController
-  before_action :set_booking, only: %i[ show edit update destroy ]
+  before_action :set_booking, only: %i[ show edit update destroy cancel ]
 
   # GET /bookings or /bookings.json
   def index
@@ -101,6 +101,15 @@ class BookingsController < ApplicationController
       end
     else
       render json: { error: "Driver not found" }, status: :not_found
+    end
+  end
+
+  def cancel
+    if @booking.status_pending?
+      @booking.update(status: :cancelled)
+      redirect_to root_path, notice: "Booking was successfully cancelled."
+    else
+      redirect_to root_path, alert: "Only pending bookings can be cancelled."
     end
   end
 
