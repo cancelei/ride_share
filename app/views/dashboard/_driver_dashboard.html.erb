@@ -222,7 +222,7 @@
       <div class="space-y-4">
         <p><strong>License:</strong> <%= @driver_profile.license %></p>
         <p><strong>Issuer:</strong> <%= @driver_profile.license_issuer %></p>
-        <p><strong>Payment Method beyond Cash:</strong>
+        <p><strong>Payment Methods: (add at least one)</strong>
         <p><strong>Bitcoin:</strong> <%= @driver_profile.bitcoin_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.bitcoin_address}');" %>
         <p><strong>ICC:</strong> <%= @driver_profile.icc_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.icc_address}');" %>
         <p><strong>Ethereum:</strong> <%= @driver_profile.ethereum_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.ethereum_address}');" %>

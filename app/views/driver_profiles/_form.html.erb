@@ -23,8 +23,7 @@
     <%= form.text_field :license_issuer, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:license_issuer].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:license_issuer].any?}] %>
   </div>
   
-  <p class="text-lg font-bold">Payment</p>
-  <p class="text-sm text-gray-500">Cash payment is default. You can add other payment methods here.</p>
+  <p class="text-lg font-bold">Payment Methods</p>
   <div class="my-5">
     <%= form.label :bitcoin_address %>
     <%= form.text_field :bitcoin_address, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:bitcoin_address].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:bitcoin_address].any?}] %>
