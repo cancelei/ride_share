@@ -98,9 +98,10 @@ class UsersController < ApplicationController
     @user = User.with_discarded.find(params[:id])
   end
 
+  # Only admins can update roles
   def user_params
-    params.require(:user).permit(:email, :password, :password_confirmation,
-                               :first_name, :last_name, :role, :country,
-                               :phone_number)
+    permitted_attributes = [ :email, :password, :password_confirmation, :first_name, :last_name, :country, :phone_number ]
+    permitted_attributes << :role if current_user&.role_admin?
+    params.require(:user).permit(permitted_attributes)
   end
 end
