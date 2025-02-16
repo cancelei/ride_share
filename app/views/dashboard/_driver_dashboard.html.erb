@@ -196,7 +196,7 @@
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap"><%= ride.start_time.strftime("%b %d, %Y") if ride.start_time %></td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <%= ride.bookings.first.pickup %> → <%= ride.bookings.first.dropoff %>
+                  <%= ride.bookings.first.pickup.truncate(20) %> → <%= ride.bookings.first.dropoff.truncate(20) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap"><%= ride.bookings.sum(:requested_seats) %></td>
                 <td class="px-6 py-4 whitespace-nowrap">
