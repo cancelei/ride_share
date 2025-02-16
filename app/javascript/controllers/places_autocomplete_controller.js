@@ -45,7 +45,7 @@ export default class extends Controller {
   initializeAutocomplete() {
     const options = {
       componentRestrictions: { country: "hn" },
-      fields: ["formatted_address", "geometry", "name"],
+      fields: ["address_components", "formatted_address", "geometry", "name"],
       strictBounds: false,
     };
 
@@ -62,11 +62,13 @@ export default class extends Controller {
     // Initialize Distance Matrix Service
     this.distanceService = new google.maps.DistanceMatrixService();
 
+    this.setupPlaceChangedListeners();
+  }
+
+  setupPlaceChangedListeners() {
     this.pickupAutocomplete.addListener("place_changed", () => {
       const place = this.pickupAutocomplete.getPlace();
       if (!place.geometry) return;
-
-      // Store pickup location data in hidden fields
       this.setLocationFields("pickup", place);
       this.calculateDistanceAndDuration();
     });
@@ -74,8 +76,6 @@ export default class extends Controller {
     this.dropoffAutocomplete.addListener("place_changed", () => {
       const place = this.dropoffAutocomplete.getPlace();
       if (!place.geometry) return;
-
-      // Store dropoff location data in hidden fields
       this.setLocationFields("dropoff", place);
       this.calculateDistanceAndDuration();
     });
@@ -87,7 +87,7 @@ export default class extends Controller {
     // Update or create hidden fields
     this.ensureHiddenField(
       `booking_${prefix}_location_attributes_address`,
-      place.formatted_address
+      this.formatAddress(place.address_components)
     );
     this.ensureHiddenField(
       `booking_${prefix}_location_attributes_latitude`,
@@ -155,6 +155,43 @@ export default class extends Controller {
         );
       }
     });
+  }
+
+  formatAddress(addressComponents) {
+    const componentForm = {
+      street_number: 'short_name',
+      route: 'long_name',
+      sublocality_level_1: 'long_name',
+      locality: 'long_name',
+      administrative_area_level_1: 'long_name',
+      country: 'long_name'
+    };
+
+    let formattedAddress = [];
+    
+    // Build address from components
+    const street = [
+      this.getAddressComponent(addressComponents, 'street_number'),
+      this.getAddressComponent(addressComponents, 'route')
+    ].filter(Boolean).join(' ');
+    
+    const district = this.getAddressComponent(addressComponents, 'sublocality_level_1');
+    const city = this.getAddressComponent(addressComponents, 'locality');
+    const state = this.getAddressComponent(addressComponents, 'administrative_area_level_1');
+    
+    if (street) formattedAddress.push(street);
+    if (district) formattedAddress.push(district);
+    if (city) formattedAddress.push(city);
+    if (state) formattedAddress.push(state);
+    
+    return formattedAddress.join(', ');
+  }
+
+  getAddressComponent(components, type) {
+    const component = components.find(
+      component => component.types[0] === type
+    );
+    return component ? component.long_name : '';
   }
 
   getApiKey() {
