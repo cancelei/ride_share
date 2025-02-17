@@ -4,6 +4,7 @@ require "json"
 
 class Ride < ApplicationRecord
   include Discard::Model
+  include RideStatusBroadcaster
   default_scope -> { kept }
 
   belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id
@@ -14,6 +15,8 @@ class Ride < ApplicationRecord
   before_create :set_status
   before_save :save_participants
   after_save :update_booking, -> { booking_id.present? }
+  after_update :broadcast_status_update
+  after_commit :broadcast_ride_status, if: :saved_change_to_status?
 
   attr_accessor :booking_id
 
@@ -126,5 +129,30 @@ class Ride < ApplicationRecord
     unless driver&.vehicles&.any?
       errors.add(:base, "Driver must have at least one vehicle")
     end
+  end
+
+  def broadcast_ride_status
+    # Broadcast to all passengers in this ride's bookings
+    bookings.each do |booking|
+      Turbo::StreamsChannel.broadcast_replace_to(
+        "user_#{booking.passenger.user_id}_dashboard",
+        target: "rides_content",
+        partial: "dashboard/rides_content",
+        locals: { my_bookings: booking.passenger.bookings }
+      )
+    end
+
+    # Broadcast to driver
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "user_#{driver.user_id}_dashboard",
+      target: "rides_content",
+      partial: "dashboard/rides_content",
+      locals: {
+        my_bookings: bookings,
+        active_rides: driver.rides.active,
+        pending_bookings: Booking.pending,
+        past_rides: driver.rides.past
+      }
+    )
   end
 end
