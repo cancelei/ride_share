@@ -13,13 +13,50 @@
 
   <%= form.hidden_field :passenger_id, value: current_user.passenger_profile.id %>
 
+  <%# Pickup location fields %>
+  <%= form.fields_for :locations, booking.locations.build(location_type: 'pickup') do |location_form| %>
+    <div class="hidden">
+      <%= location_form.text_field :address, 
+          data: { places_autocomplete_target: "pickupAddress" },
+          required: true %>
+      <%= location_form.number_field :latitude, 
+          data: { places_autocomplete_target: "pickupLat" },
+          step: :any,
+          required: true %>
+      <%= location_form.number_field :longitude, 
+          data: { places_autocomplete_target: "pickupLng" },
+          step: :any,
+          required: true %>
+      <%= location_form.hidden_field :location_type, value: 'pickup' %>
+    </div>
+  <% end %>
+
+  <%# Dropoff location fields %>
+  <%= form.fields_for :locations, booking.locations.build(location_type: 'dropoff') do |location_form| %>
+    <div class="hidden">
+      <%= location_form.text_field :address, 
+          data: { places_autocomplete_target: "dropoffAddress" },
+          required: true %>
+      <%= location_form.number_field :latitude, 
+          data: { places_autocomplete_target: "dropoffLat" },
+          step: :any,
+          required: true %>
+      <%= location_form.number_field :longitude, 
+          data: { places_autocomplete_target: "dropoffLng" },
+          step: :any,
+          required: true %>
+      <%= location_form.hidden_field :location_type, value: 'dropoff' %>
+    </div>
+  <% end %>
+
   <div class="my-5">
     <%= form.label :pickup %>
     <%= form.text_field :pickup, 
         class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", 
         {"border-gray-400 focus:outline-blue-600": booking.errors[:pickup].none?, 
         "border-red-400 focus:outline-red-600": booking.errors[:pickup].any?}],
-        data: { places_autocomplete_target: "pickup" }, required: true %>
+        data: { places_autocomplete_target: "pickup" },
+        required: true %>
   </div>
 
   <div class="my-5">

@@ -7,6 +7,10 @@ class Location < ApplicationRecord
 
   before_save :format_address_before_save
 
+  validates :address, :latitude, :longitude, :location_type, presence: true
+  validates :latitude, :longitude, numericality: true
+  validates :location_type, inclusion: { in: %w[pickup dropoff] }
+
   private
 
   def format_address_before_save

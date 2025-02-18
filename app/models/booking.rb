@@ -19,12 +19,18 @@ class Booking < ApplicationRecord
   after_commit :broadcast_cancellation, if: -> { saved_change_to_status? && status == "cancelled" }
 
   def set_estimated_ride_price
-    Ride.where(id: self.ride_id).update_all(estimated_price: (Booking.where(ride_id: self.ride_id).pluck(:distance_km) + [ self.distance_km ]).sum * 2)
+    return unless ride_id.present?
+
+    total_distance = Booking.where(ride_id: ride_id)
+                           .pluck(:distance_km)
+                           .sum + (distance_km || 0)
+
+    ride.update_column(:estimated_price, total_distance * 2)
   end
 
   enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
 
-  accepts_nested_attributes_for :locations, allow_destroy: true
+  accepts_nested_attributes_for :locations
 
   scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
   scope :pending, -> { where(status: "pending") }
@@ -64,22 +70,26 @@ class Booking < ApplicationRecord
   end
 
   def broadcast_update
+    broadcast_to_passenger
+    broadcast_to_driver if ride&.driver
+  end
+
+  def broadcast_to_passenger
     Turbo::StreamsChannel.broadcast_update_to(
       "user_#{passenger.user_id}_dashboard",
       target: "rides_content",
       partial: "dashboard/rides_content",
       locals: { my_bookings: passenger.bookings }
     )
+  end
 
-    # Also update any relevant driver dashboards
-    if ride&.driver.present?
-      Turbo::StreamsChannel.broadcast_update_to(
-        "user_#{ride.driver.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: { my_bookings: ride.bookings }
-      )
-    end
+  def broadcast_to_driver
+    Turbo::StreamsChannel.broadcast_update_to(
+      "user_#{ride.driver.user_id}_dashboard",
+      target: "rides_content",
+      partial: "dashboard/rides_content",
+      locals: { my_bookings: ride.bookings }
+    )
   end
 
   def broadcast_to_drivers
@@ -101,32 +111,37 @@ class Booking < ApplicationRecord
   end
 
   def broadcast_cancellation
-    # Broadcast to all drivers to update their pending bookings list
+    broadcast_to_all_drivers
+    broadcast_to_assigned_driver if ride&.driver
+  end
+
+  def broadcast_to_all_drivers
+    pending_bookings = Booking.pending.includes(:passenger, :ride)
+
     User.role_driver.find_each do |driver|
       Turbo::StreamsChannel.broadcast_replace_to(
         "user_#{driver.id}_dashboard",
         target: "pending_bookings",
         partial: "dashboard/pending_bookings",
         locals: {
-          pending_bookings: Booking.pending.includes(:passenger, :ride),
+          pending_bookings: pending_bookings,
           current_user: driver
         }
       )
     end
+  end
 
-    # If ride was assigned, also update that specific driver's rides
-    if ride&.driver.present?
-      Turbo::StreamsChannel.broadcast_replace_to(
-        "user_#{ride.driver.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_bookings: ride.bookings,
-          active_rides: ride.driver.rides.active,
-          pending_bookings: Booking.pending,
-          past_rides: ride.driver.rides.past
-        }
-      )
-    end
+  def broadcast_to_assigned_driver
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "user_#{ride.driver.user_id}_dashboard",
+      target: "rides_content",
+      partial: "dashboard/rides_content",
+      locals: {
+        my_bookings: ride.bookings,
+        active_rides: ride.driver.rides.active,
+        pending_bookings: Booking.pending,
+        past_rides: ride.driver.rides.past
+      }
+    )
   end
 end

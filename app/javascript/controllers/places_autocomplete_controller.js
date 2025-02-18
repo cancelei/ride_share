@@ -1,7 +1,11 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["pickup", "dropoff"];
+  static targets = [
+    "pickup", "dropoff",
+    "pickupAddress", "pickupLat", "pickupLng",
+    "dropoffAddress", "dropoffLat", "dropoffLng"
+  ]
 
   connect() {
     this.initializeGoogleMaps()
@@ -69,14 +73,24 @@ export default class extends Controller {
     this.pickupAutocomplete.addListener("place_changed", () => {
       const place = this.pickupAutocomplete.getPlace();
       if (!place.geometry) return;
-      this.setLocationFields("pickup", place);
+      
+      // Update pickup location fields
+      this.pickupAddressTarget.value = place.formatted_address;
+      this.pickupLatTarget.value = place.geometry.location.lat();
+      this.pickupLngTarget.value = place.geometry.location.lng();
+      
       this.calculateDistanceAndDuration();
     });
 
     this.dropoffAutocomplete.addListener("place_changed", () => {
       const place = this.dropoffAutocomplete.getPlace();
       if (!place.geometry) return;
-      this.setLocationFields("dropoff", place);
+      
+      // Update dropoff location fields
+      this.dropoffAddressTarget.value = place.formatted_address;
+      this.dropoffLatTarget.value = place.geometry.location.lat();
+      this.dropoffLngTarget.value = place.geometry.location.lng();
+      
       this.calculateDistanceAndDuration();
     });
   }
