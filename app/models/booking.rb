@@ -79,9 +79,9 @@ class Booking < ApplicationRecord
       "user_#{passenger.user_id}_dashboard",
       target: "rides_content",
       partial: "dashboard/rides_content",
-      locals: { 
+      locals: {
         my_bookings: passenger.bookings,
-        user: passenger.user 
+        user: passenger.user
       }
     )
   end
@@ -93,7 +93,7 @@ class Booking < ApplicationRecord
       "user_#{ride.driver.user_id}_dashboard",
       target: "rides_content",
       partial: "dashboard/rides_content",
-      locals: { 
+      locals: {
         my_bookings: ride.bookings,
         user: ride.driver.user
       }

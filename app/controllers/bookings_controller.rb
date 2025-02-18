@@ -30,26 +30,26 @@ class BookingsController < ApplicationController
   # POST /bookings or /bookings.json
   def create
     @booking = Booking.new(booking_params)
-    
+
     respond_to do |format|
       if @booking.save
-        format.turbo_stream { 
+        format.turbo_stream {
           flash.now[:notice] = "Booking was successfully created."
           render turbo_stream: [
             turbo_stream.update("flash", partial: "shared/flash"),
-            turbo_stream.append_all("body", 
+            turbo_stream.append_all("body",
               %{<turbo-frame id="redirect_handle">
                 <script>Turbo.visit('/', { action: 'replace' })</script>
               </turbo-frame>}.html_safe
             )
           ]
         }
-        format.html { redirect_to root_path, notice: 'Booking was successfully created.' }
+        format.html { redirect_to root_path, notice: "Booking was successfully created." }
       else
-        format.turbo_stream { 
+        format.turbo_stream {
           render turbo_stream: turbo_stream.replace(
-            'new_booking_form',
-            partial: 'form',
+            "new_booking_form",
+            partial: "form",
             locals: { booking: @booking }
           )
         }
