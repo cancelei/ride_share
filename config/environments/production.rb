@@ -90,7 +90,7 @@ Rails.application.configure do
 
   # Enable Action Cable in production.
   config.action_cable.url = "wss://rideflow.live/cable"
-  config.action_cable.allowed_request_origins = ['https://rideflow.live']
+  config.action_cable.allowed_request_origins = [ "https://rideflow.live" ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
