@@ -1,0 +1,9 @@
+<% flash.each do |type, message| %>
+  <div class="<%= type == 'notice' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> p-4 rounded-lg mb-4" 
+       role="alert"
+       data-controller="removals"
+       data-action="animationend->removals#remove"
+       data-animate-remove-class="fade-out">
+    <%= message %>
+  </div>
+<% end %> 

@@ -79,16 +79,24 @@ class Booking < ApplicationRecord
       "user_#{passenger.user_id}_dashboard",
       target: "rides_content",
       partial: "dashboard/rides_content",
-      locals: { my_bookings: passenger.bookings }
+      locals: { 
+        my_bookings: passenger.bookings,
+        user: passenger.user 
+      }
     )
   end
 
   def broadcast_to_driver
+    return unless ride&.driver&.user_id
+
     Turbo::StreamsChannel.broadcast_update_to(
       "user_#{ride.driver.user_id}_dashboard",
       target: "rides_content",
       partial: "dashboard/rides_content",
-      locals: { my_bookings: ride.bookings }
+      locals: { 
+        my_bookings: ride.bookings,
+        user: ride.driver.user
+      }
     )
   end
 
