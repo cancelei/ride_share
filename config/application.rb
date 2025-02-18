@@ -27,5 +27,17 @@ module RideShare
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Add middleware to block malicious requests
+    config.middleware.insert_before Rack::Runtime, BlockMaliciousRequests
+
+    # Enhance security headers
+    config.action_dispatch.default_headers = {
+      "X-Frame-Options" => "DENY",
+      "X-Content-Type-Options" => "nosniff",
+      "X-XSS-Protection" => "1; mode=block",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
+    }
   end
 end
