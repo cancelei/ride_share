@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class CreateCompactChannel < ActiveRecord::Migration[7.2]
-  def up
+class CreateCompactChannel < ActiveRecord::Migration[8.0]
+  def change
     change_column :solid_cable_messages, :channel, :binary, limit: 1024, null: false
     add_column :solid_cable_messages, :channel_hash, :integer, limit: 8, if_not_exists: true
     add_index :solid_cable_messages, :channel_hash, if_not_exists: true
