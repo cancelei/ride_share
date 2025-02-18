@@ -75,8 +75,6 @@
       <% if current_user&.role_driver? %>
         <%= link_to "My Vehicles", driver_profile_vehicles_path(current_user.driver_profile),
             class: "#{current_page?(driver_profile_vehicles_path(current_user.driver_profile)) ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium" if current_user.driver_profile %>
-        <%= link_to "My Rides", rides_path,
-            class: "#{current_page?(rides_path) ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium" %>
       <% end %>
 
       <% if current_user&.role_passenger? %>
