@@ -6,9 +6,6 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-# Require the middleware
-require_relative "../app/middleware/block_malicious_requests"
-
 module RideShare
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -42,8 +39,5 @@ module RideShare
       "X-Permitted-Cross-Domain-Policies" => "none",
       "Referrer-Policy" => "strict-origin-when-cross-origin"
     }
-
-    # Add lib/middleware to autoload paths
-    config.autoload_paths << Rails.root.join("lib/middleware")
   end
 end
