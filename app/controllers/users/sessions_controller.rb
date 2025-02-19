@@ -13,9 +13,26 @@ class Users::SessionsController < Devise::SessionsController
   def create
     self.resource = warden.authenticate!(auth_options)
     sign_in(resource_name, resource)
+
     respond_to do |format|
-      format.turbo_stream { redirect_to after_sign_in_path_for(resource) }
-      format.html { redirect_to after_sign_in_path_for(resource) }
+      if current_user
+        format.turbo_stream { redirect_to after_sign_in_path_for(resource), notice: "Signed in successfully." }
+        format.html { redirect_to after_sign_in_path_for(resource), notice: "Signed in successfully." }
+      else
+        format.turbo_stream { redirect_to new_user_session_path, alert: "Invalid email or password." }
+        format.html { redirect_to new_user_session_path, alert: "Invalid email or password." }
+      end
+    end
+  rescue Warden::AuthenticationError
+    respond_to do |format|
+      format.turbo_stream {
+        render turbo_stream: turbo_stream.replace(
+          "login_form",
+          partial: "devise/sessions/form",
+          locals: { resource: resource, error: "Invalid email or password." }
+        )
+      }
+      format.html { redirect_to new_user_session_path, alert: "Invalid email or password." }
     end
   end
 

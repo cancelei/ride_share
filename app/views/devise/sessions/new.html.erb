@@ -26,17 +26,15 @@
                 placeholder: "••••••••" %>
           </div>
 
-          <% if devise_mapping.rememberable? %>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <%= f.check_box :remember_me, class: "h-4 w-4 text-indigo-600 focus:ring-2 focus:ring-indigo-500 border-gray-300 rounded-lg" %>
-                <%= f.label :remember_me, class: "text-sm text-gray-600" %>
-              </div>
-              <% if devise_mapping.recoverable? %>
-                <%= link_to "Forgot password?", new_password_path(resource_name), class: "text-sm text-indigo-600 hover:text-indigo-500 transition-colors" %>
-              <% end %>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <%= f.check_box :remember_me, class: "h-4 w-4 text-indigo-600 focus:ring-2 focus:ring-indigo-500 border-gray-300 rounded-lg" %>
+              <%= f.label :remember_me, class: "text-sm text-gray-600" %>
             </div>
-          <% end %>
+            <% if devise_mapping.recoverable? %>
+              <%= link_to "Forgot password?", new_password_path(resource_name), class: "text-sm text-indigo-600 hover:text-indigo-500 transition-colors" %>
+            <% end %>
+          </div>
 
           <div class="pt-4">
             <%= f.submit "Log in", 
