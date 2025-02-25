@@ -16,11 +16,10 @@ class BookingsController < ApplicationController
 
   # GET /bookings/new
   def new
-    if current_user.passenger_profile.nil?
-      redirect_to new_passenger_profile_path, notice: "Please create a passenger profile first."
-    else
-      @booking = Booking.new
-    end
+    Time.zone = "America/Tegucigalpa"
+    @booking = Booking.new(
+      scheduled_time: Time.zone.now + 30.minutes
+    )
   end
 
   # GET /bookings/1/edit
