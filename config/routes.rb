@@ -38,8 +38,13 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  # Defines the root path route ("/")
-  root "dashboard#show"
+  # Landing page route
+  root "pages#landing", as: :root
+
+  # Authenticated user routes
+  authenticated :user do
+    get "/dashboard", to: "dashboard#show", as: :dashboard
+  end
 
   post "driver/update_location", to: "driver_profiles#update_location"
 

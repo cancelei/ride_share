@@ -1,0 +1,182 @@
+<div class="min-h-screen">
+  <!-- Hero Section -->
+  <section class="relative h-[500px] md:h-screen">
+    <!-- Background Image and Gradient Overlay -->
+    <div class="absolute inset-0 w-full h-full">
+      <%= image_tag "hero-background.png", 
+          class: "absolute inset-0 w-full h-full object-contain md:object-fill",
+          alt: "Happy people sharing rides" %>
+      <div class="absolute inset-0 bg-gradient-to-b from-[#3461FF]/90 via-[#8498ED]/80 to-[#D9D9D9]/50"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative h-full">
+      <div class="container px-4 h-full flex items-center justify-center text-center">
+        <div class="max-w-2xl mx-auto">
+          <h1 class="text-4xl md:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight">
+            Shared Rides,<br>
+            Shared Stories.
+          </h1>
+          <p class="text-base md:text-xl text-white/90 mb-6 md:mb-8 max-w-xl mx-auto">
+            Share rides with people in your community, reduce costs, and
+            make every trip more meaningful. Smarter travel starts here!
+          </p>
+          <%= link_to "Create An Account", 
+              new_user_registration_path, 
+              class: "inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg font-semibold text-base md:text-lg transition-colors duration-200" %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-8 md:py-16 bg-white" id="how-it-works">
+    <div class="container mx-auto px-4">
+      <!-- Header with floating image -->
+      <div class="flex justify-center items-center mb-8 md:mb-12">
+        <div class="w-12 md:w-20"></div>
+        <h2 class="text-2xl md:text-4xl font-bold text-center">How It Works</h2>
+        <%= image_tag "share-location.png", 
+            alt: "Share location illustration", 
+            class: "w-14 md:w-32 animate-float" %>
+      </div>
+
+      <!-- Grid Container -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <!-- Request A Ride -->
+        <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+          <%= image_tag "majesticons_dollar-circle.png", 
+              alt: "Dollar circle illustration", 
+              class: "w-10 h-10 md:w-14 md:h-14 flex-shrink-0" %>
+          <div>
+            <h3 class="font-semibold text-lg md:text-xl mb-1">Request A Ride</h3>
+            <p class="text-gray-600 text-sm md:text-base">Tell us where you're going.</p>
+          </div>
+        </div>
+
+        <!-- Driver Matchup -->
+        <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+          <%= image_tag "majesticons_dollar-circle(1).png", 
+              alt: "Car seat illustration", 
+              class: "w-10 h-10 md:w-14 md:h-14 flex-shrink-0" %>
+          <div>
+            <h3 class="font-semibold text-lg md:text-xl mb-1">Driver Matchup</h3>
+            <p class="text-gray-600 text-sm md:text-base">Let a driver claim your intended ride.</p>
+          </div>
+        </div>
+
+        <!-- Enjoy The Ride -->
+        <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+          <%= image_tag "majesticons_dollar-circle(2).png", 
+              alt: "Car seat illustration", 
+              class: "w-10 h-10 md:w-14 md:h-14 flex-shrink-0" %>
+          <div>
+            <h3 class="font-semibold text-lg md:text-xl mb-1">Enjoy The Ride</h3>
+            <p class="text-gray-600 text-sm md:text-base">
+              Comfortable ride with a trusted community driver. Whether you're heading to the supermarket, beach, or co-working space, we've got you covered!
+            </p>
+          </div>
+        </div>
+
+        <!-- Crypto Payment -->
+        <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+          <%= image_tag "majesticons_dollar-circle(3).png", 
+              alt: "Car seat illustration", 
+              class: "w-10 h-10 md:w-14 md:h-14 flex-shrink-0" %>
+          <div>
+            <h3 class="font-semibold text-lg md:text-xl mb-1">Crypto Payment</h3>
+            <p class="text-gray-600 text-sm md:text-base">
+              Cryptocurrency. No need for cash or Card on hand—just pay in Bitcoin or ICC!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Use RideFlow Section -->
+  <section class="py-8 md:py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-2xl md:text-4xl font-bold text-center mb-12">Why Use RideFlow</h2>
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        
+        <!-- Left Column -->
+        <div class="text-center md:text-left">
+          <p class="text-gray-600 text-base md:text-lg mb-8 leading-relaxed">
+            Share rides with people in your community, reduce costs,
+            and make every trip more meaningful. Smarter travel
+            starts here!
+          </p>
+          
+          <%= image_tag "vintage-car-illustration.png", 
+              class: "w-48 md:w-72 mx-auto md:mx-0 animate-float", 
+              alt: "Vintage car illustration" %>
+        </div>
+
+        <!-- Right Column - Features -->
+        <div class="space-y-6 md:space-y-8">
+          <!-- Community-Powered -->
+          <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="bg-blue-600 p-3 rounded-xl flex-shrink-0">
+              <%= image_tag "majesticons_dollar-circle(4).png", 
+                  alt: "Community illustration", 
+                  class: "w-10 h-10 md:w-12 md:h-12" %>
+            </div>
+            <div>
+              <h3 class="text-lg md:text-xl font-semibold mb-2">Community-Powered</h3>
+              <p class="text-gray-600 text-sm md:text-base">Ride With Fellow Creators & Entrepreneurs.</p>
+            </div>
+          </div>
+
+          <!-- Affordable & Transparent -->
+          <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="bg-blue-600 p-3 rounded-xl flex-shrink-0">
+              <%= image_tag "majesticons_dollar-circle(5).png", 
+                  alt: "Affordable illustration", 
+                  class: "w-10 h-10 md:w-12 md:h-12" %>
+            </div>
+            <div>
+              <h3 class="text-lg md:text-xl font-semibold mb-2">Affordable & Transparent</h3>
+              <p class="text-gray-600 text-sm md:text-base">No hidden fees. Just fair rides.</p>
+            </div>
+          </div>
+
+          <!-- Safe & Reliable -->
+          <div class="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="bg-blue-600 p-3 rounded-xl flex-shrink-0">
+              <%= image_tag "majesticons_dollar-circle(6).png", 
+                  alt: "Safe illustration", 
+                  class: "w-10 h-10 md:w-12 md:h-12" %>
+            </div>
+            <div>
+              <h3 class="text-lg md:text-xl font-semibold mb-2">Safe & Reliable</h3>
+              <p class="text-gray-600 text-sm md:text-base">Drivers within the community.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="bg-blue-600 rounded-2xl text-white p-8 md:p-12">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">🎉 Ready To Ride?<br>Join The Movement!</h2>
+            <p class="text-blue-100 mb-8">Let's ride together! Whether you're a driver or passenger, This is your ticket to smooth, flexible transport</p>
+            <%= link_to "Get Started", new_user_registration_path, 
+                class: "inline-block bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors" %>
+          </div>
+          <div class="hidden md:block">
+            <%= image_tag "cta-image.png", class: "w-full rounded-lg", alt: "Join RideFlow" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%= render "shared/contact" %>
+  <%= render "shared/footer" %>
+</div> 

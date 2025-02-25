@@ -30,13 +30,11 @@ class DashboardController < ApplicationController
       @total_bookings = Booking.with_discarded.count
       @active_bookings = Booking.kept.count
       @recent_bookings = Booking.with_discarded.order(created_at: :desc).limit(10)
+    else
+      redirect_to root_path, alert: "Invalid user role"
     end
 
-    if current_user.driver_profile
-      @driver_rides = Ride.includes(:bookings)
-                         .where(driver: @driver_profile)
-                         .order(created_at: :desc)
-    end
+    render "dashboard/show"
   end
 
   def rides
