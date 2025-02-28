@@ -23,12 +23,12 @@ class RidesController < ApplicationController
     if params[:security_code].present?
       if @ride.verify_security_code(params[:security_code])
         @ride.start!
-        redirect_to root_path, notice: "Ride successfully started."
+        redirect_to dashboard_path, notice: "Ride successfully started."
       else
-        redirect_to ride_path(@ride), alert: "Invalid security code."
+        redirect_to dashboard_path, alert: "Invalid security code. Please try again."
       end
     else
-      redirect_to ride_path(@ride), alert: "Security code is required."
+      redirect_to dashboard_path, alert: "Security code is required."
     end
   end
 
