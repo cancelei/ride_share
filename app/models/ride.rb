@@ -12,7 +12,7 @@ class Ride < ApplicationRecord
   has_many :passengers, through: :bookings
   belongs_to :vehicle, -> { with_discarded }
 
-  before_create :set_status
+  before_create :set_status, :generate_security_code
   before_save :save_participants
   after_save :update_booking, -> { booking_id.present? }
   after_update :broadcast_status_update
@@ -102,6 +102,10 @@ class Ride < ApplicationRecord
     bookings.sum(:requested_seats)
   end
 
+  def verify_security_code(code)
+    security_code == code
+  end
+
   private
 
   def save_participants
@@ -154,5 +158,9 @@ class Ride < ApplicationRecord
         past_rides: driver.rides.past
       }
     )
+  end
+
+  def generate_security_code
+    self.security_code = sprintf("%04d", rand(10000))
   end
 end

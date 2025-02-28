@@ -51,9 +51,10 @@
               <% end %>
 
               <% if ride.can_start?(current_user) %>
-                <%= link_to "Start Ride", start_ride_path(ride),
-                    class: "text-center rounded-md px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium",
-                    data: { turbo_method: :post } %>
+                <div class="mt-4">
+                  <p class="text-sm text-gray-600 mb-2">Request passenger's security code to start ride</p>
+                  <%= render "rides/security_code_form", ride: ride %>
+                </div>
               <% end %>
 
               <% if ride.can_finish?(current_user) %>

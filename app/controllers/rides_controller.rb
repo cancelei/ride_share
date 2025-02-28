@@ -20,8 +20,16 @@ class RidesController < ApplicationController
   end
 
   def start
-    @ride.start!
-    redirect_to root_path, notice: "Ride was successfully started."
+    if params[:security_code].present?
+      if @ride.verify_security_code(params[:security_code])
+        @ride.start!
+        redirect_to root_path, notice: "Ride successfully started."
+      else
+        redirect_to ride_path(@ride), alert: "Invalid security code."
+      end
+    else
+      redirect_to ride_path(@ride), alert: "Security code is required."
+    end
   end
 
   def finish
