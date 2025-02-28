@@ -58,7 +58,7 @@
       <div class="ml-5">
         <h3 class="text-lg font-medium text-gray-900">Revenue (24h)</h3>
         <div class="mt-1 text-3xl font-semibold text-gray-700">
-          $<%= Ride.where('created_at > ?', 24.hours.ago).sum(:estimated_price) %>
+          <%= number_to_currency(Ride.where('created_at > ?', 24.hours.ago).sum(:estimated_price), precision: 2, unit: "USD ") %>
         </div>
       </div>
     </div>

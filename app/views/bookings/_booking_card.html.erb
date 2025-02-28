@@ -22,7 +22,7 @@
         </p>
         <p><span class="font-medium">Distance:</span> <%= booking.distance_km %> km</p>
         <p><span class="font-medium">Duration:</span> <%= booking.estimated_duration_minutes %> min</p>
-        <p><span class="font-medium">Estimated Price:</span> <%= booking.distance_km.to_f * 2 %> USD</p>
+        <p><span class="font-medium">Estimated Price:</span> <%= booking.formatted_price %></p>
         <% if booking.ride %>
           <div class="mt-4 p-4 bg-gray-50 rounded-lg">
             <h3 class="font-medium text-gray-900 mb-2">Driver Information</h3>

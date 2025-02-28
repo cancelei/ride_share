@@ -1,6 +1,7 @@
 class Booking < ApplicationRecord
   include Discard::Model
   include RideStatusBroadcaster
+  include PriceCalculator
   default_scope -> { kept }
 
   belongs_to :passenger, -> { with_discarded }, class_name: "PassengerProfile", foreign_key: :passenger_id
@@ -25,7 +26,8 @@ class Booking < ApplicationRecord
                            .pluck(:distance_km)
                            .sum + (distance_km || 0)
 
-    ride.update_column(:estimated_price, total_distance * 2)
+    total_price = (3.5 + total_distance * 2).round(2)
+    ride.update_column(:estimated_price, total_price)
   end
 
   enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
