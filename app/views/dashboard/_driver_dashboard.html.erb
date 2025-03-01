@@ -1,3 +1,5 @@
+<%= turbo_stream_from current_user, "dashboard" %>
+
 <div class="space-y-6">
   <%= turbo_stream_from "user_#{current_user.id}_dashboard" %>
   
@@ -71,52 +73,10 @@
     <% end %>
   </div>
 
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">
-      Past Rides
-      <span class="text-gray-600 text-base">
-        (<span class="hidden sm:inline">Weekly</span><span class="sm:hidden">Wee</span>: $<%= number_with_precision(@last_week_rides_total, precision: 2) %>)
-        <span class="text-gray-400">
-          (<span class="hidden sm:inline">Monthly</span><span class="sm:hidden">Mon</span>: $<%= number_with_precision(@monthly_rides_total, precision: 2) %>)
-        </span>
-      </span>
-    </h2>
-    <% if @past_rides.any? %>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seats</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <% @past_rides.each do |ride| %>
-              <tr>
-                <td class="px-6 py-4 whitespace-nowrap"><%= ride.start_time.strftime("%d/%m/%y") if ride.start_time %></td>
-                <td class="px-6 py-4 whitespace-nowrap">$<%= number_with_precision(ride.estimated_price, precision: 2) %></td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <%= ride.bookings.first.pickup.truncate(20) %> → <%= ride.bookings.first.dropoff.truncate(20) %>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap"><%= ride.bookings.sum(:requested_seats) %></td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="px-2 py-1 text-sm rounded-full <%= ride.status_color %>">
-                    <%= ride.status.titleize %>
-                  </span>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <p class="text-gray-500">No past rides found</p>
-    <% end %>
-  </div>
+  <%= render "dashboard/past_rides",
+      past_rides: @past_rides,
+      last_week_rides_total: @last_week_rides_total,
+      monthly_rides_total: @monthly_rides_total %>
 
   <div class="bg-white rounded-lg shadow p-6">
     <div class="flex justify-between items-start mb-4">

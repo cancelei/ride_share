@@ -31,4 +31,16 @@
   <% if ride.status == "pending" %>
     <%= link_to "Accept", accept_ride_path(ride), class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
   <% end %>
+
+  <td class="px-4 py-2">
+    <% unless ride.paid? %>
+      <%= button_to "Mark as Paid", 
+                    mark_as_paid_ride_path(ride), 
+                    method: :patch,
+                    class: "bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded",
+                    data: { turbo_stream: true } %>
+    <% else %>
+      <span class="text-green-600 font-medium">Paid</span>
+    <% end %>
+  </td>
 </div>

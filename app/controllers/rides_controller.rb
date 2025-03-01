@@ -92,6 +92,18 @@ class RidesController < ApplicationController
     end
   end
 
+  def mark_as_paid
+    @ride = Ride.find(params[:id])
+
+    if @ride.mark_paid!
+      respond_to do |format|
+        format.turbo_stream
+      end
+    else
+      redirect_to rides_path, alert: "Could not mark ride as paid"
+    end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_ride

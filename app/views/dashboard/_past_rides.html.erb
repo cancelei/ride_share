@@ -1,0 +1,62 @@
+<div id="past_rides">
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Past Rides</h2>
+      <div class="text-sm text-gray-600">
+        <p>Last 7 days: $<%= number_with_precision(last_week_rides_total, precision: 2) %></p>
+        <p>Last 30 days: $<%= number_with_precision(monthly_rides_total, precision: 2) %></p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seats</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% past_rides.each do |ride| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap"><%= ride.start_time.strftime("%d/%m/%y") if ride.start_time %></td>
+              <td class="px-6 py-4 whitespace-nowrap">$<%= number_with_precision(ride.estimated_price, precision: 2) %></td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <%= button_to mark_as_paid_ride_path(ride), 
+                    method: :patch,
+                    class: "flex items-center space-x-1",
+                    data: { turbo_stream: true } do %>
+                  <% if ride.paid? %>
+                    <span class="text-xs text-green-600 font-medium">
+                      Paid <%= ride.paid_at&.strftime("%d/%m/%y") %>
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500 hover:text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  <% else %>
+                    <button type="submit" class="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+                      Mark as Paid
+                    </button>
+                  <% end %>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <%= ride.bookings.first.pickup.truncate(20) %> → <%= ride.bookings.first.dropoff.truncate(20) %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap"><%= ride.bookings.sum(:requested_seats) %></td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-sm rounded-full <%= ride.status_color %>">
+                  <%= ride.status.titleize %>
+                </span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div> 

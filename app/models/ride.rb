@@ -5,6 +5,7 @@ require "json"
 class Ride < ApplicationRecord
   include Discard::Model
   include RideStatusBroadcaster
+  include ActionView::RecordIdentifier
   default_scope -> { kept }
 
   belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id
@@ -26,7 +27,19 @@ class Ride < ApplicationRecord
   scope :past, -> { where("start_time < ?", Time.current) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
 
+  scope :total_estimated_price_for_last_week, -> {
+    where("created_at >= ? AND paid = true", 1.week.ago)
+    .sum(:estimated_price)
+  }
+
+  scope :total_estimated_price_for_last_thirty_days, -> {
+    where("created_at >= ? AND paid = true", 30.days.ago)
+    .sum(:estimated_price)
+  }
+
   validate :driver_has_vehicle
+
+  broadcasts_to ->(ride) { [ ride.driver.user, "dashboard" ] }
 
   def can_start?(user)
     user.driver_profile == self.driver && self.status == "accepted"
@@ -100,14 +113,10 @@ class Ride < ApplicationRecord
     security_code == code
   end
 
-  def self.total_estimated_price_for_last_week
-    where("start_time > ?", 1.week.ago)
-      .pluck(:estimated_price)
-      .sum
-  end
-
-  def self.total_estimated_price_for_last_thirty_days
-    last_thirty_days.pluck(:estimated_price).sum
+  def mark_paid!
+    update(paid: !paid, paid_at: paid? ? nil : Time.current).tap do |success|
+      broadcast_payment_update if success
+    end
   end
 
   private
@@ -166,5 +175,23 @@ class Ride < ApplicationRecord
 
   def generate_security_code
     self.security_code = sprintf("%04d", rand(10000))
+  end
+
+  def broadcast_payment_update
+    # Get fresh calculations after the update
+    fresh_past_rides = driver.rides.past.order(created_at: :desc).limit(5)
+    weekly_total = driver.rides.past.total_estimated_price_for_last_week
+    monthly_total = driver.rides.past.total_estimated_price_for_last_thirty_days
+
+    Turbo::StreamsChannel.broadcast_replace_to(
+      [ driver.user, "dashboard" ],
+      target: "past_rides",
+      partial: "dashboard/past_rides",
+      locals: {
+        past_rides: fresh_past_rides,
+        last_week_rides_total: weekly_total,
+        monthly_rides_total: monthly_total
+      }
+    )
   end
 end

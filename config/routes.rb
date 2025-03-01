@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     member do
       post :start
       post :finish
+      patch :mark_as_paid
     end
   end
 
