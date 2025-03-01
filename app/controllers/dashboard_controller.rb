@@ -11,6 +11,8 @@ class DashboardController < ApplicationController
       @pending_bookings = Booking.where(status: :pending)
       @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :ongoing ])
       @past_rides = Ride.where(driver: @driver_profile, status: :completed).order(created_at: :desc).limit(5)
+      @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
+      @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
     when "passenger"
       @passenger_profile = @user.passenger_profile
       @my_bookings = Booking.where(passenger: @passenger_profile).order(scheduled_time: :desc).limit(5)

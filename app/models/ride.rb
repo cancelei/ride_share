@@ -24,6 +24,7 @@ class Ride < ApplicationRecord
 
   scope :active, -> { where("start_time >= ?", Time.current) }
   scope :past, -> { where("start_time < ?", Time.current) }
+  scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
 
   validate :driver_has_vehicle
 
@@ -97,6 +98,16 @@ class Ride < ApplicationRecord
 
   def verify_security_code(code)
     security_code == code
+  end
+
+  def self.total_estimated_price_for_last_week
+    where("start_time > ?", 1.week.ago)
+      .pluck(:estimated_price)
+      .sum
+  end
+
+  def self.total_estimated_price_for_last_thirty_days
+    last_thirty_days.pluck(:estimated_price).sum
   end
 
   private
