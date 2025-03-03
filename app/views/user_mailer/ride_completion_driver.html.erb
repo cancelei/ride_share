@@ -3,16 +3,10 @@
   
   <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
     <h2 style="margin-top: 0;">Ride Details</h2>
-    <% @booking.ride.bookings.each do |booking| %>
-      <div style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;">
-        <p><strong>Passenger:</strong> <%= booking.passenger.user.full_name %></p>
-        <p><strong>From:</strong> <%= booking.pickup %></p>
-        <p><strong>To:</strong> <%= booking.dropoff %></p>
-        <p><strong>Distance:</strong> <%= booking.distance_km %> km</p>
-        <p><strong>Duration:</strong> <%= booking.total_travel_duration_minutes %> minutes</p>
-        <p><strong>Price:</strong> <%= booking.formatted_price %></p>
-      </div>
-    <% end %>
+    <p><strong>Passenger:</strong> <%= @booking.passenger.user.full_name rescue "Passenger" %></p>
+    <p><strong>From:</strong> <%= @booking.pickup rescue "Pickup location" %></p>
+    <p><strong>To:</strong> <%= @booking.dropoff rescue "Dropoff location" %></p>
+    <p><strong>Price:</strong> <%= number_to_currency(@booking.ride.estimated_price) rescue "Price unavailable" %></p>
   </div>
 
   <div style="background: #10b981; color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
