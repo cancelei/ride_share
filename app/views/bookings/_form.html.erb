@@ -1,9 +1,8 @@
 <%= form_with(model: booking, class: "contents", data: { controller: "places-autocomplete" }) do |form| %>
   <% if booking.errors.any? %>
-    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
-      <h2><%= pluralize(booking.errors.count, "error") %> prohibited this booking from being saved:</h2>
-
-      <ul class="list-disc ml-6">
+    <div class="bg-red-50 p-4 rounded-md">
+      <h2 class="text-red-800 text-sm font-medium"><%= pluralize(booking.errors.count, "error") %> prohibited this booking from being saved:</h2>
+      <ul class="mt-3 list-disc list-inside text-red-700 text-sm">
         <% booking.errors.each do |error| %>
           <li><%= error.full_message %></li>
         <% end %>
@@ -11,7 +10,9 @@
     </div>
   <% end %>
 
-  <%= form.hidden_field :passenger_id, value: current_user.passenger_profile.id %>
+  <% if current_user.passenger_profile %>
+    <%= form.hidden_field :passenger_id, value: current_user.passenger_profile.id %>
+  <% end %>
 
   <%# Pickup location fields %>
   <%= form.fields_for :locations, booking.locations.build(location_type: 'pickup') do |location_form| %>

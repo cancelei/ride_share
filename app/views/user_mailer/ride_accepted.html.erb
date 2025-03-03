@@ -1,0 +1,15 @@
+<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+  <h1>Driver Assigned!</h1>
+  
+  <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h2>Driver Details</h2>
+    <p><strong>Name:</strong> <%= @driver.full_name %></p>
+    <p><strong>Vehicle:</strong> <%= @booking.ride.vehicle.brand %> <%= @booking.ride.vehicle.model %></p>
+    <p><strong>Color:</strong> <%= @booking.ride.vehicle.color %></p>
+    <p><strong>License Plate:</strong> <%= @booking.ride.vehicle.registration_number %></p>
+  </div>
+
+  <%= link_to "View Ride Details", 
+      dashboard_url,
+      style: "display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;" %>
+</div> 

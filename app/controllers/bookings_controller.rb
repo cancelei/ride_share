@@ -1,5 +1,6 @@
 class BookingsController < ApplicationController
   before_action :set_booking, only: %i[ show edit update destroy cancel ]
+  before_action :ensure_passenger_profile, only: [ :new, :create ]
 
   # GET /bookings or /bookings.json
   def index
@@ -104,12 +105,33 @@ class BookingsController < ApplicationController
   end
 
   def cancel
-    if @booking.status_pending?
-      @booking.update(status: :cancelled)
-      redirect_to root_path, notice: "Booking was successfully cancelled."
-    else
-      redirect_to root_path, alert: "Only pending bookings can be cancelled."
+      if @booking.status_pending?
+        @booking.update(status: :cancelled)
+        redirect_to root_path, notice: "Booking was successfully cancelled."
+      else
+        redirect_to root_path, alert: "Only pending bookings can be cancelled."
+      end
+  end
+
+  def test_emails
+    return head :forbidden unless Rails.env.development?
+
+    @booking = Booking.last
+
+    case params[:email_type]
+    when "confirmation"
+      UserMailer.booking_confirmation(@booking).deliver_now
+    when "accepted"
+      UserMailer.ride_accepted(@booking).deliver_now
+    when "arrived"
+      UserMailer.driver_arrived(@booking).deliver_now
+    when "completion_passenger"
+      UserMailer.ride_completion_passenger(@booking).deliver_now
+    when "completion_driver"
+      UserMailer.ride_completion_driver(@booking).deliver_now
     end
+
+    redirect_to "/letter_opener", notice: "Test email sent!"
   end
 
   private
@@ -137,5 +159,27 @@ class BookingsController < ApplicationController
           :location_type
         ]
       )
+    end
+
+    def valid_cancellation_token?
+      token = params[:cancellation_token]
+      return false unless token.present?
+
+      begin
+        decoded = Rails.application.message_verifier("booking_cancellation").verify(token)
+        return false if decoded[:expires_at] < Time.current
+
+        # Make sure we're using the correct booking
+        @booking ||= Booking.find_by(id: decoded[:booking_id])
+        @booking.present? && @booking.id.to_s == params[:id].to_s
+      rescue ActiveSupport::MessageVerifier::InvalidSignature
+        false
+      end
+    end
+
+    def ensure_passenger_profile
+      unless current_user.passenger_profile
+        current_user.create_passenger_profile
+      end
     end
 end

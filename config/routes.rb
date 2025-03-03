@@ -57,4 +57,14 @@ Rails.application.routes.draw do
       delete :permanent_delete
     end
   end
+
+  # Mount Letter Opener Web interface in development
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
+
+  # Email testing routes (development only)
+  if Rails.env.development?
+    get "test_email/:email_type", to: "bookings#test_emails", as: :test_email
+  end
 end

@@ -1,0 +1,28 @@
+<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+  <h1>Your Driver Has Arrived!</h1>
+  
+  <div style="background: #10b981; color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+    <h2 style="margin: 0;">Your Security Code</h2>
+    <div style="font-size: 48px; font-weight: bold; margin: 20px 0;" id="security-code">
+      <%= @security_code %>
+    </div>
+    <button onclick="navigator.clipboard.writeText('<%= @security_code %>')"
+            style="background: white; color: #10b981; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+      Copy Code
+    </button>
+  </div>
+
+  <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h3 style="color: #92400e;">Safety Reminders</h3>
+    <ul style="color: #92400e;">
+      <li>Do not accept changes to your route</li>
+      <li>Contact support@rideflow.live if you have any issues</li>
+      <li>Left something behind? Contact your driver directly</li>
+    </ul>
+  </div>
+
+  <a href="https://wa.me/<%= @driver.phone_number %>"
+     style="display: inline-block; background: #25d366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-right: 10px;">
+    Contact Driver via WhatsApp
+  </a>
+</div> 

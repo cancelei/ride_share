@@ -27,6 +27,11 @@ class Ride < ApplicationRecord
   scope :past, -> { where("start_time < ?", Time.current) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
 
+  scope :total_estimated_price_for_24_hours, -> {
+    where("created_at >= ? AND paid = true", 1.day.ago)
+    .sum(:estimated_price)
+  }
+
   scope :total_estimated_price_for_last_week, -> {
     where("created_at >= ? AND paid = true", 1.week.ago)
     .sum(:estimated_price)

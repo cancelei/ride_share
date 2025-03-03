@@ -18,6 +18,8 @@ class Booking < ApplicationRecord
   after_commit :broadcast_update
   after_commit :broadcast_to_drivers, on: :create
   after_commit :broadcast_cancellation, if: -> { saved_change_to_status? && status == "cancelled" }
+  after_create :send_booking_confirmation
+  after_update :send_status_update_emails, if: :saved_change_to_status?
 
   def set_estimated_ride_price
     return unless ride_id.present?
@@ -153,5 +155,21 @@ class Booking < ApplicationRecord
         past_rides: ride.driver.rides.past
       }
     )
+  end
+
+  def send_booking_confirmation
+    UserMailer.booking_confirmation(self).deliver_later
+  end
+
+  def send_status_update_emails
+    case status
+    when "accepted"
+      UserMailer.ride_accepted(self).deliver_later
+    when "in_progress"
+      UserMailer.driver_arrived(self).deliver_later
+    when "completed"
+      UserMailer.ride_completion_passenger(self).deliver_later
+      UserMailer.ride_completion_driver(self).deliver_later
+    end
   end
 end
