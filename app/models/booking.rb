@@ -159,17 +159,21 @@ class Booking < ApplicationRecord
 
   def send_booking_confirmation
     UserMailer.booking_confirmation(self).deliver_later
+    Rails.logger.info "Booking confirmation email queued for delivery to #{passenger.user.email}"
   end
 
   def send_status_update_emails
     case status
     when "accepted"
       UserMailer.ride_accepted(self).deliver_later
+      Rails.logger.info "Ride accepted email queued for delivery to #{passenger.user.email}"
     when "in_progress"
       UserMailer.driver_arrived(self).deliver_later
+      Rails.logger.info "Driver arrived email queued for delivery to #{passenger.user.email}"
     when "completed"
       UserMailer.ride_completion_passenger(self).deliver_later
       UserMailer.ride_completion_driver(self).deliver_later
+      Rails.logger.info "Ride completion emails queued for delivery to #{passenger.user.email} and #{ride.driver.user.email}"
     end
   end
 end
