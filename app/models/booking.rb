@@ -168,11 +168,7 @@ class Booking < ApplicationRecord
     # Only send emails if the status has actually changed
     return unless saved_change_to_status?
     
-    # Get the previous and current status
-    previous_status, current_status = status_change
-    Rails.logger.info "Status changed from #{previous_status} to #{current_status}"
-    
-    case current_status
+    case status
     when "accepted"
       UserMailer.ride_accepted(self).deliver_later
       Rails.logger.info "Ride accepted email queued for delivery to #{passenger.user.email}"
