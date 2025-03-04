@@ -35,7 +35,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Your Driver Has Arrived - RideFlow"
+        subject: "Your Driver Will Arrive Soon - RideFlow"
       )
     end
 
