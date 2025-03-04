@@ -31,7 +31,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_01_165622) do
     t.datetime "updated_at", null: false
     t.datetime "discarded_at"
     t.index ["discarded_at"], name: "index_bookings_on_discarded_at"
-    t.index ["id"], name: "index_bookings_on_id", unique: true
     t.index ["passenger_id"], name: "index_bookings_on_passenger_id"
     t.index ["ride_id"], name: "index_bookings_on_ride_id"
   end

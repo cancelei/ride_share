@@ -19,7 +19,7 @@ class Booking < ApplicationRecord
   after_commit :broadcast_to_drivers, on: :create
   after_commit :broadcast_cancellation, if: -> { saved_change_to_status? && status == "cancelled" }
   after_create :send_booking_confirmation
-  after_update :send_status_update_emails, if: :saved_change_to_status?
+  after_update :send_status_update_emails
 
   def set_estimated_ride_price
     return unless ride_id.present?
@@ -163,7 +163,16 @@ class Booking < ApplicationRecord
   end
 
   def send_status_update_emails
-    case status
+    Rails.logger.info "Processing status update emails for booking #{id}, status: #{status}"
+    
+    # Only send emails if the status has actually changed
+    return unless saved_change_to_status?
+    
+    # Get the previous and current status
+    previous_status, current_status = status_change
+    Rails.logger.info "Status changed from #{previous_status} to #{current_status}"
+    
+    case current_status
     when "accepted"
       UserMailer.ride_accepted(self).deliver_later
       Rails.logger.info "Ride accepted email queued for delivery to #{passenger.user.email}"
@@ -178,7 +187,7 @@ class Booking < ApplicationRecord
       rescue => e
         Rails.logger.error "Failed to send passenger completion email: #{e.message}"
       end
-
+      
       # Send driver email with error handling
       begin
         if ride&.driver&.user&.email.present?
