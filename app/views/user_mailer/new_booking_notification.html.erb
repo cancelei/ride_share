@@ -1,0 +1,34 @@
+<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+  <h1>New Ride Request Available!</h1>
+  
+  <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h2 style="margin-top: 0;">Booking Details</h2>
+    <p><strong>From:</strong> <%= @booking.pickup %></p>
+    <p><strong>To:</strong> <%= @booking.dropoff %></p>
+    <p><strong>Scheduled Time:</strong> <%= @booking.scheduled_time.strftime("%B %d, %Y at %I:%M %p") %></p>
+    <p><strong>Requested Seats:</strong> <%= @booking.requested_seats %></p>
+    <p><strong>Estimated Price:</strong> <%= @booking.formatted_price %></p>
+    <p><strong>Distance:</strong> <%= @booking.distance_km %> km</p>
+    <p><strong>Estimated Duration:</strong> <%= @booking.estimated_duration_minutes %> minutes</p>
+  </div>
+
+  <div style="text-align: center; margin: 20px 0;">
+    <%= link_to "View Booking Details", 
+        dashboard_url,
+        style: "display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;" %>
+  </div>
+
+  <% if @other_bookings.any? %>
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h2 style="margin-top: 0;">Other Available Bookings</h2>
+      <% @other_bookings.each do |booking| %>
+        <div style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;">
+          <p><strong>From:</strong> <%= booking.pickup %></p>
+          <p><strong>To:</strong> <%= booking.dropoff %></p>
+          <p><strong>Scheduled Time:</strong> <%= booking.scheduled_time.strftime("%B %d, %Y at %I:%M %p") %></p>
+          <p><strong>Estimated Price:</strong> <%= booking.formatted_price %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div> 
