@@ -3,11 +3,11 @@
   
   <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
     <h2 style="margin-top: 0;">Ride Summary</h2>
-    <p><strong>From:</strong> <%= @booking.pickup %></p>
-    <p><strong>To:</strong> <%= @booking.dropoff %></p>
-    <p><strong>Distance:</strong> <%= @booking.distance_km %> km</p>
-    <p><strong>Duration:</strong> <%= @booking.total_travel_duration_minutes %> minutes</p>
-    <p><strong>Final Price:</strong> <%= @booking.formatted_price %></p>
+    <p><strong>From:</strong> <%= @booking.pickup rescue "Pickup location" %></p>
+    <p><strong>To:</strong> <%= @booking.dropoff rescue "Dropoff location" %></p>
+    <p><strong>Distance:</strong> <%= @booking.distance_km rescue "N/A" %> km</p>
+    <p><strong>Duration:</strong> <%= @booking.total_travel_duration_minutes rescue "N/A" %> minutes</p>
+    <p><strong>Final Price:</strong> <%= @booking.formatted_price rescue number_to_currency(@booking.ride&.estimated_price) rescue "Price unavailable" %></p>
   </div>
 
   <div style="text-align: center; margin-top: 20px;">

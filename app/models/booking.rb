@@ -171,9 +171,26 @@ class Booking < ApplicationRecord
       UserMailer.driver_arrived(self).deliver_later
       Rails.logger.info "Driver arrived email queued for delivery to #{passenger.user.email}"
     when "completed"
-      UserMailer.ride_completion_passenger(self).deliver_later
-      UserMailer.ride_completion_driver(self).deliver_later
-      Rails.logger.info "Ride completion emails queued for delivery to #{passenger.user.email} and #{ride.driver.user.email}"
+      # Send passenger email first
+      begin
+        UserMailer.ride_completion_passenger(self).deliver_later
+        Rails.logger.info "Ride completion email queued for delivery to #{passenger.user.email}"
+      rescue => e
+        Rails.logger.error "Failed to send passenger completion email: #{e.message}"
+      end
+
+      # Send driver email with error handling
+      begin
+        if ride&.driver&.user&.email.present?
+          UserMailer.ride_completion_driver(self).deliver_later
+          Rails.logger.info "Ride completion email queued for delivery to driver: #{ride.driver.user.email}"
+        else
+          Rails.logger.error "Cannot send driver completion email - missing driver email"
+        end
+      rescue => e
+        Rails.logger.error "Failed to send driver completion email: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+      end
     end
   end
 end

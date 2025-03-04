@@ -43,19 +43,35 @@ class UserMailer < ApplicationMailer
       @booking = booking
       @passenger = booking.passenger.user
 
-      mail(
-        to: @passenger.email,
-        subject: "Ride Completed - Thank You for Using RideFlow"
-      )
+      Rails.logger.info "Preparing passenger completion email for #{@passenger.email}"
+
+      begin
+        mail(
+          to: @passenger.email,
+          subject: "Ride Completed - Thank You for Using RideFlow"
+        )
+        Rails.logger.info "Passenger completion email prepared successfully"
+      rescue => e
+        Rails.logger.error "Error preparing passenger completion email: #{e.message}"
+        raise e
+      end
     end
 
     def ride_completion_driver(booking)
       @booking = booking
       @driver = booking.ride.driver.user
 
-      mail(
-        to: @driver.email,
-        subject: "Ride Summary - RideFlow"
-      )
+      Rails.logger.info "Preparing driver completion email for #{@driver.email}"
+
+      begin
+        mail(
+          to: @driver.email,
+          subject: "Ride Summary - RideFlow"
+        )
+        Rails.logger.info "Driver completion email prepared successfully"
+      rescue => e
+        Rails.logger.error "Error preparing driver completion email: #{e.message}"
+        raise e
+      end
     end
 end

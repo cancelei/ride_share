@@ -124,6 +124,14 @@ class Ride < ApplicationRecord
     end
   end
 
+  def self.total_estimated_price_for_24_hours
+    where("created_at >= ?", 1.day.ago).sum(:estimated_price)
+  end
+
+  def self.total_estimated_price_for_last_week
+    where("created_at >= ?", 1.week.ago).sum(:estimated_price)
+  end
+
   private
 
   def save_participants

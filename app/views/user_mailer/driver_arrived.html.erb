@@ -21,8 +21,12 @@
     </ul>
   </div>
 
-  <a href="https://wa.me/<%= @driver.phone_number %>"
-     style="display: inline-block; background: #25d366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-right: 10px;">
-    Contact Driver via WhatsApp
-  </a>
+  <% if @driver&.phone_number.present? %>
+    <a href="https://wa.me/<%= @driver.phone_number %>"
+       style="display: inline-block; background: #25d366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-right: 10px;">
+      Contact Driver via WhatsApp
+    </a>
+  <% else %>
+    <p style="margin-top: 20px; color: #4b5563;">Contact your driver through the app</p>
+  <% end %>
 </div> 
