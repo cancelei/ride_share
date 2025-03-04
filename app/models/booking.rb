@@ -232,23 +232,17 @@ class Booking < ApplicationRecord
     end
   end
 
-  def self.check_callbacks
-    Rails.logger.info "Checking Booking model callbacks..."
+  def send_notification_to_drivers
+    # Get all pending bookings except the current one
+    other_pending_bookings = Booking.pending.where.not(id: self.id).limit(5)
     
-    create_callbacks = _commit_callbacks.select { |cb| cb.kind == :create }
-    Rails.logger.info "Create callbacks: #{create_callbacks.map(&:filter)}"
-    
-    after_create_callbacks = _commit_callbacks.select { |cb| cb.kind == :create && cb.name == :after }
-    Rails.logger.info "After create callbacks: #{after_create_callbacks.map(&:filter)}"
-    
-    # Check if our specific method is in the callbacks
-    has_notification_callback = after_create_callbacks.any? { |cb| cb.filter.to_s.include?('send_notification_to_drivers') }
-    Rails.logger.info "Has send_notification_to_drivers callback: #{has_notification_callback}"
-    
-    return {
-      create_callbacks: create_callbacks.map(&:filter),
-      after_create_callbacks: after_create_callbacks.map(&:filter),
-      has_notification_callback: has_notification_callback
-    }
+    # Send email to each driver
+    User.role_driver.find_each do |driver|
+      # Only send to drivers with vehicles
+      if driver.driver_profile&.vehicles&.any?
+        UserMailer.new_booking_notification(self, driver, other_pending_bookings).deliver_later
+        Rails.logger.info "New booking notification email queued for delivery to driver: #{driver.email}"
+      end
+    end
   end
 end
