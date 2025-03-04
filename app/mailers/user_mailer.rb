@@ -74,15 +74,4 @@ class UserMailer < ApplicationMailer
         raise e
       end
     end
-
-    def new_booking_notification(booking, driver, other_bookings = [])
-      @booking = booking
-      @driver = driver
-      @other_bookings = other_bookings
-      
-      mail(
-        to: @driver.email,
-        subject: "New Ride Request Available - RideFlow"
-      )
-    end
 end

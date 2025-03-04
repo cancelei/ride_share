@@ -20,7 +20,6 @@ class Booking < ApplicationRecord
   after_commit :broadcast_cancellation, if: -> { saved_change_to_status? && status == "cancelled" }
   after_create :send_booking_confirmation
   after_update :send_status_update_emails
-  after_create :send_notification_to_drivers
 
   def set_estimated_ride_price
     return unless ride_id.present?
@@ -196,20 +195,6 @@ class Booking < ApplicationRecord
       rescue => e
         Rails.logger.error "Failed to send driver completion email: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
-      end
-    end
-  end
-
-  def send_notification_to_drivers
-    # Get all pending bookings except the current one
-    other_pending_bookings = Booking.pending.where.not(id: self.id).limit(5)
-    
-    # Send email to each driver
-    User.role_driver.find_each do |driver|
-      # Only send to drivers with vehicles
-      if driver.driver_profile&.vehicles&.any?
-        UserMailer.new_booking_notification(self, driver, other_pending_bookings).deliver_later
-        Rails.logger.info "New booking notification email queued for delivery to driver: #{driver.email}"
       end
     end
   end
