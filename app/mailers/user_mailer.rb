@@ -76,13 +76,18 @@ class UserMailer < ApplicationMailer
     end
 
     def new_booking_notification(booking, driver, other_bookings = [])
+      # Check if the booking still exists
+      return unless booking && Booking.exists?(booking.id)
+      
       @booking = booking
       @driver = driver
-      @other_bookings = other_bookings
+      @other_bookings = other_bookings.select { |b| Booking.exists?(b.id) }
       
       mail(
         to: @driver.email,
         subject: "New Ride Request Available - RideFlow"
-      )
+      ) if @driver && User.exists?(@driver.id)
+    rescue => e
+      Rails.logger.error "Error preparing new booking notification email: #{e.message}"
     end
 end

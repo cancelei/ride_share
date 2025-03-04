@@ -208,9 +208,12 @@ class Booking < ApplicationRecord
     User.role_driver.find_each do |driver|
       # Only send to drivers with vehicles
       if driver.driver_profile&.vehicles&.any?
-        UserMailer.new_booking_notification(self, driver, other_pending_bookings).deliver_later
+        # Use GlobalID to ensure the job can be retried even if the record is deleted
+        UserMailer.new_booking_notification(self, driver, other_pending_bookings).deliver_later(retry: false)
         Rails.logger.info "New booking notification email queued for delivery to driver: #{driver.email}"
       end
     end
+  rescue => e
+    Rails.logger.error "Error sending driver notifications: #{e.message}"
   end
 end

@@ -117,6 +117,9 @@ class BookingsController < ApplicationController
     return head :forbidden unless Rails.env.development?
 
     @booking = Booking.last
+    return redirect_to dashboard_path, alert: "No bookings found" unless @booking
+
+    other_bookings = Booking.where.not(id: @booking.id).limit(3)
 
     case params[:email_type]
     when "confirmation"
@@ -129,9 +132,17 @@ class BookingsController < ApplicationController
       UserMailer.ride_completion_passenger(@booking).deliver_now
     when "completion_driver"
       UserMailer.ride_completion_driver(@booking).deliver_now
+    when "new_booking_driver"
+      # Get the first driver for testing
+      driver = User.role_driver.first
+      return redirect_to dashboard_path, alert: "No drivers found" unless driver
+
+      UserMailer.new_booking_notification(@booking, driver, other_bookings).deliver_now
     end
 
     redirect_to "/letter_opener", notice: "Test email sent!"
+  rescue => e
+    redirect_to dashboard_path, alert: "Error sending test email: #{e.message}"
   end
 
   private
