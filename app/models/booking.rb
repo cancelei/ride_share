@@ -218,24 +218,4 @@ class Booking < ApplicationRecord
   rescue => e
     Rails.logger.error "Error sending driver notifications: #{e.message}"
   end
-
-  def self.check_callbacks
-    Rails.logger.info "Checking Booking model callbacks..."
-    
-    create_callbacks = _commit_callbacks.select { |cb| cb.kind == :create }
-    Rails.logger.info "Create callbacks: #{create_callbacks.map(&:filter)}"
-    
-    after_create_callbacks = _commit_callbacks.select { |cb| cb.kind == :create && cb.name == :after }
-    Rails.logger.info "After create callbacks: #{after_create_callbacks.map(&:filter)}"
-    
-    # Check if our specific method is in the callbacks
-    has_notification_callback = after_create_callbacks.any? { |cb| cb.filter.to_s.include?('send_notification_to_drivers') }
-    Rails.logger.info "Has send_notification_to_drivers callback: #{has_notification_callback}"
-    
-    return {
-      create_callbacks: create_callbacks.map(&:filter),
-      after_create_callbacks: after_create_callbacks.map(&:filter),
-      has_notification_callback: has_notification_callback
-    }
-  end
 end
