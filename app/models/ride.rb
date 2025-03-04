@@ -57,14 +57,24 @@ class Ride < ApplicationRecord
   def start!
     self.start_time = Time.current
     self.status = "ongoing"
-    self.bookings.update(status: :in_progress)
+
+    # Update each booking individually to trigger callbacks
+    self.bookings.each do |booking|
+      booking.update(status: "in_progress")
+    end
+    
     save!
   end
 
   def finish!
     self.end_time = Time.current
     self.status = "completed"
-    self.bookings.update(status: :completed)
+    
+    # Update each booking individually to trigger callbacks
+    self.bookings.each do |booking|
+      booking.update(status: "completed")
+    end
+    
     save!
   end
 
