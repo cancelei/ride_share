@@ -22,8 +22,6 @@ class Booking < ApplicationRecord
   after_update :send_status_update_emails
   after_create :send_notification_to_drivers
 
-  Rails.logger.info "Booking model loaded with callbacks: #{_commit_callbacks.map(&:filter)}"
-
   def set_estimated_ride_price
     return unless ride_id.present?
 

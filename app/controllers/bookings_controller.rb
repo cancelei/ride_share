@@ -30,17 +30,9 @@ class BookingsController < ApplicationController
   # POST /bookings or /bookings.json
   def create
     @booking = Booking.new(booking_params)
-    @booking.passenger = current_user.passenger_profile
-    @booking.status = "pending"
 
     respond_to do |format|
       if @booking.save
-        # Log that we're about to call the method directly
-        Rails.logger.info "Booking created successfully, ID: #{@booking.id}. Calling send_notification_to_drivers directly."
-
-        # Call the method directly to ensure it runs
-        @booking.send(:send_notification_to_drivers)
-
         format.turbo_stream {
           flash.now[:notice] = "Booking was successfully created."
           render turbo_stream: [
@@ -53,7 +45,6 @@ class BookingsController < ApplicationController
           ]
         }
         format.html { redirect_to root_path, notice: "Booking was successfully created." }
-        format.json { render :show, status: :created, location: @booking }
       else
         format.turbo_stream {
           render turbo_stream: turbo_stream.replace(
@@ -62,8 +53,7 @@ class BookingsController < ApplicationController
             locals: { booking: @booking }
           )
         }
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @booking.errors, status: :unprocessable_entity }
+        format.html { render :new }
       end
     end
   end
