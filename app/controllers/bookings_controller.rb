@@ -37,7 +37,7 @@ class BookingsController < ApplicationController
       if @booking.save
         # Log that we're about to call the method directly
         Rails.logger.info "Booking created successfully, ID: #{@booking.id}. Calling send_notification_to_drivers directly."
-
+        
         # Call the method directly to ensure it runs
         begin
           @booking.send_notification_to_drivers
@@ -46,7 +46,7 @@ class BookingsController < ApplicationController
           Rails.logger.error "Error calling send_notification_to_drivers: #{e.message}"
           Rails.logger.error e.backtrace.join("\n")
         end
-
+        
         format.turbo_stream {
           flash.now[:notice] = "Booking was successfully created."
           render turbo_stream: [

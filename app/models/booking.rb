@@ -70,36 +70,6 @@ class Booking < ApplicationRecord
     (distance_to_pickup * 1.5).round
   end
 
-  def send_notification_to_drivers
-    Rails.logger.info "Starting send_notification_to_drivers for booking #{id}"
-    
-    # Get all pending bookings except the current one - convert to array to avoid serialization issues
-    other_pending_bookings = Booking.pending.where.not(id: self.id).limit(5).to_a
-    Rails.logger.info "Found #{other_pending_bookings.count} other pending bookings"
-    
-    # Count eligible drivers
-    eligible_drivers = User.role_driver.select { |driver| driver.driver_profile&.vehicles&.any? }
-    Rails.logger.info "Found #{eligible_drivers.count} eligible drivers with vehicles"
-    
-    # Send email to each driver
-    eligible_drivers.each do |driver|
-      begin
-        Rails.logger.info "Attempting to send email for driver: #{driver.id} (#{driver.email})"
-        # Use deliver_now to avoid race conditions in background jobs
-        UserMailer.new_booking_notification(self, driver, other_pending_bookings).deliver_now
-        Rails.logger.info "Successfully sent email for driver: #{driver.id} (#{driver.email})"
-      rescue => e
-        Rails.logger.error "Failed to send email for driver #{driver.id}: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
-      end
-    end
-    
-    Rails.logger.info "Completed send_notification_to_drivers for booking #{id}"
-  rescue => e
-    Rails.logger.error "Error in send_notification_to_drivers: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-  end
-
   private
 
   def set_status
@@ -233,16 +203,52 @@ class Booking < ApplicationRecord
   end
 
   def send_notification_to_drivers
-    # Get all pending bookings except the current one
-    other_pending_bookings = Booking.pending.where.not(id: self.id).limit(5)
+    Rails.logger.info "Starting send_notification_to_drivers for booking #{id}"
+    
+    # Get all pending bookings except the current one - convert to array to avoid serialization issues
+    other_pending_bookings = Booking.pending.where.not(id: self.id).limit(5).to_a
+    Rails.logger.info "Found #{other_pending_bookings.count} other pending bookings"
+    
+    # Count eligible drivers
+    eligible_drivers = User.role_driver.select { |driver| driver.driver_profile&.vehicles&.any? }
+    Rails.logger.info "Found #{eligible_drivers.count} eligible drivers with vehicles"
     
     # Send email to each driver
-    User.role_driver.find_each do |driver|
-      # Only send to drivers with vehicles
-      if driver.driver_profile&.vehicles&.any?
+    eligible_drivers.each do |driver|
+      begin
+        Rails.logger.info "Attempting to send email for driver: #{driver.id} (#{driver.email})"
+        # Use deliver_later with GlobalID serialization
         UserMailer.new_booking_notification(self, driver, other_pending_bookings).deliver_later
-        Rails.logger.info "New booking notification email queued for delivery to driver: #{driver.email}"
+        Rails.logger.info "Successfully queued email for driver: #{driver.id} (#{driver.email})"
+      rescue => e
+        Rails.logger.error "Failed to send email for driver #{driver.id}: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
       end
     end
+    
+    Rails.logger.info "Completed send_notification_to_drivers for booking #{id}"
+  rescue => e
+    Rails.logger.error "Error in send_notification_to_drivers: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+  end
+
+  def self.check_callbacks
+    Rails.logger.info "Checking Booking model callbacks..."
+    
+    create_callbacks = _commit_callbacks.select { |cb| cb.kind == :create }
+    Rails.logger.info "Create callbacks: #{create_callbacks.map(&:filter)}"
+    
+    after_create_callbacks = _commit_callbacks.select { |cb| cb.kind == :create && cb.name == :after }
+    Rails.logger.info "After create callbacks: #{after_create_callbacks.map(&:filter)}"
+    
+    # Check if our specific method is in the callbacks
+    has_notification_callback = after_create_callbacks.any? { |cb| cb.filter.to_s.include?('send_notification_to_drivers') }
+    Rails.logger.info "Has send_notification_to_drivers callback: #{has_notification_callback}"
+    
+    return {
+      create_callbacks: create_callbacks.map(&:filter),
+      after_create_callbacks: after_create_callbacks.map(&:filter),
+      has_notification_callback: has_notification_callback
+    }
   end
 end
