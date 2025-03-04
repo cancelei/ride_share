@@ -164,10 +164,10 @@ class Booking < ApplicationRecord
 
   def send_status_update_emails
     Rails.logger.info "Processing status update emails for booking #{id}, status: #{status}"
-    
+
     # Only send emails if the status has actually changed
     return unless saved_change_to_status?
-    
+
     case status
     when "accepted"
       UserMailer.ride_accepted(self).deliver_later
@@ -183,7 +183,7 @@ class Booking < ApplicationRecord
       rescue => e
         Rails.logger.error "Failed to send passenger completion email: #{e.message}"
       end
-      
+
       # Send driver email with error handling
       begin
         if ride&.driver&.user&.email.present?
