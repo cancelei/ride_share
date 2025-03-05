@@ -118,20 +118,30 @@ class BookingsController < ApplicationController
 
     @booking = Booking.last
 
-    case params[:email_type]
-    when "confirmation"
-      UserMailer.booking_confirmation(@booking).deliver_now
-    when "accepted"
-      UserMailer.ride_accepted(@booking).deliver_now
-    when "arrived"
-      UserMailer.driver_arrived(@booking).deliver_now
-    when "completion_passenger"
-      UserMailer.ride_completion_passenger(@booking).deliver_now
-    when "completion_driver"
-      UserMailer.ride_completion_driver(@booking).deliver_now
+    begin
+      mail = case params[:email_type]
+      when "confirmation"
+        UserMailer.booking_confirmation(@booking)
+      when "accepted"
+        UserMailer.ride_accepted(@booking)
+      when "arrived"
+        UserMailer.driver_arrived(@booking)
+      when "completion_passenger"
+        UserMailer.ride_completion_passenger(@booking)
+      when "completion_driver"
+        UserMailer.ride_completion_driver(@booking)
+      end
+      
+      # Force API delivery method
+      mail.delivery_method.delivery_method = :api
+      Rails.logger.debug "Delivery method before sending: #{mail.delivery_method.inspect}"
+      
+      result = mail.deliver_now
+      
+      redirect_to "/letter_opener", notice: "Test email sent via API! Result: #{result.inspect}"
+    rescue => e
+      redirect_to "/letter_opener", alert: "Email sending failed: #{e.message}"
     end
-
-    redirect_to "/letter_opener", notice: "Test email sent!"
   end
 
   private

@@ -18,6 +18,8 @@ class User < ApplicationRecord
 
   def send_welcome_email
     if Rails.env.production?
+      # Create or update contact in email service before sending email
+      EmailApiService.create_or_update_contact(self)
       UserMailer.welcome_email(self).deliver_now
     else
       puts "Welcome email not sent in development environment"

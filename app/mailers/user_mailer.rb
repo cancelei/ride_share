@@ -10,7 +10,7 @@ class UserMailer < ApplicationMailer
       @booking = booking
       @passenger = booking.passenger.user
 
-      mail(
+      EmailApiService.send_email(
         to: @passenger.email,
         subject: "Booking Confirmation - RideFlow"
       )

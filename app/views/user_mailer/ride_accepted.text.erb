@@ -1,0 +1,23 @@
+Driver Assigned - Your RideFlow Ride
+
+Hi <%= @passenger.first_name %>,
+
+Good news! A driver has been assigned to your ride.
+
+Driver Information:
+- Name: <%= @driver.first_name %> <%= @driver.last_name %>
+- Vehicle: <%= @booking.ride.driver.vehicle_make %> <%= @booking.ride.driver.vehicle_model %>
+- License Plate: <%= @booking.ride.driver.license_plate %>
+
+Ride Details:
+- Pickup: <%= @booking.pickup_address %>
+- Destination: <%= @booking.destination_address %>
+- Date: <%= @booking.scheduled_pickup_time.strftime("%B %d, %Y") %>
+- Time: <%= @booking.scheduled_pickup_time.strftime("%I:%M %p") %>
+
+You'll receive another notification when your driver is approaching the pickup location.
+
+Thank you for choosing RideFlow.
+
+Best regards,
+The RideFlow Team 

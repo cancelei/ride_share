@@ -1,0 +1,18 @@
+Booking Confirmation - RideFlow
+
+Hi <%= @passenger.first_name %>,
+
+Your booking has been confirmed!
+
+Booking Details:
+- Pickup: <%= @booking.pickup_address %>
+- Destination: <%= @booking.destination_address %>
+- Date: <%= @booking.scheduled_pickup_time.strftime("%B %d, %Y") %>
+- Time: <%= @booking.scheduled_pickup_time.strftime("%I:%M %p") %>
+
+We'll notify you when a driver accepts your ride. You can view your booking details in the RideFlow app.
+
+Thank you for choosing RideFlow for your transportation needs.
+
+Best regards,
+The RideFlow Team 

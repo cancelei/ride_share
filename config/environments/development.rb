@@ -71,7 +71,15 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
 
   # Configure Letter Opener to use 'letter_opener_web' instead of the default GTK-based preview
-  config.action_mailer.delivery_method = :letter_opener_web
+  if ENV['USE_EMAIL_API'] == 'true'
+    config.action_mailer.delivery_method = :api
+  else
+    config.action_mailer.delivery_method = :letter_opener
+    Rails.logger.debug "Using letter_opener delivery method for emails"
+  end
   config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+
+  config.log_level = :debug
 end

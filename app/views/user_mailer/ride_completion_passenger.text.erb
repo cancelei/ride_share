@@ -1,0 +1,21 @@
+Ride Completed - Thank You for Using RideFlow
+
+Hi <%= @passenger.first_name %>,
+
+Your ride has been completed successfully. We hope you had a pleasant journey!
+
+Ride Details:
+- Pickup: <%= @booking.pickup_address %>
+- Destination: <%= @booking.destination_address %>
+- Date: <%= @booking.scheduled_pickup_time.strftime("%B %d, %Y") %>
+- Time: <%= @booking.scheduled_pickup_time.strftime("%I:%M %p") %>
+<% if @booking.fare.present? %>
+- Fare: <%= number_to_currency(@booking.fare) %>
+<% end %>
+
+We'd love to hear about your experience. Please take a moment to rate your ride in the RideFlow app.
+
+Thank you for choosing RideFlow for your transportation needs.
+
+Best regards,
+The RideFlow Team 
