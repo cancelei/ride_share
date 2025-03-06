@@ -184,47 +184,8 @@ class Booking < ApplicationRecord
   end
 
   def send_booking_confirmation
-    # First, send the confirmation to the passenger (existing functionality)
-    if passenger&.user&.email.present?
-      UserMailer.booking_confirmation(self).deliver_later
-      Rails.logger.info "Booking confirmation email queued for delivery to passenger: #{passenger.user.email}"
-    end
-
-    # Now, also send notifications to all drivers with vehicles
-    begin
-      Rails.logger.info "=== STARTING DRIVER NOTIFICATIONS FOR BOOKING #{id} ==="
-
-      # Get all drivers with vehicles
-      drivers_with_vehicles = User.role_driver
-                                 .includes(driver_profile: :vehicles)
-                                 .where.not(driver_profiles: { id: nil })
-                                 .select { |driver| driver.driver_profile.vehicles.exists? }
-
-      Rails.logger.info "Found #{drivers_with_vehicles.count} drivers with vehicles"
-
-      # Get other pending bookings for context
-      other_pending_bookings = Booking.pending
-                                     .where.not(id: self.id)
-                                     .includes(passenger: :user)
-                                     .order(created_at: :desc)
-                                     .limit(5)
-
-      # Send to each driver
-      drivers_with_vehicles.each do |driver|
-        Rails.logger.info "Sending notification to driver: #{driver.email}"
-
-        # Use deliver_now in development for immediate feedback
-        delivery_method = Rails.env.development? ? :deliver_now : :deliver_later
-
-        UserMailer.new_booking_notification(driver, self, other_pending_bookings).send(delivery_method)
-        Rails.logger.info "Driver notification sent successfully to: #{driver.email}"
-      end
-
-      Rails.logger.info "=== COMPLETED DRIVER NOTIFICATIONS FOR BOOKING #{id} ==="
-    rescue => e
-      Rails.logger.error "!!! ERROR SENDING DRIVER NOTIFICATIONS: #{e.message} !!!"
-      Rails.logger.error e.backtrace.join("\n")
-    end
+    UserMailer.booking_confirmation(self).deliver_later
+    Rails.logger.info "Booking confirmation email queued for delivery to #{passenger.user.email}"
   end
 
   def send_status_update_emails
