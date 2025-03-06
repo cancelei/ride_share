@@ -232,7 +232,7 @@ class Booking < ApplicationRecord
                            .pluck(:distance_km)
                            .sum + (distance_km || 0)
 
-    total_price = (3.5 + total_distance * 2).round(2)
+    total_price = (5 + total_distance * 1.7).round(2)
     ride.update_column(:estimated_price, total_price)
   end
 end
