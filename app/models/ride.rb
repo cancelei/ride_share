@@ -8,10 +8,13 @@ class Ride < ApplicationRecord
   include ActionView::RecordIdentifier
   default_scope -> { kept }
 
-  belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id
+  belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id, optional: true
   has_many :bookings, -> { with_discarded }, dependent: :destroy
   has_many :passengers, through: :bookings
-  belongs_to :vehicle, -> { with_discarded }
+  belongs_to :vehicle, -> { with_discarded }, optional: true
+
+  has_one :booking, dependent: :nullify
+  belongs_to :passenger, class_name: "PassengerProfile", optional: true
 
   before_create :set_status, :generate_security_code
   before_save :save_participants
@@ -23,9 +26,11 @@ class Ride < ApplicationRecord
 
   enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed", cancelled: "cancelled" }
 
-  scope :active, -> { where("start_time >= ?", Time.current) }
+  scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
   scope :past, -> { where("start_time < ?", Time.current) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
+  scope :completed, -> { where(status: "completed") }
+  scope :cancelled, -> { where(status: "cancelled") }
 
   scope :total_estimated_price_for_24_hours, -> {
     where("created_at >= ? AND paid = true", 1.day.ago)
@@ -45,6 +50,9 @@ class Ride < ApplicationRecord
   validate :driver_has_vehicle
 
   broadcasts_to ->(ride) { [ ride.driver.user, "dashboard" ] }
+
+  attribute :participants_count, :integer, default: 0
+  attribute :paid, :boolean, default: false
 
   def can_start?(user)
     user.driver_profile == self.driver && self.status == "accepted"

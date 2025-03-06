@@ -56,16 +56,49 @@ class RidesController < ApplicationController
 
   # POST /rides or /rides.json
   def create
-    @ride = Ride.new(ride_params)
+    # Initialize a new ride
+    @ride = Ride.new
 
-    respond_to do |format|
-      if @ride.save
-        format.html { redirect_to root_path, notice: "Ride was successfully created." }
-        format.json { render :show, status: :created, location: @ride }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @ride.errors, status: :unprocessable_entity }
+    # Set booking from params
+    if params[:booking_id].present?
+      @booking = Booking.find(params[:booking_id])
+
+      # We don't need to set location data directly on the ride
+      # since we'll associate the booking with the ride
+
+      # Set driver to current user's driver profile
+      @ride.driver = current_user.driver_profile if current_user.driver_profile
+
+      # Set vehicle from params
+      if params[:vehicle_id].present?
+        @vehicle = Vehicle.find(params[:vehicle_id])
+        @ride.vehicle = @vehicle
       end
+
+      # Set initial status
+      @ride.status = "accepted"
+
+      # Apply any additional ride params if they exist
+      @ride.assign_attributes(ride_params) if params[:ride].present?
+
+      respond_to do |format|
+        if @ride.save
+          # Update booking status and associate with the ride
+          if @booking
+            @booking.update(status: "accepted", ride_id: @ride.id)
+          end
+
+          format.html { redirect_to @ride, notice: "Ride was successfully created." }
+          format.json { render :show, status: :created, location: @ride }
+          format.turbo_stream { redirect_to dashboard_path, notice: "Ride was successfully created." }
+        else
+          format.html { render :new, status: :unprocessable_entity }
+          format.json { render json: @ride.errors, status: :unprocessable_entity }
+          format.turbo_stream { render turbo_stream: turbo_stream.replace("new_ride", partial: "rides/form", locals: { ride: @ride }) }
+        end
+      end
+    else
+      redirect_to dashboard_path, alert: "Booking ID is required to create a ride."
     end
   end
 
@@ -107,20 +140,16 @@ class RidesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_ride
-      @ride = Ride.find(params.expect(:id))
+      @ride = Ride.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def ride_params
-      params.require(:ride).permit(
-        :driver_id,
-        :booking_id,
-        :invitation_code,
-        :status,
-        :rating,
-        :available_seats,
-        :vehicle_id
-      )
+      if params[:ride].present?
+        params.require(:ride).permit(:status, :pickup_time, :dropoff_time, :driver_id, :vehicle_id)
+      else
+        {}
+      end
     end
 
     def check_driver_requirements

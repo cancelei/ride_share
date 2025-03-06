@@ -7,8 +7,8 @@ class Booking < ApplicationRecord
   belongs_to :passenger, -> { with_discarded }, class_name: "PassengerProfile", foreign_key: :passenger_id
   belongs_to :ride, -> { with_discarded }, optional: true
   has_many :locations, -> { with_discarded }, dependent: :destroy
-  has_one :pickup_location, -> { where(location_type: "pickup") }, class_name: "Location"
-  has_one :dropoff_location, -> { where(location_type: "dropoff") }, class_name: "Location"
+  has_one :pickup_location, -> { where(location_type: "pickup") }, class_name: "Location", dependent: :destroy
+  has_one :dropoff_location, -> { where(location_type: "dropoff") }, class_name: "Location", dependent: :destroy
 
   before_create :set_status
   before_save :set_estimated_ride_price, if: :ride_id_changed?
@@ -21,16 +21,8 @@ class Booking < ApplicationRecord
   after_create :send_booking_confirmation
   after_update :send_status_update_emails
 
-  def set_estimated_ride_price
-    return unless ride_id.present?
-
-    total_distance = Booking.where(ride_id: ride_id)
-                           .pluck(:distance_km)
-                           .sum + (distance_km || 0)
-
-    total_price = (3.5 + total_distance * 2).round(2)
-    ride.update_column(:estimated_price, total_price)
-  end
+  validates :scheduled_time, presence: true
+  validate :has_valid_locations
 
   enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
 
@@ -40,6 +32,40 @@ class Booking < ApplicationRecord
   scope :pending, -> { where(status: "pending") }
   scope :past, -> { where(status: [ "completed" ]) }
   scope :cancelled, -> { where(status: "cancelled") }
+
+  def status_pending?
+    status == "pending"
+  end
+
+  def status_accepted?
+    status == "accepted"
+  end
+
+  def status_in_progress?
+    status == "in_progress"
+  end
+
+  def status_completed?
+    status == "completed"
+  end
+
+  def status_cancelled?
+    status == "cancelled"
+  end
+
+  def has_valid_locations
+    pickup = locations.find { |l| l.location_type == "pickup" }
+    dropoff = locations.find { |l| l.location_type == "dropoff" }
+
+    if pickup.nil? || pickup.address.blank?
+      errors.add(:base, "Pickup location is required")
+    end
+
+    if dropoff.nil? || dropoff.address.blank?
+      errors.add(:base, "Dropoff location is required")
+    end
+  end
+
   def pickup
     pickup_location&.address
   end
@@ -197,5 +223,16 @@ class Booking < ApplicationRecord
         Rails.logger.error e.backtrace.join("\n")
       end
     end
+  end
+
+  def set_estimated_ride_price
+    return unless ride_id.present?
+
+    total_distance = Booking.where(ride_id: ride_id)
+                           .pluck(:distance_km)
+                           .sum + (distance_km || 0)
+
+    total_price = (3.5 + total_distance * 2).round(2)
+    ride.update_column(:estimated_price, total_price)
   end
 end
