@@ -6,6 +6,7 @@ class Ride < ApplicationRecord
   include Discard::Model
   include RideStatusBroadcaster
   include ActionView::RecordIdentifier
+  include PriceCalculator
   default_scope -> { kept }
 
   belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id, optional: true
@@ -48,6 +49,7 @@ class Ride < ApplicationRecord
   }
 
   validate :driver_has_vehicle
+  validate :validate_minimum_price
 
   broadcasts_to ->(ride) { [ ride.driver.user, "dashboard" ] }
 
@@ -224,5 +226,11 @@ class Ride < ApplicationRecord
         monthly_rides_total: monthly_total
       }
     )
+  end
+
+  def validate_minimum_price
+    if estimated_price.nil? || estimated_price <= 5
+      errors.add(:estimated_price, "must be greater than $5.00")
+    end
   end
 end

@@ -228,11 +228,23 @@ class Booking < ApplicationRecord
   def set_estimated_ride_price
     return unless ride_id.present?
 
+    # Calculate total distance for all bookings in this ride
     total_distance = Booking.where(ride_id: ride_id)
                            .pluck(:distance_km)
                            .sum + (distance_km || 0)
 
-    total_price = (5 + total_distance * 1.7).round(2)
+    # Temporarily set the ride's distance_km for calculation
+    original_distance = ride.distance_km
+    ride.distance_km = total_distance
+
+    # Use the PriceCalculator module to calculate the price
+    total_price = ride.calculate_estimated_price
+
+    # Ensure minimum price requirement is met
+    total_price = [ total_price, 5.01 ].max
+
+    # Restore original distance and update the price
+    ride.distance_km = original_distance
     ride.update_column(:estimated_price, total_price)
   end
 end
