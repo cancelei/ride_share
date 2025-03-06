@@ -186,32 +186,45 @@ class Booking < ApplicationRecord
   def send_booking_confirmation
     # First, send the confirmation to the passenger
     begin
-      UserMailer.booking_confirmation(self).deliver_later
+      UserMailer.booking_confirmation(self).deliver_now
       Rails.logger.info "Booking confirmation email queued for delivery to passenger: #{passenger.user.email}"
+    rescue => e
+      Rails.logger.error "Failed to send booking confirmation email to passenger: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+    end
 
-      # Now send notifications to all drivers with vehicles
+    # Then, find drivers with vehicles and notify them
+    begin
       Rails.logger.info "=== STARTING DRIVER NOTIFICATIONS FOR BOOKING #{id} ==="
-
-      # Find all drivers with vehicles
-      drivers_with_vehicles = User.role_driver.includes(driver_profile: :vehicles)
-                                 .select { |d| d.driver_profile&.vehicles&.exists? }
-
+      
+      # Find drivers with vehicles
+      drivers_with_vehicles = User.joins(:driver_profile)
+                                 .where(driver_profiles: { active: true })
+                                 .joins("INNER JOIN vehicles ON vehicles.driver_profile_id = driver_profiles.id")
+                                 .where(vehicles: { active: true })
+                                 .distinct
+      
       Rails.logger.info "Found #{drivers_with_vehicles.count} drivers with vehicles"
-
-      # Get other pending bookings (convert to array to avoid ActiveRecord::Relation serialization issues)
-      other_pending_bookings = Booking.pending.where.not(id: id).limit(5).to_a
-
+      
+      # Get other pending bookings (convert to array to avoid serialization issues)
+      other_pending_bookings = Booking.where(status: "pending")
+                                     .where.not(id: id)
+                                     .limit(5)
+                                     .to_a
+      
+      # Send notifications to each driver
       drivers_with_vehicles.each do |driver|
         begin
           Rails.logger.info "Sending notification to driver: #{driver.email}"
           UserMailer.new_booking_notification(driver, self, other_pending_bookings).deliver_later
         rescue => e
-          Rails.logger.error "Error sending notification to driver #{driver.email}: #{e.message}"
+          Rails.logger.error "Failed to send notification to driver #{driver.email}: #{e.message}"
+          Rails.logger.error e.backtrace.join("\n")
+          # Continue with the next driver even if this one fails
         end
       end
-
     rescue => e
-      Rails.logger.error "!!! ERROR SENDING DRIVER NOTIFICATIONS: #{e.message} !!!"
+      Rails.logger.error "Error in driver notification process: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
     end
   end
