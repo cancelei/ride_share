@@ -75,3 +75,6 @@ gem "devise", "~> 4.9"
 gem "geocoder"
 gem "countries", "~> 7.1"
 gem "discard", "~> 1.4"
+
+# Add Brevo (formerly Sendinblue) API client
+gem "sib-api-v3-sdk"

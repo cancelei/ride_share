@@ -53,30 +53,18 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  config.action_mailer.raise_delivery_errors = true
+  # Set delivery method to API
+  config.action_mailer.delivery_method = :api
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "rideflow.live" }
+  # Remove any SMTP settings
+  # config.action_mailer.smtp_settings = nil
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: "smtp-relay.brevo.com",
-    port: 587,
-    user_name: ENV["BREVO_SMTP_USERNAME"], # Use ENV variable
-    password: ENV["BREVO_SMTP_PASSWORD"],  # Use ENV variable
-    authentication: :login,
-    enable_starttls_auto: true
-  }
+  # Ignore bad email addresses and do not raise email delivery errors
+  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.perform_caching = false
+
+  # Set default URL options for your production environment
+  config.action_mailer.default_url_options = { host: ENV["APP_HOST"] || "rideflow.live" }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
