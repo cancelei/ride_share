@@ -74,4 +74,50 @@ class UserMailer < ApplicationMailer
         raise e
       end
     end
+
+    def new_booking_notification(driver, booking, pending_bookings)
+      @driver = driver
+      @booking = booking
+      @pending_bookings = pending_bookings
+
+      mail(
+        to: @driver.email,
+        subject: "New Ride Request Available - RideFlow"
+      )
+    end
+
+    def send_notification_to_drivers
+      # Get all drivers
+      drivers = User.role_driver.includes(:driver_profile)
+
+      Rails.logger.info "Found #{drivers.count} drivers to notify"
+
+      # Get up to 5 other pending bookings (excluding this one)
+      other_pending_bookings = Booking.pending
+                                     .where.not(id: self.id)
+                                     .includes(passenger: :user)
+                                     .order(created_at: :desc)
+                                     .limit(5)
+
+      Rails.logger.info "Found #{other_pending_bookings.count} other pending bookings"
+
+      # Send email to each driver
+      drivers.find_each do |driver|
+        # Only send to drivers with vehicles
+        has_vehicles = driver.driver_profile&.vehicles&.exists?
+        Rails.logger.info "Driver #{driver.id} (#{driver.email}) has vehicles: #{has_vehicles}"
+
+        if has_vehicles
+          # Use deliver_now in development for immediate delivery
+          delivery_method = Rails.env.development? ? :deliver_now : :deliver_later
+          UserMailer.new_booking_notification(driver, self, other_pending_bookings).send(delivery_method)
+          Rails.logger.info "New booking notification email queued for delivery to driver: #{driver.email}"
+        else
+          Rails.logger.info "Skipping email to driver #{driver.email} - no vehicles"
+        end
+      end
+    rescue => e
+      Rails.logger.error "Failed to send driver notification emails: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+    end
 end
