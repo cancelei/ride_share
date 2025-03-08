@@ -13,7 +13,7 @@ class DashboardController < ApplicationController
     when "driver"
       @driver_profile = @user.driver_profile
       @current_vehicle = @driver_profile&.selected_vehicle
-      @pending_bookings = Booking.active
+      @pending_bookings = Booking.pending
       @active_rides = @driver_profile ? Ride.where(driver: @driver_profile).active : []
       @history_rides = @driver_profile ? Ride.where(driver: @driver_profile).history : []
       @past_rides = @driver_profile ? Ride.where(driver: @driver_profile, status: :completed).order(created_at: :desc).limit(5) : []
@@ -22,13 +22,10 @@ class DashboardController < ApplicationController
     when "passenger"
       @passenger_profile = @user.passenger_profile
       if @passenger_profile
-        @my_bookings = Booking.where(passenger: @passenger_profile).order(scheduled_time: :desc)
+        @my_bookings = Booking.where(passenger: @passenger_profile, status: :pending).order(scheduled_time: :desc)
 
-        # Active rides - pending, accepted, ongoing
-        @active_rides = Ride.active
-
-        # History rides - completed, cancelled
-        @history_rides = Ride.history
+        @active_rides = Ride.active.includes(bookings: :locations).where(bookings: { passenger: current_user.passenger_profile })
+        @history_rides = Ride.history.includes(bookings: :locations).where(bookings: { passenger: current_user.passenger_profile })
       end
     when "admin"
       @total_users = User.count
@@ -51,14 +48,15 @@ class DashboardController < ApplicationController
     @tab = params[:tab] || "active"
 
     if current_user.passenger_profile
-      # Active rides - pending, accepted, ongoing
-      @active_rides = Ride.active_rides
+      @my_bookings = Booking.where(passenger: @passenger_profile, status: :pending).order(scheduled_time: :desc)
 
-      # History rides - completed, cancelled
-      @history_rides = Ride.history
+      @active_rides = Ride.active.includes(bookings: :locations).where(bookings: { passenger: current_user.passenger_profile })
+      @history_rides = Ride.history.includes(bookings: :locations).where(bookings: { passenger: current_user.passenger_profile })
     elsif current_user.driver_profile
-      @active_rides = Ride.where(driver: current_user.driver_profile).active
-      @history_rides = Ride.where(driver: current_user.driver_profile).history
+      @pending_bookings = Booking.pending
+
+      @active_rides = current_user.driver_profile.rides.active
+      @history_rides = current_user.driver_profile.rides.history
     else
       @active_rides = []
       @history_rides = []
@@ -71,11 +69,15 @@ class DashboardController < ApplicationController
     @tab = params[:tab]
 
     if current_user.driver_profile
+      @pending_bookings = Booking.pending
+
       @active_rides = current_user.driver_profile.rides.active
       @history_rides = current_user.driver_profile.rides.history
     elsif current_user.passenger_profile
-      @active_rides = Ride.active
-      @history_rides = Ride.history
+      @my_bookings = Booking.where(passenger: @passenger_profile, status: :pending).order(scheduled_time: :desc)
+
+      @active_rides = Ride.active.includes(bookings: :locations).where(bookings: { passenger: current_user.passenger_profile })
+      @history_rides = Ride.history.includes(bookings: :locations).where(bookings: { passenger: current_user.passenger_profile })
     else
       @active_rides = []
       @history_rides = []

@@ -1,4 +1,4 @@
-<% if booking.status.in?(['pending', 'accepted', 'in_progress']) %>
+<% if booking&.status.to_s.in?(['pending', 'accepted', 'in_progress']) %>
   <% location_data = defined?(current_user) ? current_user&.current_location : user&.current_location %>
   <div id="booking-<%= booking.id %>-distance"
        class="mt-2 text-sm text-gray-600"

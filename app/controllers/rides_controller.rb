@@ -63,6 +63,7 @@ class RidesController < ApplicationController
     if params[:booking_id].present?
       @booking = Booking.find(params[:booking_id])
 
+      puts @booking.to_json
       # We don't need to set location data directly on the ride
       # since we'll associate the booking with the ride
 
@@ -80,13 +81,13 @@ class RidesController < ApplicationController
 
       # Apply any additional ride params if they exist
       @ride.assign_attributes(ride_params) if params[:ride].present?
+      @ride.booking_id = params[:booking_id]
 
       respond_to do |format|
         if @ride.save
           # Update booking status and associate with the ride
-          if @booking
-            @booking.update(status: "accepted", ride_id: @ride.id)
-          end
+          @booking.update(status: "accepted", ride_id: @ride.id) if @booking
+          puts @booking.errors&.full_messages if @booking
 
           format.html { redirect_to @ride, notice: "Ride was successfully created." }
           format.json { render :show, status: :created, location: @ride }
@@ -94,7 +95,7 @@ class RidesController < ApplicationController
         else
           format.html { render :new, status: :unprocessable_entity }
           format.json { render json: @ride.errors, status: :unprocessable_entity }
-          format.turbo_stream { render turbo_stream: turbo_stream.replace("new_ride", partial: "rides/form", locals: { ride: @ride }) }
+          format.turbo_stream { render turbo_stream: turbo_stream.replace("new_ride", partial: "rides/form", locals: { ride: @ride }), status: :unprocessable_entity }
         end
       end
     else

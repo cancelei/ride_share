@@ -1,7 +1,11 @@
 <div class="mt-4">
-  <% if active_rides.any? %>
+  <% if active_rides.present? || my_bookings.present? %>
     <div class="divide-y divide-gray-200">
-      <% active_rides.each do |ride| %>
+      <% my_bookings&.each do |booking| %>
+        <%= booking.to_json %>
+      <% end %>
+
+      <% active_rides&.each do |ride| %>
         <%= render partial: "rides/ride_card", locals: { ride: ride } %>
       <% end %>
     </div>
@@ -20,4 +24,4 @@
       </div>
     </div>
   <% end %>
-</div> 
+</div>

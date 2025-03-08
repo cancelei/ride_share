@@ -24,7 +24,7 @@ class Booking < ApplicationRecord
   validates :scheduled_time, presence: true
   validate :has_valid_locations
 
-  enum :status, { pending: "pending", accepted: "accepted", in_progress: "in_progress", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
+  enum :status, { pending: "pending", accepted: "accepted", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
 
   accepts_nested_attributes_for :locations
 
@@ -52,14 +52,11 @@ class Booking < ApplicationRecord
   end
 
   def has_valid_locations
-    pickup = locations.find { |l| l.location_type == "pickup" }
-    dropoff = locations.find { |l| l.location_type == "dropoff" }
-
-    if pickup.nil? || pickup.address.blank?
+    if pickup.blank?
       errors.add(:base, "Pickup location is required")
     end
 
-    if dropoff.nil? || dropoff.address.blank?
+    if dropoff.blank?
       errors.add(:base, "Dropoff location is required")
     end
   end

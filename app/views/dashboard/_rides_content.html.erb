@@ -2,14 +2,14 @@
   <% if local_assigns[:user].present? %>
     <%= turbo_stream_from local_assigns[:user], :dashboard %>
   <% end %>
-  
+
   <% tab = local_assigns[:tab] || params[:tab] || 'active' %>
   <% active_rides = local_assigns[:active_rides] || @active_rides || [] %>
   <% history_rides = local_assigns[:history_rides] || @history_rides || [] %>
-  
+
   <% if tab == "history" %>
     <%= render "dashboard/ride_history", history_rides: history_rides %>
   <% else %>
-    <%= render "dashboard/active_rides", active_rides: active_rides %>
+    <%= render "dashboard/active_rides", active_rides: active_rides, my_bookings: @my_bookings %>
   <% end %>
 <% end %>

@@ -6,25 +6,25 @@
       <div class="flex justify-between items-center">
         <div class="flex-1">
           <div class="flex items-center space-x-2">
-            <% 
+            <%
               booking = ride.bookings.first
-              pickup_location = booking.to_s
-              dropoff_location = booking.to_json
-              
-              @pickup_location_text = pickup_location
-              @dropoff_location_text = dropoff_location
+              pickup_location = booking&.pickup_location
+              dropoff_location = booking&.dropoff_location
+
+              @pickup_location_text = pickup_location&.address || booking&.pickup
+              @dropoff_location_text = dropoff_location&.address || booking&.dropoff
             %>
-            
+
             <span class="text-sm font-medium"><%= @pickup_location_text %></span>
-            
+
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
             </svg>
-            
+
             <span class="text-sm font-medium"><%= @dropoff_location_text %></span>
           </div>
         </div>
-        
+
         <div class="flex items-center space-x-4">
           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= ride.respond_to?(:status_color) ? ride.status_color : 'bg-gray-100 text-gray-800' %>">
             <%= ride.status.humanize %>
@@ -37,10 +37,10 @@
       </div>
     <% end %>
   </div>
-  
+
   <%= turbo_frame_tag "ride_#{ride.id}_details" do %>
     <% if params[:expanded] == ride.id.to_s %>
-      <% 
+      <%
         # Define ride_data hash with safe access to all properties
         @ride_data = {
           id: ride.id,
@@ -52,10 +52,10 @@
           distance: ride.respond_to?(:distance) && ride.distance ? ride.distance : 12.5,
           estimated_price: ride.estimated_price || 0,
           status: ride.status
-        } 
+        }
       %>
-      
+
       <%= render partial: "rides/ride_details", locals: { ride: ride, ride_data: @ride_data, expanded: params[:expanded] } %>
     <% end %>
   <% end %>
-</div> 
+</div>
