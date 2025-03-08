@@ -1,0 +1,23 @@
+<div class="mt-4">
+  <% if active_rides.any? %>
+    <div class="divide-y divide-gray-200">
+      <% active_rides.each do |ride| %>
+        <%= render partial: "rides/ride_card", locals: { ride: ride } %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12">
+      <div class="flex items-center justify-center w-24 h-24 bg-blue-50 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3z"/>
+        </svg>
+      </div>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">No active rides</h3>
+      <p class="mt-1 text-sm text-gray-500">Book a ride to get started</p>
+      <div class="mt-6">
+        <%= link_to "Book a Ride", new_booking_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+      </div>
+    </div>
+  <% end %>
+</div> 

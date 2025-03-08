@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     member do
       post :cancel
       get :driver_location
+      post :update_driver_location
     end
   end
   resources :rides do
@@ -13,6 +14,7 @@ Rails.application.routes.draw do
       post :start
       post :finish
       patch :mark_as_paid
+      patch :cancel
     end
   end
 
@@ -50,6 +52,8 @@ Rails.application.routes.draw do
   post "driver/update_location", to: "driver_profiles#update_location"
 
   get "dashboard/rides", to: "dashboard#rides"
+
+  get "dashboard/expand_ride/:ride_id", to: "dashboard#expand_ride", as: "dashboard_expand_ride"
 
   resources :users do
     member do

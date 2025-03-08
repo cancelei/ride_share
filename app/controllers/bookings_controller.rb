@@ -46,6 +46,7 @@ class BookingsController < ApplicationController
         }
         format.html { redirect_to root_path, notice: "Booking was successfully created." }
       else
+        puts @booking.errors.full_messages
         format.turbo_stream {
           render turbo_stream: turbo_stream.replace(
             "new_booking_form",
@@ -105,12 +106,12 @@ class BookingsController < ApplicationController
   end
 
   def cancel
-      if @booking.status_pending?
-        @booking.update(status: :cancelled)
-        redirect_to root_path, notice: "Booking was successfully cancelled."
-      else
-        redirect_to root_path, alert: "Only pending bookings can be cancelled."
-      end
+    if @booking.status_pending?
+      @booking.update(status: :cancelled)
+      redirect_to root_path, notice: "Booking was successfully cancelled."
+    else
+      redirect_to root_path, alert: "Only pending bookings can be cancelled."
+    end
   end
 
   def test_emails
@@ -161,25 +162,9 @@ class BookingsController < ApplicationController
       )
     end
 
-    def valid_cancellation_token?
-      token = params[:cancellation_token]
-      return false unless token.present?
-
-      begin
-        decoded = Rails.application.message_verifier("booking_cancellation").verify(token)
-        return false if decoded[:expires_at] < Time.current
-
-        # Make sure we're using the correct booking
-        @booking ||= Booking.find_by(id: decoded[:booking_id])
-        @booking.present? && @booking.id.to_s == params[:id].to_s
-      rescue ActiveSupport::MessageVerifier::InvalidSignature
-        false
-      end
-    end
-
     def ensure_passenger_profile
       unless current_user.passenger_profile
-        current_user.create_passenger_profile
+        redirect_to new_passenger_profile_path, alert: "You need to create a passenger profile first."
       end
     end
 end

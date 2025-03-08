@@ -1,0 +1,5 @@
+<%= turbo_stream.replace "ride_#{@ride.id}_details" do %>
+  <% if params[:expanded] == @ride.id.to_s %>
+    <%= render partial: "rides/ride_details", locals: { ride: @ride, ride_data: @ride_data, expanded: params[:expanded] } %>
+  <% end %>
+<% end %> 

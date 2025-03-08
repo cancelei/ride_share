@@ -28,10 +28,8 @@ class Booking < ApplicationRecord
 
   accepts_nested_attributes_for :locations
 
-  scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
   scope :pending, -> { where(status: "pending") }
-  scope :past, -> { where(status: [ "completed" ]) }
-  scope :cancelled, -> { where(status: "cancelled") }
+  scope :active, -> { where(status: "accepted") }
 
   def status_pending?
     status == "pending"

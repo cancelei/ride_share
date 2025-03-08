@@ -1,0 +1,19 @@
+<div class="mt-4">
+  <% if history_rides.any? %>
+    <div class="divide-y divide-gray-200">
+      <% history_rides.each do |ride| %>
+        <%= render partial: "rides/ride_card", locals: { ride: ride } %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12">
+      <div class="flex items-center justify-center w-24 h-24 bg-gray-50 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">No ride history yet</h3>
+      <p class="mt-1 text-sm text-gray-500">Your completed and cancelled rides will appear here</p>
+    </div>
+  <% end %>
+</div> 

@@ -25,13 +25,12 @@ class Ride < ApplicationRecord
 
   attr_accessor :booking_id
 
-  enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed", cancelled: "cancelled" }
+  enum :status, { accepted: "accepted", ongoing: "ongoing", completed: "completed", cancelled: "cancelled" }
 
-  scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
+  scope :active, -> { where(status: [ "accepted", "ongoing" ]) }
+  scope :history, -> { where(status: [ "completed", "cancelled" ]) }
   scope :past, -> { where("start_time < ?", Time.current) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
-  scope :completed, -> { where(status: "completed") }
-  scope :cancelled, -> { where(status: "cancelled") }
 
   scope :total_estimated_price_for_24_hours, -> {
     where("created_at >= ? AND paid = true", 1.day.ago)
@@ -100,10 +99,18 @@ class Ride < ApplicationRecord
 
   def status_color
     case status
-    when "scheduled" then "bg-green-100 text-green-800"
-    when "in_progress" then "bg-blue-100 text-blue-800"
-    when "completed" then "bg-gray-100 text-gray-800"
-    when "cancelled" then "bg-red-100 text-red-800"
+    when "pending"
+      "bg-yellow-100 text-yellow-800"
+    when "accepted"
+      "bg-green-100 text-green-800"
+    when "ongoing"
+      "bg-blue-100 text-blue-800"
+    when "completed"
+      "bg-gray-100 text-gray-800"
+    when "cancelled"
+      "bg-red-100 text-red-800"
+    else
+      "bg-gray-100 text-gray-800"
     end
   end
 

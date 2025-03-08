@@ -137,6 +137,19 @@ class RidesController < ApplicationController
     end
   end
 
+  def cancel
+    @ride = Ride.find(params[:id])
+
+    if @ride.update(status: "cancelled")
+      respond_to do |format|
+        format.html { redirect_to dashboard_path, notice: "Ride was successfully cancelled." }
+        format.turbo_stream { redirect_to dashboard_path, notice: "Ride was successfully cancelled." }
+      end
+    else
+      redirect_to dashboard_path, alert: "Could not cancel ride."
+    end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_ride

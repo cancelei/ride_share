@@ -1,0 +1,74 @@
+<%= turbo_frame_tag "ride_#{ride.id}_details" do %>
+  <% if expanded == ride.id.to_s %>
+    <div class="pb-4">
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span class="text-sm text-gray-700">
+                <%= ride_data[:scheduled_date] || "Date not set" %>
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-sm text-gray-700">
+                <%= ride_data[:scheduled_time] || "Time not set" %>
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-sm text-gray-700">
+                EST Duration: <%= ride_data[:estimated_duration] %> min
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              <span class="text-sm text-gray-700">
+                <%= ride_data[:distance] %> km
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-sm text-gray-700">
+                EST Cost: $<%= sprintf('%.2f', ride_data[:estimated_price]) %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-4 flex justify-between items-center">
+        <% if ride_data[:status] == "pending" %>
+          <%= button_to "Cancel Ride", cancel_ride_path(ride), method: :patch, 
+              class: "px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700",
+              data: { turbo_confirm: "Are you sure you want to cancel this ride?" } %>
+        <% end %>
+        
+        <%= link_to dashboard_expand_ride_path(ride_id: ride.id, expanded: nil),
+            data: { turbo_frame: "ride_#{ride.id}_details" },
+            class: "px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" do %>
+          Collapse
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %> 

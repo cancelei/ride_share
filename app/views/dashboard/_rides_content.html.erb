@@ -2,43 +2,14 @@
   <% if local_assigns[:user].present? %>
     <%= turbo_stream_from local_assigns[:user], :dashboard %>
   <% end %>
-  <div class="space-y-4">
-    <% my_bookings = local_assigns[:my_bookings] || @my_bookings || [] %>
-    <% current_type = local_assigns.dig(:params, :type) || params[:type] %>
-    
-    <% bookings = case current_type
-       when 'past'
-         my_bookings.past
-       when 'scheduled'
-         my_bookings.pending
-       when 'cancelled'
-         my_bookings.where(status: :cancelled)
-       else
-         my_bookings.where(status: [:accepted, :in_progress])
-       end %>
-
-    <% if bookings.any? %>
-      <% bookings.each do |booking| %>
-        <%= render "bookings/booking_card", booking: booking %>
-      <% end %>
-    <% else %>
-      <div class="col-span-full text-center py-12">
-        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No <%= 
-          case current_type
-          when 'past'
-            'past'
-          when 'scheduled'
-            'scheduled'
-          when 'cancelled'
-            'cancelled'
-          else
-            'active'
-          end %> rides</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by booking a new ride.</p>
-      </div>
-    <% end %>
-  </div>
+  
+  <% tab = local_assigns[:tab] || params[:tab] || 'active' %>
+  <% active_rides = local_assigns[:active_rides] || @active_rides || [] %>
+  <% history_rides = local_assigns[:history_rides] || @history_rides || [] %>
+  
+  <% if tab == "history" %>
+    <%= render "dashboard/ride_history", history_rides: history_rides %>
+  <% else %>
+    <%= render "dashboard/active_rides", active_rides: active_rides %>
+  <% end %>
 <% end %>
