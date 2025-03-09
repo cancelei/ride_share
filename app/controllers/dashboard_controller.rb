@@ -17,8 +17,8 @@ class DashboardController < ApplicationController
       @active_rides = @driver_profile ? Ride.where(driver: @driver_profile).active : []
       @history_rides = @driver_profile ? Ride.where(driver: @driver_profile).history : []
       @past_rides = @driver_profile ? Ride.where(driver: @driver_profile, status: :completed).order(created_at: :desc).limit(5) : []
-      @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
-      @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
+      @last_week_rides_total = Ride.total_estimated_price_for_last_week
+      @monthly_rides_total = Ride.total_estimated_price_for_last_thirty_days
     when "passenger"
       @passenger_profile = @user.passenger_profile
       if @passenger_profile
@@ -91,8 +91,8 @@ class DashboardController < ApplicationController
 
   def expand_ride
     @ride = Ride.find(params[:ride_id])
-    @expanded = params[:expanded] || @ride.id.to_s
-    @tab = params[:tab]
+    @expanded = sanitize_expanded_param(params[:expanded], @ride.id)
+    @tab = sanitize_tab_param(params[:tab])
 
     # Prepare the data for the view
     @ride_data = {
@@ -110,7 +110,7 @@ class DashboardController < ApplicationController
     puts @ride_data
     respond_to do |format|
       format.turbo_stream
-      format.html { redirect_to dashboard_path(expanded: @expanded) }
+      format.html { redirect_to dashboard_path(expanded: @expanded, tab: @tab), allow_other_host: false }
       format.js # Add JavaScript format for older AJAX requests
     end
   end
@@ -127,5 +127,13 @@ class DashboardController < ApplicationController
     else
       "Location not available"
     end
+  end
+
+  def sanitize_expanded_param(expanded, default_id)
+    expanded.present? && Ride.exists?(expanded) ? expanded.to_s : default_id.to_s
+  end
+
+  def sanitize_tab_param(tab)
+    %w[active history].include?(tab) ? tab : "active"
   end
 end
