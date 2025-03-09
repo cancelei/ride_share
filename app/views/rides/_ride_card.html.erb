@@ -8,11 +8,9 @@
           <div class="flex items-center space-x-2">
             <%
               booking = ride.bookings.first
-              pickup_location = booking&.pickup_location
-              dropoff_location = booking&.dropoff_location
 
-              @pickup_location_text = pickup_location&.address || booking&.pickup
-              @dropoff_location_text = dropoff_location&.address || booking&.dropoff
+              @pickup_location_text = booking&.pickup
+              @dropoff_location_text = booking&.dropoff
             %>
 
             <span class="text-sm font-medium"><%= @pickup_location_text %></span>

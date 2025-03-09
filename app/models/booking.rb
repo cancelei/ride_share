@@ -22,7 +22,7 @@ class Booking < ApplicationRecord
   after_update :send_status_update_emails
 
   validates :scheduled_time, presence: true
-  validate :has_valid_locations
+  after_save :has_valid_locations
 
   enum :status, { pending: "pending", accepted: "accepted", rejected: "rejected", completed: "completed", cancelled: "cancelled" }, prefix: true
 
@@ -59,14 +59,6 @@ class Booking < ApplicationRecord
     if dropoff.blank?
       errors.add(:base, "Dropoff location is required")
     end
-  end
-
-  def pickup
-    pickup_location&.address
-  end
-
-  def dropoff
-    dropoff_location&.address
   end
 
   def calculate_distance_to_driver
@@ -223,23 +215,13 @@ class Booking < ApplicationRecord
   def set_estimated_ride_price
     return unless ride_id.present?
 
-    # Calculate total distance for all bookings in this ride
-    total_distance = Booking.where(ride_id: ride_id)
-                           .pluck(:distance_km)
-                           .sum + (distance_km || 0)
-
-    # Temporarily set the ride's distance_km for calculation
-    original_distance = ride.distance_km
-    ride.distance_km = total_distance
-
     # Use the PriceCalculator module to calculate the price
-    total_price = ride.calculate_estimated_price
+    total_price = calculate_estimated_price
 
     # Ensure minimum price requirement is met
     total_price = [ total_price, 5.01 ].max
 
     # Restore original distance and update the price
-    ride.distance_km = original_distance
     ride.update_column(:estimated_price, total_price)
   end
 end

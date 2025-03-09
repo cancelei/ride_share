@@ -6,7 +6,6 @@ class Ride < ApplicationRecord
   include Discard::Model
   include RideStatusBroadcaster
   include ActionView::RecordIdentifier
-  include PriceCalculator
   default_scope -> { kept }
 
   belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id, optional: true
@@ -66,11 +65,6 @@ class Ride < ApplicationRecord
     self.start_time = Time.current
     self.status = "ongoing"
 
-    # Update each booking individually to trigger callbacks
-    self.bookings.each do |booking|
-      booking.update(status: "in_progress")
-    end
-
     save!
   end
 
@@ -119,18 +113,18 @@ class Ride < ApplicationRecord
   end
 
   def google_maps_url
-    origin = CGI.escape(bookings.first.pickup.to_s)
-    destination = CGI.escape(bookings.first.dropoff.to_s)
+    return nil if bookings.empty?
+
+    origin = "#{bookings.first.pickup_location.latitude},#{bookings.first.pickup_location.longitude}"
+    destination = "#{bookings.first.dropoff_location.latitude},#{bookings.first.dropoff_location.longitude}"
 
     # If there are multiple bookings, add them as waypoints
-    waypoints = if bookings.count > 1
-      bookings[1..-1].map do |booking|
-        "via:#{CGI.escape(booking.pickup.to_s)}|via:#{CGI.escape(booking.dropoff.to_s)}"
-      end.join("|")
-    end
+    waypoints = bookings[1..].map do |booking|
+      "#{booking.pickup_location.latitude},#{booking.pickup_location.longitude}|#{booking.dropoff_location.latitude},#{booking.dropoff_location.longitude}"
+    end.join("|")
 
-    url = "https://www.google.com/maps/dir/?api=1&origin=#{origin}&destination=#{destination}"
-    url += "&waypoints=via:#{CGI.escape(bookings.first.pickup.to_s)}|#{waypoints}" if waypoints.present?
+    url = "https://www.google.com/maps/dir/?api=1&origin=#{CGI.escape(origin)}&destination=#{CGI.escape(destination)}"
+    url += "&waypoints=#{CGI.escape(waypoints)}" if waypoints.present?
     url += "&travelmode=driving"
 
     url

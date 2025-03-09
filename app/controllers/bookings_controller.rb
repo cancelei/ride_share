@@ -30,7 +30,7 @@ class BookingsController < ApplicationController
   # POST /bookings or /bookings.json
   def create
     @booking = Booking.new(booking_params)
-
+puts booking_params.to_json
     respond_to do |format|
       if @booking.save
         format.turbo_stream {
@@ -52,9 +52,9 @@ class BookingsController < ApplicationController
             "new_booking_form",
             partial: "form",
             locals: { booking: @booking }
-          )
+          ), status: :unprocessable_entity
         }
-        format.html { render :new }
+        format.html { render :new, status: :unprocessable_entity }
       end
     end
   end

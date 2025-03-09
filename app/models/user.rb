@@ -40,13 +40,16 @@ class User < ApplicationRecord
     return nil if current_latitude.blank? || current_longitude.blank?
 
     coordinates = { latitude: current_latitude, longitude: current_longitude }
-    address = Geocoder.address([ current_latitude, current_longitude ])
 
     {
       coordinates: coordinates,
-      address: address,
+      address: current_address,
       updated_at: location_updated_at
     }
+  end
+
+  def current_address
+    Geocoder.address([ current_latitude, current_longitude ])
   end
 
   private
