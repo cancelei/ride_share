@@ -1,9 +1,9 @@
-<%= turbo_frame_tag "rides_content" do %>
+<%= turbo_frame_tag "rides_content", data: {tab: @tab} do %>
   <% if local_assigns[:user].present? %>
     <%= turbo_stream_from local_assigns[:user], :dashboard %>
   <% end %>
 
-  <% tab = local_assigns[:tab] || params[:tab] || 'active' %>
+  <% tab = @tab || local_assigns[:tab] || params[:tab] %>
   <% active_rides = local_assigns[:active_rides] || @active_rides || [] %>
   <% history_rides = local_assigns[:history_rides] || @history_rides || [] %>
 

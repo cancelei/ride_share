@@ -3,7 +3,7 @@ class DashboardController < ApplicationController
 
   def show
     @user = current_user
-    @tab = params[:tab] || "active"
+    @tab = params[:tab]
     @expanded = params[:expanded]
 
     # Initialize @my_bookings as an empty array by default
@@ -45,7 +45,7 @@ class DashboardController < ApplicationController
   end
 
   def rides
-    @tab = params[:tab] || "active"
+    @tab = params[:tab] || request.headers["Turbo-Frame-Data-Tab"]
 
     if current_user.passenger_profile
       @my_bookings = Booking.where(passenger: @passenger_profile, status: :pending).order(scheduled_time: :desc)
@@ -91,7 +91,8 @@ class DashboardController < ApplicationController
 
   def expand_ride
     @ride = Ride.find(params[:ride_id])
-    @expanded = params[:expanded]
+    @expanded = params[:expanded] || @ride.id.to_s
+    @tab = params[:tab]
 
     # Prepare the data for the view
     @ride_data = {
@@ -106,12 +107,11 @@ class DashboardController < ApplicationController
       status: @ride.status
     }
 
+    puts @ride_data
     respond_to do |format|
-      format.html { redirect_to dashboard_path(expanded: @expanded) }
       format.turbo_stream
+      format.html { redirect_to dashboard_path(expanded: @expanded) }
       format.js # Add JavaScript format for older AJAX requests
-      # Fallback for any other format
-      format.any { redirect_to dashboard_path(expanded: @expanded) }
     end
   end
 

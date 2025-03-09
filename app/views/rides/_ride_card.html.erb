@@ -1,6 +1,6 @@
 <div id="<%= dom_id(ride) %>" class="border-b border-gray-200">
   <div class="py-4">
-    <%= link_to dashboard_expand_ride_path(ride_id: ride.id, expanded: params[:expanded] == ride.id.to_s ? nil : ride.id.to_s),
+    <%= link_to dashboard_expand_ride_path(ride_id: ride.id, expanded: params[:expanded] == ride.id.to_s ? nil : ride.id.to_s, tab: @tab),
         data: { turbo_frame: "ride_#{ride.id}_details" },
         class: "block" do %>
       <div class="flex justify-between items-center">
@@ -36,7 +36,6 @@
     <% end %>
   </div>
 
-  <%= turbo_frame_tag "ride_#{ride.id}_details" do %>
     <% if params[:expanded] == ride.id.to_s %>
       <%
         # Define ride_data hash with safe access to all properties
@@ -55,5 +54,4 @@
 
       <%= render partial: "rides/ride_details", locals: { ride: ride, ride_data: @ride_data, expanded: params[:expanded] } %>
     <% end %>
-  <% end %>
 </div>
