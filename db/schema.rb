@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_01_165622) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_12_125658) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,7 +76,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_01_165622) do
   end
 
   create_table "rides", force: :cascade do |t|
-    t.bigint "driver_id", null: false
+    t.bigint "driver_id"
     t.datetime "start_time"
     t.datetime "end_time"
     t.string "invitation_code"
@@ -88,7 +88,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_01_165622) do
     t.integer "participants_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "vehicle_id", null: false
+    t.bigint "vehicle_id"
     t.float "estimated_price"
     t.float "effective_price"
     t.datetime "discarded_at"

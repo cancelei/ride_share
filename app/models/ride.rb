@@ -9,13 +9,14 @@ class Ride < ApplicationRecord
   include PriceCalculator
   default_scope -> { kept }
 
-  belongs_to :driver, -> { with_discarded }, class_name: "DriverProfile", foreign_key: :driver_id, optional: true
+  belongs_to :driver, class_name: "User", optional: true
+  belongs_to :passenger, class_name: "User"
+  belongs_to :vehicle, optional: true
+
   has_many :bookings, -> { with_discarded }, dependent: :destroy
   has_many :passengers, through: :bookings
-  belongs_to :vehicle, -> { with_discarded }, optional: true
 
   has_one :booking, dependent: :nullify
-  belongs_to :passenger, class_name: "PassengerProfile", optional: true
 
   before_create :set_status, :generate_security_code
   before_save :save_participants
@@ -25,13 +26,19 @@ class Ride < ApplicationRecord
 
   attr_accessor :booking_id
 
-  enum :status, { pending: "pending", accepted: "accepted", ongoing: "ongoing", completed: "completed", cancelled: "cancelled" }
+  enum :status, {
+    pending: 0,
+    accepted: 1,
+    in_progress: 2,
+    completed: 3,
+    cancelled: 4
+  }, default: :pending
 
-  scope :active, -> { where(status: [ "pending", "accepted", "in_progress" ]) }
+  scope :active_rides, -> { where(status: [ :accepted, :in_progress ]) }
   scope :past, -> { where("start_time < ?", Time.current) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
-  scope :completed, -> { where(status: "completed") }
-  scope :cancelled, -> { where(status: "cancelled") }
+  scope :completed_rides, -> { where(status: :completed) }
+  scope :cancelled, -> { where(status: :cancelled) }
 
   scope :total_estimated_price_for_24_hours, -> {
     where("created_at >= ? AND paid = true", 1.day.ago)
@@ -48,25 +55,30 @@ class Ride < ApplicationRecord
     .sum(:estimated_price)
   }
 
-  validate :driver_has_vehicle
-  validate :validate_minimum_price
+  validates :pickup_location, :dropoff_location, presence: true
+  validates :driver, presence: true, if: -> { accepted? || in_progress? || completed? }
+  validates :vehicle, presence: true, if: -> { accepted? || in_progress? || completed? }
 
   broadcasts_to ->(ride) { [ ride.driver.user, "dashboard" ] }
 
   attribute :participants_count, :integer, default: 0
   attribute :paid, :boolean, default: false
 
-  def can_start?(user)
-    user.driver_profile == self.driver && self.status == "accepted"
+  def assign_driver(driver, vehicle)
+    update(driver: driver, vehicle: vehicle)
   end
 
-  def can_finish?(user)
-    user.driver_profile == self.driver && self.status == "ongoing"
+  def can_start?
+    accepted? && driver.present? && vehicle.present?
+  end
+
+  def can_complete?
+    in_progress?
   end
 
   def start!
     self.start_time = Time.current
-    self.status = "ongoing"
+    self.status = "in_progress"
 
     # Update each booking individually to trigger callbacks
     self.bookings.each do |booking|
@@ -175,12 +187,6 @@ class Ride < ApplicationRecord
     self.available_seats = [ vehicle_capacity - total_requested_seats, 0 ].max
   end
 
-  def driver_has_vehicle
-    unless driver&.vehicles&.any?
-      errors.add(:base, "Driver must have at least one vehicle")
-    end
-  end
-
   def broadcast_ride_status
     # Broadcast to all passengers in this ride's bookings
     bookings.each do |booking|
@@ -199,7 +205,7 @@ class Ride < ApplicationRecord
       partial: "dashboard/rides_content",
       locals: {
         my_bookings: bookings,
-        active_rides: driver.rides.active,
+        active_rides: driver.rides.active_rides,
         pending_bookings: Booking.pending,
         past_rides: driver.rides.past
       }
