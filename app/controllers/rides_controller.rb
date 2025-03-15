@@ -1,6 +1,6 @@
 class RidesController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show, :test_emails ]
-  before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid ]
+  before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid complete cancel verify_security_code driver_location ]
   before_action :check_driver_requirements, only: %i[ new create ], if: -> { current_user&.role_driver? }
   before_action :ensure_passenger_profile, only: %i[ new create ], if: -> { current_user&.role_passenger? }
 
@@ -33,8 +33,6 @@ class RidesController < ApplicationController
 
   # GET /rides/1 or /rides/1.json
   def show
-    @ride = Ride.find(params[:id])
-
     respond_to do |format|
       format.html
       format.turbo_stream do
@@ -84,7 +82,7 @@ class RidesController < ApplicationController
 
       # Set vehicle from params
       if params[:vehicle_id].present?
-        @vehicle = Vehicle.find(params[:vehicle_id])
+        @vehicle = current_user.driver_profile.vehicles.find(params[:vehicle_id])
         @ride.vehicle = @vehicle
         Rails.logger.debug "RIDE DEBUG: After setting vehicle: #{@ride.status.inspect}"
       end
@@ -135,30 +133,47 @@ class RidesController < ApplicationController
 
   # POST /rides/1/accept
   def accept
-    @ride = Ride.find(params[:id])
-
     if current_user&.role_driver?
+      Rails.logger.debug "RIDE ACCEPT: Driver #{current_user.id} attempting to accept ride #{@ride.id}"
+
+      # Verify the ride is in a pending state
+      if @ride.status != "pending"
+        Rails.logger.debug "RIDE ACCEPT: Failed - Ride #{@ride.id} is not pending (status: #{@ride.status})"
+        redirect_to dashboard_path, alert: "This ride cannot be accepted because it is not pending."
+        return
+      end
+
+      # Check if driver has a selected vehicle
+      if current_user.driver_profile.selected_vehicle.nil?
+        Rails.logger.debug "RIDE ACCEPT: Failed - Driver #{current_user.id} has no selected vehicle"
+        redirect_to dashboard_path, alert: "You need to select a vehicle before accepting rides."
+        return
+      end
+
       @ride.driver = current_user.driver_profile
       @ride.vehicle = current_user.driver_profile.selected_vehicle
       @ride.status = :accepted
 
+      Rails.logger.debug "RIDE ACCEPT: Attempting to save ride #{@ride.id} with driver #{@ride.driver_id} and vehicle #{@ride.vehicle_id}"
+
       if @ride.save
+        Rails.logger.debug "RIDE ACCEPT: Success - Ride #{@ride.id} accepted by driver #{@ride.driver_id}"
         # Instead of triggering the broadcast directly, we'll manually broadcast to the specific channels
         broadcast_ride_acceptance(@ride, current_user)
 
         redirect_to dashboard_path, notice: "Ride accepted successfully."
       else
+        Rails.logger.debug "RIDE ACCEPT: Failed to save - Errors: #{@ride.errors.full_messages.inspect}"
         redirect_to dashboard_path, alert: "Failed to accept ride: #{@ride.errors.full_messages.join(', ')}"
       end
     else
+      Rails.logger.debug "RIDE ACCEPT: Failed - User #{current_user.id} is not a driver"
       redirect_to dashboard_path, alert: "Only drivers can accept rides."
     end
   end
 
   # POST /rides/1/start
   def start
-    @ride = Ride.find(params[:id])
-
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
       @ride.start_time = Time.current
       @ride.status = :in_progress
@@ -202,8 +217,6 @@ class RidesController < ApplicationController
   end
 
   def complete
-    @ride = Ride.find(params[:id])
-
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
       @ride.end_time = Time.current
       @ride.status = :completed
@@ -219,8 +232,6 @@ class RidesController < ApplicationController
   end
 
   def cancel
-    @ride = Ride.find(params[:id])
-
     if current_user&.role_passenger? && @ride.passenger == current_user.passenger_profile
       @ride.status = :cancelled
 
@@ -236,8 +247,6 @@ class RidesController < ApplicationController
 
   # POST /rides/1/verify_security_code
   def verify_security_code
-    @ride = Ride.find(params[:id])
-
     if @ride.security_code == params[:security_code]
       @ride.update(status: "in_progress", start_time: Time.current)
 
@@ -297,8 +306,6 @@ class RidesController < ApplicationController
 
   # GET /rides/1/driver_location
   def driver_location
-    @ride = Ride.find(params[:id])
-
     # Get the driver's current location
     driver_user = @ride.driver&.user
 
@@ -329,7 +336,35 @@ class RidesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_ride
-      @ride = Ride.find(params[:id])
+      @ride = scoped_find_ride
+    end
+
+    # Find a ride scoped to the current user's role
+    def scoped_find_ride
+      Rails.logger.debug "SCOPED_FIND: Finding ride #{params[:id]} for user #{current_user&.id} with role #{current_user&.role} in action #{action_name}"
+
+      # For public access, only show completed rides
+      return Ride.completed.find_by!(id: params[:id]) unless current_user
+
+      if current_user.role_admin?
+        Rails.logger.debug "SCOPED_FIND: Admin access - finding any ride"
+        Ride.find_by!(id: params[:id])
+      elsif current_user.role_driver?
+        # For accept action, drivers need to access rides they haven't been assigned to yet
+        if action_name == "accept"
+          Rails.logger.debug "SCOPED_FIND: Driver accept action - finding pending rides only"
+          Ride.pending.where.not(driver: current_user.driver_profile).find_by!(id: params[:id])
+        else
+          Rails.logger.debug "SCOPED_FIND: Driver regular access - finding assigned rides"
+          current_user.driver_profile.rides.find(params[:id])
+        end
+      elsif current_user.role_passenger?
+        Rails.logger.debug "SCOPED_FIND: Passenger access - finding passenger's rides"
+        current_user.passenger_profile.rides.find(params[:id])
+      else
+        Rails.logger.debug "SCOPED_FIND: Unknown role - access denied"
+        raise ActiveRecord::RecordNotFound
+      end
     end
 
     # Only allow a list of trusted parameters through.
