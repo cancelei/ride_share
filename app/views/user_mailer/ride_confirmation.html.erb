@@ -1,0 +1,11 @@
+<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+  <h1>Ride Confirmed!</h1>
+  
+  <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <p><strong>From:</strong> <%= @ride.pickup_location %></p>
+    <p><strong>To:</strong> <%= @ride.dropoff_location %></p>
+    <p><strong>Scheduled Time:</strong> <%= @ride.scheduled_time.strftime("%B %d, %Y at %I:%M %p") %></p>
+    <p><strong>Estimated Price:</strong> <%= number_to_currency(@ride.estimated_price) %></p>
+    <p><strong>Requested Seats:</strong> <%= @ride.requested_seats %></p>
+  </div>
+</div> 

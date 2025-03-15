@@ -8,6 +8,7 @@ Rails.application.routes.draw do
       patch :mark_as_paid
       patch :accept
       patch :complete
+      get :driver_location
     end
   end
 
@@ -40,11 +41,10 @@ Rails.application.routes.draw do
   # Authenticated user routes
   authenticated :user do
     get "/dashboard", to: "dashboard#show", as: :dashboard
+    get "/dashboard/passenger_rides", to: "dashboard#passenger_rides", as: :passenger_rides
   end
 
   post "driver/update_location", to: "driver_profiles#update_location"
-
-  get "dashboard/passenger_rides", to: "dashboard#passenger_rides", as: :passenger_rides
 
   resources :users do
     member do
@@ -60,6 +60,6 @@ Rails.application.routes.draw do
 
   # Email testing routes (development only)
   if Rails.env.development?
-    get "test_email/:email_type", to: "bookings#test_emails", as: :test_email
+    get "test_email/:email_type", to: "rides#test_emails", as: :test_email
   end
 end

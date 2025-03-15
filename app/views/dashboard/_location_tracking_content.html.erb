@@ -1,13 +1,13 @@
 <p>
   <strong>My Location:</strong>
   <span data-driver-location-target="location"
-        data-address="<%= booking.pickup %>"
+        data-address="<%= ride.pickup_location %>"
         class="text-gray-700">
     Calculating...
   </span>
 </p>
 <p>
-  <% if booking.status_accepted? %>
+  <% if ride.accepted? %>
     <strong>Distance to Pickup point:</strong>
   <% else %>
     <strong>Distance to Dropoff point:</strong>
@@ -17,7 +17,7 @@
   </span>
 </p>
 <p>
-  <% if booking.status_accepted? %>
+  <% if ride.accepted? %>
     <strong>ETA to Pickup:</strong>
   <% else %>
     <strong>ETA to Dropoff:</strong>

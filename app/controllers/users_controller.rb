@@ -43,14 +43,8 @@ class UsersController < ApplicationController
   def permanent_delete
     ActiveRecord::Base.transaction do
       if @user.driver_profile.present?
-        # First handle rides and bookings
-        @user.driver_profile.rides.each do |ride|
-          ride.bookings.each do |booking|
-            booking.locations.destroy_all
-            booking.destroy!
-          end
-          ride.destroy!
-        end
+        # Handle rides
+        @user.driver_profile.rides.destroy_all
 
         # Clear the selected_vehicle reference before deleting vehicles
         @user.driver_profile.update!(selected_vehicle: nil)
@@ -63,11 +57,8 @@ class UsersController < ApplicationController
       end
 
       if @user.passenger_profile.present?
-        # Handle passenger's bookings
-        @user.passenger_profile.bookings.each do |booking|
-          booking.locations.destroy_all
-          booking.destroy!
-        end
+        # Handle passenger's rides
+        @user.passenger_profile.rides.destroy_all
 
         # Destroy the passenger profile
         @user.passenger_profile.destroy!

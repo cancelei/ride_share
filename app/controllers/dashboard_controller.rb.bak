@@ -33,21 +33,10 @@ class DashboardController < ApplicationController
   def passenger_rides
     @user = current_user
     @passenger_profile = @user.passenger_profile
+    @my_rides = Ride.where(passenger: @passenger_profile).order(scheduled_time: :desc)
 
     # Convert params[:type] to string to ensure consistent comparison
     tab_type = params[:type].to_s
-
-    # Get all rides for this passenger
-    @my_rides = Ride.where(passenger: @passenger_profile).order(scheduled_time: :desc)
-
-    # Filter rides based on tab type
-    case tab_type
-    when "history"
-      @filtered_rides = @my_rides.where(status: [ :completed, :cancelled ])
-    else # "active" or any other value
-      @filtered_rides = @my_rides.where(status: [ :pending, :accepted, :in_progress ])
-      tab_type = "active" # Ensure we have a valid tab type
-    end
 
     # Set up other instance variables needed for the dashboard
     case @user.role
@@ -58,21 +47,33 @@ class DashboardController < ApplicationController
       @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :in_progress ])
       @past_rides = Ride.where(driver: @driver_profile, status: :completed).order(created_at: :desc).limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
+      @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
+    when "passenger"
+      @past_rides = @my_rides.where(status: :completed).order(created_at: :desc).limit(5)
+    when "admin"
+      @total_users = User.with_discarded.count
+      @active_users = User.kept.count
+        end
+      end
+
+      format.turbo_stream do
+        render partial: "dashboard/rides_content", locals: {
+          my_rides: @my_rides,
+          params: { type: tab_type },
+          user: @user
+        }
+      end
     end
 
     respond_to do |format|
       format.html do
         # For direct URL access, render the full dashboard
         if turbo_frame_request?
-          render inline: <<~HTML
-            <%= turbo_frame_tag "rides_content" do %>
-              <%= render partial: "dashboard/rides_content", locals: {
-                my_rides: @filtered_rides,
-                params: { type: "#{tab_type}" },
-                user: @user
-              } %>
-            <% end %>
-          HTML
+          render partial: "dashboard/rides_content", locals: {
+            my_rides: @my_rides,
+            params: { type: tab_type },
+            user: @user
+          }
         else
           render "dashboard/show"
         end
@@ -83,7 +84,7 @@ class DashboardController < ApplicationController
           "rides_content",
           partial: "dashboard/rides_content",
           locals: {
-            my_rides: @filtered_rides,
+            my_rides: @my_rides,
             params: { type: tab_type },
             user: @user
           }

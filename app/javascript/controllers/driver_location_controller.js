@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["location", "distance", "eta"];
   static values = {
-    bookingId: String,
+    rideId: String,
     interval: Number,
     googleApiKey: String,
     locationLatitude: String,
@@ -14,7 +14,7 @@ export default class extends Controller {
   };
 
   connect() {
-    if (this.hasBookingIdValue) {
+    if (this.hasRideIdValue) {
       this.intervalValue = this.intervalValue || 60000;
       this.initializeGoogleMaps()
         .then(() => {
@@ -97,7 +97,7 @@ export default class extends Controller {
         };
       } else {
         const response = await fetch(
-          `/bookings/${this.bookingIdValue}/driver_location`
+          `/rides/${this.rideIdValue}/driver_location`
         );
         const data = await response.json();
         locationData = data;

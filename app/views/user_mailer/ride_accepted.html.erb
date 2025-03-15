@@ -4,9 +4,9 @@
   <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
     <h2>Driver Details</h2>
     <p><strong>Name:</strong> <%= @driver.full_name %></p>
-    <p><strong>Vehicle:</strong> <%= @booking.ride.vehicle.brand %> <%= @booking.ride.vehicle.model %></p>
-    <p><strong>Color:</strong> <%= @booking.ride.vehicle.color %></p>
-    <p><strong>License Plate:</strong> <%= @booking.ride.vehicle.registration_number %></p>
+    <p><strong>Vehicle:</strong> <%= @ride.vehicle.brand %> <%= @ride.vehicle.model %></p>
+    <p><strong>Color:</strong> <%= @ride.vehicle.color %></p>
+    <p><strong>License Plate:</strong> <%= @ride.vehicle.registration_number %></p>
   </div>
 
   <%= link_to "View Ride Details", 

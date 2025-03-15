@@ -1,40 +1,38 @@
-<%= turbo_frame_tag "rides_content" do %>
-  <% if local_assigns[:user].present? %>
-    <%= turbo_stream_from "user_#{local_assigns[:user].id}_dashboard" %>
-  <% end %>
-  <% rides = local_assigns[:my_rides] || @my_rides %>
-  <% user = local_assigns[:user] %>
+<% rides = local_assigns[:my_rides] || @my_rides %>
+<% user = local_assigns[:user] || current_user %>
 
-  <% rides_to_display = case params[:type]
-     when 'history'
-       rides.where(status: [:completed, :cancelled])
-     else
-       rides.where(status: [:pending, :accepted, :in_progress])
-     end %>
+<% tab_type = local_assigns[:params]&.dig(:type) || params[:type] || 'active' %>
+<input type="hidden" id="current_tab_state" value="<%= tab_type %>" data-turbo-permanent>
 
-  <!-- Debug info -->
-  <% if Rails.env.development? %>
-    <div class="bg-yellow-100 p-2 mb-4 text-xs">
-      <p>Debug: user from locals? <%= local_assigns[:user].present? %></p>
-      <p>Debug: user id: <%= user&.id %></p>
-      <p>Debug: user role: <%= user&.role %></p>
-      <p>Debug: rides count: <%= rides_to_display.count %></p>
-    </div>
-  <% end %>
+<% rides_to_display = case tab_type
+   when 'history'
+     rides.where(status: [:completed, :cancelled])
+   else
+     rides.where(status: [:pending, :accepted, :in_progress])
+   end %>
 
-  <div class="space-y-4">
-    <% if rides_to_display.present? %>
-      <% rides_to_display.each do |ride| %>
-        <%= render "rides/ride_card", ride: ride, current_user: user %>
-      <% end %>
-    <% else %>
-      <div class="col-span-full text-center py-12">
-        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No <%= params[:type] == 'history' ? 'past' : 'active' %> rides</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by booking a new ride.</p>
-      </div>
-    <% end %>
+<!-- Debug info -->
+<% if Rails.env.development? %>
+  <div class="bg-yellow-100 p-2 mb-4 text-xs">
+    <p>Debug: user from locals? <%= local_assigns[:user].present? %></p>
+    <p>Debug: user id: <%= user&.id %></p>
+    <p>Debug: user role: <%= user&.role %></p>
+    <p>Debug: rides count: <%= rides_to_display.count %></p>
   </div>
 <% end %>
+
+<div class="space-y-4">
+  <% if rides_to_display.present? %>
+    <% rides_to_display.each do |ride| %>
+      <%= render "rides/ride_card", ride: ride, current_user: user %>
+    <% end %>
+  <% else %>
+    <div class="col-span-full text-center py-12">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No <%= (local_assigns[:params]&.dig(:type) || params[:type]) == 'history' ? 'past' : 'active' %> rides</h3>
+      <p class="mt-1 text-sm text-gray-500">Get started by booking a new ride.</p>
+    </div>
+  <% end %>
+</div>

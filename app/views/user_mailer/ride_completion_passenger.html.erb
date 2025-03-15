@@ -3,16 +3,16 @@
   
   <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
     <h2 style="margin-top: 0;">Ride Summary</h2>
-    <p><strong>From:</strong> <%= @booking.pickup rescue "Pickup location" %></p>
-    <p><strong>To:</strong> <%= @booking.dropoff rescue "Dropoff location" %></p>
-    <p><strong>Distance:</strong> <%= @booking.distance_km rescue "N/A" %> km</p>
-    <p><strong>Duration:</strong> <%= @booking.total_travel_duration_minutes rescue "N/A" %> minutes</p>
-    <p><strong>Final Price:</strong> <%= @booking.formatted_price rescue number_to_currency(@booking.ride&.estimated_price) rescue "Price unavailable" %></p>
+    <p><strong>From:</strong> <%= @ride.pickup_location rescue "Pickup location" %></p>
+    <p><strong>To:</strong> <%= @ride.dropoff_location rescue "Dropoff location" %></p>
+    <p><strong>Distance:</strong> <%= @ride.distance_km rescue "N/A" %> km</p>
+    <p><strong>Duration:</strong> <%= @ride.total_travel_duration_minutes rescue "N/A" %> minutes</p>
+    <p><strong>Final Price:</strong> <%= number_to_currency(@ride.estimated_price) rescue "Price unavailable" %></p>
   </div>
 
   <div style="text-align: center; margin-top: 20px;">
     <%= link_to "Book Another Ride", 
-        new_booking_url,
+        new_ride_url,
         style: "display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;" %>
   </div>
 </div> 

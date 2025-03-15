@@ -27,7 +27,7 @@
     </div>
   </div>
 
-  <%# Bookings Section - Right Content %>
+  <%# Rides Section - Right Content %>
   <div class="lg:col-span-2">
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex justify-between items-center mb-6">
@@ -55,7 +55,8 @@
               class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'active' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
               data: { 
                 turbo_frame: "rides_content",
-                turbo_action: "advance"
+                turbo_action: "replace",
+                tab_type: "active"
               } do %>
             <span class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -71,7 +72,8 @@
               class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
               data: { 
                 turbo_frame: "rides_content",
-                turbo_action: "advance"
+                turbo_action: "replace",
+                tab_type: "history"
               } do %>
             <span class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -84,54 +86,33 @@
       </div>
 
       <%= turbo_frame_tag "rides_content" do %>
-        <% rides = case params[:type]
-           when 'history'
-             @my_rides.where(status: [:completed, :cancelled])
-           else
-             @my_rides.where(status: [:pending, :accepted, :in_progress])
-           end %>
-        <!-- Debug info -->
-        <% if Rails.env.development? %>
-          <div class="bg-yellow-100 p-2 mb-4 text-xs">
-            <p>Debug: current_user present? <%= current_user.present? %></p>
-            <p>Debug: current_user role: <%= current_user&.role %></p>
-            <p>Debug: current_user passenger profile? <%= current_user&.passenger_profile.present? %></p>
-            <p>Debug: rides count: <%= rides.count %></p>
-            <% rides.each do |ride| %>
-              <p>Debug: ride <%= ride.id %> status: <%= ride.status %></p>
-            <% end %>
-          </div>
-        <% end %>
-        
-        <div class="space-y-4">
-        <% if rides.present? %>
-            <% rides.each do |ride| %>
-              <%= render "rides/ride_card", ride: ride, current_user: current_user %>
-            <% end %>
-          <% else %>
-            <div class="col-span-full text-center py-12">
-              <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No <%= params[:type] == 'history' ? 'past' : 'active' %> rides</h3>
-              <p class="mt-1 text-sm text-gray-500">Get started by booking a new ride.</p>
-            </div>
-          <% end %>
-        </div>
+        <%= render "dashboard/rides_content", 
+                  my_rides: @my_rides, 
+                  params: { type: params[:type] || 'active' }, 
+                  user: current_user %>
       <% end %>
     </div>
   </div>
 </div>
 
-<%# Partial for booking card to be rendered %>
-<%# Create a new partial: app/views/bookings/_booking_card.html.erb %>
+
+<%# Partial for ride card to be rendered %>
+<%# Create a new partial: app/views/rides/_ride_card.html.erb %>
 
 <%= javascript_tag do %>
-  document.addEventListener('turbo:load', function() {
+  // Function to update tab styling based on the current tab
+  function updateTabStyling() {
+    // Get the current tab from the hidden input or URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramType = urlParams.get('type');
     const currentTabElement = document.getElementById('current_tab');
-    if (!currentTabElement) return;
+    const currentTabStateElement = document.getElementById('current_tab_state');
     
-    const currentTab = currentTabElement.value;
+    // Priority: 1. URL param, 2. current_tab_state, 3. current_tab, 4. default to 'active'
+    const currentTab = paramType || 
+                      (currentTabStateElement ? currentTabStateElement.value : null) || 
+                      (currentTabElement ? currentTabElement.value : null) || 
+                      'active';
     
     // Reset all tabs
     document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
@@ -152,5 +133,62 @@
         defaultTab.classList.remove('text-gray-700');
       }
     }
+    
+    // Update hidden inputs to maintain state
+    if (currentTabElement) {
+      currentTabElement.value = currentTab;
+    }
+    if (currentTabStateElement) {
+      currentTabStateElement.value = currentTab;
+    }
+  }
+
+  // Add click event listeners to tabs
+  function setupTabListeners() {
+    document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Get the tab type from the data attribute
+        const tabType = this.dataset.tabType;
+        
+        // Update all hidden inputs with the new tab value
+        document.querySelectorAll('#current_tab, #current_tab_state').forEach(input => {
+          if (input) input.value = tabType;
+        });
+        
+        // Update tab styling immediately
+        document.querySelectorAll('#active_tab, #history_tab').forEach(t => {
+          t.classList.remove('bg-blue-600', 'text-white');
+          t.classList.add('text-gray-700');
+        });
+        
+        this.classList.add('bg-blue-600', 'text-white');
+        this.classList.remove('text-gray-700');
+      });
+    });
+  }
+
+  // Run on initial page load
+  document.addEventListener('turbo:load', function() {
+    updateTabStyling();
+    setupTabListeners();
+  });
+  
+  // Run when a turbo frame is loaded (for tab switching)
+  document.addEventListener('turbo:frame-load', function(event) {
+    if (event.target.id === 'rides_content') {
+      updateTabStyling();
+    }
+  });
+  
+  // Run when a turbo frame is rendered
+  document.addEventListener('turbo:render', function() {
+    updateTabStyling();
+    setupTabListeners();
+  });
+  
+  // Initialize on DOMContentLoaded as well for non-Turbo cases
+  document.addEventListener('DOMContentLoaded', function() {
+    updateTabStyling();
+    setupTabListeners();
   });
 <% end %>

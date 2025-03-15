@@ -14,7 +14,6 @@
     <% end %>
 
     <%= form.hidden_field :driver_id, value: current_user.driver_profile.id %>
-    <%= form.hidden_field :booking_id, value: defined?(booking_id) ? booking_id : nil %>
     <%= form.hidden_field :vehicle_id, value: current_user.driver_profile.selected_vehicle_id %>
 
     <div class="inline">

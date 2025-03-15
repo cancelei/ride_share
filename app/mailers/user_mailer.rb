@@ -6,20 +6,10 @@ class UserMailer < ApplicationMailer
       mail(to: @user.email, subject: "Welcome to RideFlow")
     end
 
-    def booking_confirmation(booking)
-      @booking = booking
-      @passenger = booking.passenger.user
-
-      mail(
-        to: @passenger.email,
-        subject: "Booking Confirmation - RideFlow"
-      )
-    end
-
-    def ride_accepted(booking)
-      @booking = booking
-      @passenger = booking.passenger.user
-      @driver = booking.ride.user
+    def ride_accepted(ride)
+      @ride = ride
+      @passenger = ride.passenger.user
+      @driver = ride.driver.user
 
       mail(
         to: @passenger.email,
@@ -27,11 +17,11 @@ class UserMailer < ApplicationMailer
       )
     end
 
-    def driver_arrived(booking)
-      @booking = booking
-      @passenger = booking.passenger.user
-      @driver = booking.ride.user
-      @security_code = booking.ride.security_code
+    def driver_arrived(ride)
+      @ride = ride
+      @passenger = ride.passenger.user
+      @driver = ride.driver.user
+      @security_code = ride.security_code
 
       mail(
         to: @passenger.email,
@@ -39,9 +29,9 @@ class UserMailer < ApplicationMailer
       )
     end
 
-    def ride_completion_passenger(booking)
-      @booking = booking
-      @passenger = booking.passenger.user
+    def ride_completion_passenger(ride)
+      @ride = ride
+      @passenger = ride.passenger.user
 
       Rails.logger.info "Preparing passenger completion email for #{@passenger.email}"
 
@@ -57,9 +47,9 @@ class UserMailer < ApplicationMailer
       end
     end
 
-    def ride_completion_driver(booking)
-      @booking = booking
-      @driver = booking.ride.user
+    def ride_completion_driver(ride)
+      @ride = ride
+      @driver = ride.driver.user
 
       Rails.logger.info "Preparing driver completion email for #{@driver.email}"
 
@@ -73,5 +63,15 @@ class UserMailer < ApplicationMailer
         Rails.logger.error "Error preparing driver completion email: #{e.message}"
         raise e
       end
+    end
+
+    def ride_confirmation(ride)
+      @ride = ride
+      @passenger = ride.passenger.user
+
+      mail(
+        to: @passenger.email,
+        subject: "Ride Confirmation - RideFlow"
+      )
     end
 end

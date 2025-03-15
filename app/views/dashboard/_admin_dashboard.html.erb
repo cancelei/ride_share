@@ -40,9 +40,9 @@
         </svg>
       </div>
       <div class="ml-5">
-        <h3 class="text-lg font-medium text-gray-900">Pending Bookings</h3>
+        <h3 class="text-lg font-medium text-gray-900">Pending Rides</h3>
         <div class="mt-1 text-3xl font-semibold text-gray-700">
-          <%= @total_bookings %>
+          <%= @active_rides %>
         </div>
       </div>
     </div>
@@ -66,26 +66,26 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <%# Recent Bookings %>
+  <%# Recent Rides %>
   <div class="bg-white rounded-lg shadow">
     <div class="p-6">
-      <h2 class="text-lg font-medium text-gray-900">Recent Bookings</h2>
+      <h2 class="text-lg font-medium text-gray-900">Recent Rides</h2>
       <div class="mt-4">
         <div class="flow-root">
           <ul role="list" class="-my-5 divide-y divide-gray-200">
-            <% @recent_bookings.each do |booking| %>
+            <% @recent_rides.each do |ride| %>
               <li class="py-4">
                 <div class="flex items-center space-x-4">
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-900 truncate">
-                      <%= booking.passenger.user.full_name %>
+                      <%= ride.passenger.user.full_name %>
                     </p>
                     <p class="text-sm text-gray-500 truncate">
-                      <%= booking.pickup %> → <%= booking.dropoff %>
+                      <%= ride.pickup %> → <%= ride.dropoff %>
                     </p>
                   </div>
                   <div class="inline-flex items-center text-sm font-semibold text-blue-600">
-                    <%= link_to "View", booking_path(booking) %>
+                    <%= link_to "View", ride_path(ride) %>
                   </div>
                 </div>
               </li>

@@ -122,7 +122,7 @@ class Ride < ApplicationRecord
   end
 
   def participants_count
-    bookings.sum(:requested_seats)
+    requested_seats || 0
   end
 
   def verify_security_code(code)
