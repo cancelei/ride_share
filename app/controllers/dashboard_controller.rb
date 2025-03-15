@@ -64,15 +64,11 @@ class DashboardController < ApplicationController
       format.html do
         # For direct URL access, render the full dashboard
         if turbo_frame_request?
-          render inline: <<~HTML
-            <%= turbo_frame_tag "rides_content" do %>
-              <%= render partial: "dashboard/rides_content", locals: {
-                my_rides: @filtered_rides,
-                params: { type: "#{tab_type}" },
-                user: @user
-              } %>
-            <% end %>
-          HTML
+          render partial: "dashboard/turbo_rides_frame", locals: {
+            my_rides: @filtered_rides,
+            tab_type: tab_type,
+            user: @user
+          }
         else
           render "dashboard/show"
         end
