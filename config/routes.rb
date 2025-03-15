@@ -1,18 +1,13 @@
 Rails.application.routes.draw do
-  resources :bookings do
-    collection do
-      get :pending
-    end
-    member do
-      post :cancel
-      get :driver_location
-    end
-  end
   resources :rides do
     member do
+      post :cancel
       post :start
       post :finish
+      post :verify_security_code
       patch :mark_as_paid
+      patch :accept
+      patch :complete
     end
   end
 
@@ -49,7 +44,7 @@ Rails.application.routes.draw do
 
   post "driver/update_location", to: "driver_profiles#update_location"
 
-  get "dashboard/rides", to: "dashboard#rides"
+  get "dashboard/passenger_rides", to: "dashboard#passenger_rides", as: :passenger_rides
 
   resources :users do
     member do

@@ -19,7 +19,7 @@ class UserMailer < ApplicationMailer
     def ride_accepted(booking)
       @booking = booking
       @passenger = booking.passenger.user
-      @driver = booking.ride.driver.user
+      @driver = booking.ride.user
 
       mail(
         to: @passenger.email,
@@ -30,7 +30,7 @@ class UserMailer < ApplicationMailer
     def driver_arrived(booking)
       @booking = booking
       @passenger = booking.passenger.user
-      @driver = booking.ride.driver.user
+      @driver = booking.ride.user
       @security_code = booking.ride.security_code
 
       mail(
@@ -59,7 +59,7 @@ class UserMailer < ApplicationMailer
 
     def ride_completion_driver(booking)
       @booking = booking
-      @driver = booking.ride.driver.user
+      @driver = booking.ride.user
 
       Rails.logger.info "Preparing driver completion email for #{@driver.email}"
 

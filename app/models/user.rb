@@ -49,6 +49,10 @@ class User < ApplicationRecord
     }
   end
 
+  def initials
+    full_name.split.map(&:first).join.upcase
+  end
+
   private
 
   def discard_profiles

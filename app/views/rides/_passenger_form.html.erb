@@ -1,0 +1,61 @@
+<%= form_with(model: ride, class: "contents", data: { controller: "places-autocomplete" }) do |form| %>
+  <% if ride.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+      <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
+
+      <ul class="list-disc ml-6">
+        <% ride.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="my-5">
+    <%= form.label :pickup_location, class: "block font-medium text-gray-700" %>
+    <%= form.text_field :pickup_location, 
+                        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", 
+                        placeholder: "Enter a location",
+                        data: { 
+                          places_autocomplete_target: "pickup"
+                        } %>
+    
+    <%= form.hidden_field :pickup_address, data: { places_autocomplete_target: "pickupAddress" } %>
+    <%= form.hidden_field :pickup_lat, data: { places_autocomplete_target: "pickupLat" } %>
+    <%= form.hidden_field :pickup_lng, data: { places_autocomplete_target: "pickupLng" } %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :dropoff_location, class: "block font-medium text-gray-700" %>
+    <%= form.text_field :dropoff_location, 
+                        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", 
+                        placeholder: "Enter a location",
+                        data: { 
+                          places_autocomplete_target: "dropoff"
+                        } %>
+    
+    <%= form.hidden_field :dropoff_address, data: { places_autocomplete_target: "dropoffAddress" } %>
+    <%= form.hidden_field :dropoff_lat, data: { places_autocomplete_target: "dropoffLat" } %>
+    <%= form.hidden_field :dropoff_lng, data: { places_autocomplete_target: "dropoffLng" } %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :scheduled_time, class: "block font-medium text-gray-700" %>
+    <%= form.datetime_field :scheduled_time, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :requested_seats, class: "block font-medium text-gray-700" %>
+    <%= form.number_field :requested_seats, min: 1, max: 10, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :special_instructions, class: "block font-medium text-gray-700" %>
+    <%= form.text_area :special_instructions, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit "Create Booking", class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+    <%= link_to "Back to bookings", rides_path, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
+  </div>
+<% end %>

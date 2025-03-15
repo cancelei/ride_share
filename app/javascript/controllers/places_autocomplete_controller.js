@@ -95,34 +95,12 @@ export default class extends Controller {
     });
   }
 
-  setLocationFields(type, place) {
-    const prefix = type === "pickup" ? "pickup" : "dropoff";
-
-    // Update or create hidden fields
-    this.ensureHiddenField(
-      `booking_${prefix}_location_attributes_address`,
-      this.formatAddress(place.address_components)
-    );
-    this.ensureHiddenField(
-      `booking_${prefix}_location_attributes_latitude`,
-      place.geometry.location.lat()
-    );
-    this.ensureHiddenField(
-      `booking_${prefix}_location_attributes_longitude`,
-      place.geometry.location.lng()
-    );
-    this.ensureHiddenField(
-      `booking_${prefix}_location_attributes_location_type`,
-      type
-    );
-  }
-
   ensureHiddenField(name, value) {
-    let field = document.querySelector(`input[name="booking[${name}]"]`);
+    let field = document.querySelector(`input[name="ride[${name}]"]`);
     if (!field) {
       field = document.createElement("input");
       field.type = "hidden";
-      field.name = `booking[${name}]`;
+      field.name = `ride[${name}]`;
       this.element.appendChild(field);
     }
     field.value = value;

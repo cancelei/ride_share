@@ -1,14 +1,171 @@
 <% content_for :title, "Showing ride" %>
 
-<div class="md:w-2/3 w-full">
-
-  <h1 class="font-bold text-4xl">Showing ride</h1>
-
-  <%= render @ride %>
-
-  <%= link_to "Edit this ride", edit_ride_path(@ride), class: "mt-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-  <%= link_to "Back to rides", rides_path, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-  <div class="inline-block ml-2">
-    <%= button_to "Destroy this ride", @ride, method: :delete, class: "mt-2 rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium" %>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Ride Details</h1>
+    <%= link_to "Back to Dashboard", dashboard_path, class: "text-blue-600 hover:text-blue-800" %>
   </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        Ride #<%= @ride.id %>
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        Created on <%= @ride.created_at.strftime("%B %d, %Y") %>
+      </p>
+    </div>
+    
+    <div class="border-t border-gray-200">
+      <dl>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(@ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(@ride.status) %>-800">
+              <%= @ride.status&.humanize || "Unknown" %>
+            </span>
+          </dd>
+        </div>
+        
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Pickup Location</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @ride.pickup_location %></dd>
+        </div>
+        
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Dropoff Location</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @ride.dropoff_location %></dd>
+        </div>
+        
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Scheduled Time</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <%= @ride.scheduled_time&.strftime("%B %d, %Y at %I:%M %p") %>
+          </dd>
+        </div>
+        
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Passenger</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <% if @ride.passenger.present? %>
+              <%= @ride.passenger.user.full_name %>
+              <% if @ride.passenger.whatsapp_number.present? %>
+                <p class="text-xs text-gray-500 mt-1">WhatsApp: <%= @ride.passenger.whatsapp_number %></p>
+              <% end %>
+            <% else %>
+              Not assigned
+            <% end %>
+          </dd>
+        </div>
+        
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Driver</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <% if @ride.driver.present? %>
+              <%= @ride.driver.user.full_name %>
+              <% if @ride.driver.license.present? %>
+                <p class="text-xs text-gray-500 mt-1">License: <%= @ride.driver.license %></p>
+              <% end %>
+            <% else %>
+              Not assigned yet
+            <% end %>
+          </dd>
+        </div>
+        
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Vehicle</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <% if @ride.vehicle.present? %>
+              <%= @ride.vehicle.brand %> <%= @ride.vehicle.model %> (<%= @ride.vehicle.color %>, <%= @ride.vehicle.registration_number %>)
+            <% else %>
+              Not assigned yet
+            <% end %>
+          </dd>
+        </div>
+        
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Requested Seats</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @ride.requested_seats %></dd>
+        </div>
+        
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Estimated Price</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <%= number_to_currency(@ride.estimated_price) if @ride.estimated_price.present? %>
+          </dd>
+        </div>
+        
+        <% if @ride.special_instructions.present? %>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Special Instructions</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @ride.special_instructions %></dd>
+          </div>
+        <% end %>
+        
+        <% if @ride.distance_km.present? %>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Distance</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @ride.distance_km %> km</dd>
+          </div>
+        <% end %>
+        
+        <% if @ride.start_time.present? %>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Start Time</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <%= @ride.start_time.strftime("%B %d, %Y at %I:%M %p") %>
+            </dd>
+          </div>
+        <% end %>
+        
+        <% if @ride.end_time.present? %>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">End Time</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <%= @ride.end_time.strftime("%B %d, %Y at %I:%M %p") %>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  </div>
+  
+  <div class="mt-6 flex flex-wrap gap-3">
+    <% if @ride.status == "pending" && current_user&.role_driver? %>
+      <%= button_to "Accept Ride", accept_ride_path(@ride), method: :patch, class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+    <% end %>
+    
+    <% if @ride.status == "in_progress" && current_user&.role_driver? && current_user.driver_profile == @ride.driver %>
+      <%= button_to finish_ride_path(@ride), method: :post, 
+                  class: "px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors",
+                  data: { turbo: true, confirm: "Are you sure you want to finish this ride?" } do %>
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          Finish Ride
+        </div>
+      <% end %>
+    <% end %>
+    
+    <% if @ride.status == "pending" && current_user&.role_passenger? && current_user.passenger_profile == @ride.passenger %>
+      <%= button_to "Cancel Ride", cancel_ride_path(@ride), method: :post, class: "px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500" %>
+    <% end %>
+    
+    <% if @ride.pickup_location.present? && @ride.dropoff_location.present? %>
+      <%= link_to "View on Google Maps", @ride.google_maps_url, target: "_blank", class: "px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500" %>
+    <% end %>
+  </div>
+  
+  <% if @ride.status == "accepted" && current_user&.role_driver? && current_user.driver_profile == @ride.driver %>
+    <div class="mt-6 bg-white p-4 rounded-md shadow">
+      <h3 class="text-lg font-medium text-gray-900">Verify Security Code</h3>
+      <p class="text-sm text-gray-500 mb-2">Ask the passenger for their 4-digit security code to start the ride.</p>
+      <%= render "security_code_form", ride: @ride %>
+    </div>
+  <% end %>
 </div>
+
+<%= turbo_frame_tag "ride_details_#{@ride.id}" do %>
+  <%= render "rides/ride_details", ride: @ride if params[:expanded] == "true" %>
+<% end %>

@@ -1,0 +1,162 @@
+<div id="driver_rides">
+  <% user = local_assigns[:user] || (defined?(current_user) ? current_user : nil) %>
+  
+  <!-- Debug info -->
+  <% if Rails.env.development? %>
+    <div class="bg-yellow-100 p-2 mb-4 text-xs">
+      <p>Debug: user from locals? <%= local_assigns[:user].present? %></p>
+     <p>Debug: using user: <%= user&.id %> (<%= user&.role %>)</p>
+    </div>
+  <% end %>
+  
+  <div class="space-y-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">Available Rides</h2>
+      <div id="pending_rides">
+        <% pending_rides = Ride.where(status: :pending) %>
+        <% if pending_rides.any? %>
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <% pending_rides.each do |ride| %>
+              <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+                    <%= ride.status&.titleize || "Unknown" %>
+                  </span>
+                  <p class="text-sm text-gray-500">
+                    <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                  </p>
+                </div>
+                
+                <div class="mb-3">
+                  <p class="text-sm font-medium">From: <%= ride.pickup_location %></p>
+                  <p class="text-sm text-gray-600">To: <%= ride.dropoff_location %></p>
+                </div>
+                
+                <p class="text-sm text-gray-600 mb-3">
+                  Passenger: <%= ride.passenger&.user&.full_name || "N/A" %>
+                </p>
+                
+                <p class="text-sm text-gray-600 mb-3">
+                  Requested Seats: <%= ride.requested_seats %>
+                </p>
+                
+                <div class="flex justify-between items-center">
+                  <%= link_to "View Details", ride_path(ride), class: "text-sm text-blue-600 hover:text-blue-800" %>
+                  <%= button_to "Accept", accept_ride_path(ride), method: :patch, class: "text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500" %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500">No pending ride requests at the moment.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">Active Rides</h2>
+      <% if defined?(driver_profile) && driver_profile.present? %>
+        <% active_rides = Ride.where(driver: driver_profile, status: [:accepted, :in_progress]) %>
+        <% if active_rides.any? %>
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <% active_rides.each do |ride| %>
+              <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+                    <%= ride.status&.titleize || "Unknown" %>
+                  </span>
+                  <p class="text-sm text-gray-500">
+                    <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                  </p>
+                </div>
+                
+                <div class="mb-3">
+                  <p class="text-sm font-medium">From: <%= ride.pickup_location %></p>
+                  <p class="text-sm text-gray-600">To: <%= ride.dropoff_location %></p>
+                </div>
+                
+                <% if ride.driver.present? %>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Driver: <%= ride.driver.user.full_name %>
+                  </p>
+                <% else %>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Driver: Not assigned yet
+                  </p>
+                <% end %>
+                
+                <div class="flex justify-end">
+                  <%= link_to "View Details", ride_path(ride), class: "text-sm text-blue-600 hover:text-blue-800" %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500">No active rides at the moment.</p>
+        <% end %>
+      <% else %>
+        <p class="text-gray-500">Driver profile not available.</p>
+      <% end %>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">Past Rides</h2>
+      <% if defined?(driver_profile) && driver_profile.present? %>
+        <% past_rides = Ride.where(driver: driver_profile, status: :completed).order(created_at: :desc).limit(5) %>
+        <% if past_rides.any? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seats</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% past_rides.each do |ride| %>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><%= ride.end_time&.strftime("%d/%m/%y") || ride.scheduled_time&.strftime("%d/%m/%y") %></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><%= number_to_currency(ride.estimated_price) if ride.estimated_price.present? %></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <%= button_to mark_as_paid_ride_path(ride), 
+                          method: :patch,
+                          class: "flex items-center space-x-1",
+                          data: { turbo_stream: true } do %>
+                        <% if ride.paid? %>
+                          <span class="text-xs text-green-600 font-medium">
+                            Paid <%= ride.paid_at&.strftime("%d/%m/%y") %>
+                          </span>
+                        <% else %>
+                          <button type="submit" class="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+                            Mark as Paid
+                          </button>
+                        <% end %>
+                      <% end %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <%= ride.pickup_location.truncate(20) %> → <%= ride.dropoff_location.truncate(20) %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap"><%= ride.requested_seats %></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+                        <%= ride.status&.titleize || "Unknown" %>
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-gray-500">No past rides found.</p>
+        <% end %>
+      <% else %>
+        <p class="text-gray-500">Driver profile not available.</p>
+      <% end %>
+    </div>
+  </div>
+</div> 

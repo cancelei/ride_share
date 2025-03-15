@@ -12,6 +12,8 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_action :store_user_location!, if: :storable_location?
 
+  before_action :set_current_user_for_views
+
   protected
 
   def configure_permitted_parameters
@@ -30,5 +32,9 @@ class ApplicationController < ActionController::Base
 
   def store_user_location!
     store_location_for(:user, request.fullpath)
+  end
+
+  def set_current_user_for_views
+    @current_user = current_user if defined?(current_user)
   end
 end

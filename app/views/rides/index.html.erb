@@ -1,0 +1,120 @@
+<div class="w-full">
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="font-bold text-2xl">My Rides</h1>
+    <%= link_to 'Request a Ride', new_ride_path, class: "rounded-md py-2 px-4 bg-blue-600 text-white font-medium" if current_user&.role_passenger? %>
+  </div>
+
+  <div class="space-y-8">
+    <% if current_user&.role_driver? || current_user&.role_passenger? %>
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Active Rides</h2>
+        <% if @active_rides.present? %>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <% @active_rides.each do |ride| %>
+              <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+                    <%= ride.status %>
+                  </span>
+                  <p class="text-sm text-gray-500">
+                    <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                  </p>
+                </div>
+                
+                <div class="mb-3">
+                  <p class="text-sm font-medium">From: <%= ride.pickup_location %></p>
+                  <p class="text-sm text-gray-600">To: <%= ride.dropoff_location %></p>
+                </div>
+                
+                <% if current_user&.role_driver? %>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Passenger: <%= ride.passenger&.user&.full_name || "N/A" %>
+                  </p>
+                <% elsif current_user&.role_passenger? %>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Driver: <%= ride.driver&.user&.full_name || "Not assigned yet" %>
+                  </p>
+                <% end %>
+                
+                <div class="flex justify-end">
+                  <%= link_to "View Details", ride_path(ride), class: "text-sm text-blue-600 hover:text-blue-800" %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500">No active rides found.</p>
+        <% end %>
+      </div>
+      
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Past Rides</h2>
+        <% if @past_rides.present? %>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <% @past_rides.each do |ride| %>
+              <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+                    <%= ride.status %>
+                  </span>
+                  <p class="text-sm text-gray-500">
+                    <%= ride.end_time&.strftime("%b %d, %I:%M %p") || ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                  </p>
+                </div>
+                
+                <div class="mb-3">
+                  <p class="text-sm font-medium">From: <%= ride.pickup_location %></p>
+                  <p class="text-sm text-gray-600">To: <%= ride.dropoff_location %></p>
+                </div>
+                
+                <% if current_user&.role_driver? %>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Passenger: <%= ride.passenger&.user&.full_name || "N/A" %>
+                  </p>
+                <% elsif current_user&.role_passenger? %>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Driver: <%= ride.driver&.user&.full_name || "N/A" %>
+                  </p>
+                <% end %>
+                
+                <div class="flex justify-end">
+                  <%= link_to "View Details", ride_path(ride), class: "text-sm text-blue-600 hover:text-blue-800" %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500">No past rides found.</p>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @rides.each do |ride| %>
+          <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex justify-between items-start mb-3">
+              <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+                <%= ride.status %>
+              </span>
+              <p class="text-sm text-gray-500">
+                <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+              </p>
+            </div>
+            
+            <div class="mb-3">
+              <p class="text-sm font-medium">From: <%= ride.pickup_location %></p>
+              <p class="text-sm text-gray-600">To: <%= ride.dropoff_location %></p>
+            </div>
+            
+            <div class="flex justify-end">
+              <%= link_to "View Details", ride_path(ride), class: "text-sm text-blue-600 hover:text-blue-800" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div> 

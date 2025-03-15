@@ -1,4 +1,6 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <%= turbo_stream_from "user_#{current_user.id}_rides" %>
+  
   <%# Profile Section - Left Sidebar %>
   <div class="lg:col-span-1">
     <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -30,7 +32,7 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold">My Rides</h2>
-        <%= link_to new_booking_path,
+        <%= link_to new_ride_path,
             class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 flex items-center gap-2" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
@@ -41,90 +43,77 @@
 
       <%# Tabs Navigation %>
       <div class="border-b border-gray-200 mb-6 overflow-x-auto">
+        <%= turbo_frame_tag "tab_state" do %>
+          <input type="hidden" id="current_tab" value="<%= params[:type] || 'active' %>" />
+        <% end %>
+        
         <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap" aria-label="Tabs">
-          <%= link_to dashboard_rides_path(type: :active),
-              class: "whitespace-nowrap px-1 py-4 text-sm font-medium #{params[:type].nil? || params[:type] == 'active' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300'}",
-              data: { turbo_frame: "rides_content" } do %>
+          <% active_tab = params[:type] || 'active' %>
+          
+          <%= link_to passenger_rides_path(type: "active"),
+              id: "active_tab",
+              class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'active' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
+              data: { 
+                turbo_frame: "rides_content",
+                turbo_action: "advance"
+              } do %>
             <span class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
                 <path fill-rule="evenodd" d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h12.5a1 1 0 001-1V5a1 1 0 00-1-1H3zm4 3.5a1 1 0 10-2 0 1 1 0 002 0zm2 0a1 1 0 11-2 0 1 1 0 012 0zm2 0a1 1 0 10-2 0 1 1 0 002 0z" clip-rule="evenodd"/>
               </svg>
-              <span class="hidden sm:inline">Active</span>
-              <span class="sm:hidden">Active</span>
+              <span>Active</span>
             </span>
           <% end %>
 
-          <%= link_to dashboard_rides_path(type: :scheduled),
-              class: "whitespace-nowrap px-1 py-4 text-sm font-medium #{params[:type] == 'scheduled' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300'}",
-              data: { turbo_frame: "rides_content" } do %>
-            <span class="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-              </svg>
-              <span class="hidden sm:inline">Scheduled</span>
-              <span class="sm:hidden">Sched.</span>
-            </span>
-          <% end %>
-
-          <%= link_to dashboard_rides_path(type: :past),
-              class: "whitespace-nowrap px-1 py-4 text-sm font-medium #{params[:type] == 'past' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300'}",
-              data: { turbo_frame: "rides_content" } do %>
+          <%= link_to passenger_rides_path(type: "history"),
+              id: "history_tab",
+              class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
+              data: { 
+                turbo_frame: "rides_content",
+                turbo_action: "advance"
+              } do %>
             <span class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.303C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.981 5.981 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clip-rule="evenodd"/>
               </svg>
-              <span class="hidden sm:inline">Past</span>
-              <span class="sm:hidden">Past</span>
-            </span>
-          <% end %>
-
-          <%= link_to dashboard_rides_path(type: :cancelled),
-              class: "whitespace-nowrap px-1 py-4 text-sm font-medium #{params[:type] == 'cancelled' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300'}",
-              data: { turbo_frame: "rides_content" } do %>
-            <span class="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-              </svg>
-              <span class="hidden sm:inline">Cancelled</span>
-              <span class="sm:hidden">Canc.</span>
+              <span>History</span>
             </span>
           <% end %>
         </nav>
       </div>
 
       <%= turbo_frame_tag "rides_content" do %>
-        <% bookings = case params[:type]
-           when 'past'
-             @my_bookings.past
-           when 'scheduled'
-             @my_bookings.pending
-           when 'cancelled'
-             @my_bookings.where(status: :cancelled)
+        <% rides = case params[:type]
+           when 'history'
+             @my_rides.where(status: [:completed, :cancelled])
            else
-             @my_bookings.active
+             @my_rides.where(status: [:pending, :accepted, :in_progress])
            end %>
+        <!-- Debug info -->
+        <% if Rails.env.development? %>
+          <div class="bg-yellow-100 p-2 mb-4 text-xs">
+            <p>Debug: current_user present? <%= current_user.present? %></p>
+            <p>Debug: current_user role: <%= current_user&.role %></p>
+            <p>Debug: current_user passenger profile? <%= current_user&.passenger_profile.present? %></p>
+            <p>Debug: rides count: <%= rides.count %></p>
+            <% rides.each do |ride| %>
+              <p>Debug: ride <%= ride.id %> status: <%= ride.status %></p>
+            <% end %>
+          </div>
+        <% end %>
+        
         <div class="space-y-4">
-        <% if bookings.present? %>
-            <% bookings.each do |booking| %>
-              <%= render "bookings/booking_card", booking: booking %>
+        <% if rides.present? %>
+            <% rides.each do |ride| %>
+              <%= render "rides/ride_card", ride: ride, current_user: current_user %>
             <% end %>
           <% else %>
             <div class="col-span-full text-center py-12">
               <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
               </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No <%= 
-                case params[:type]
-                when 'past'
-                  'past'
-                when 'scheduled'
-                  'scheduled'
-                when 'cancelled'
-                  'cancelled'
-                else
-                  'active'
-                end %> rides</h3>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No <%= params[:type] == 'history' ? 'past' : 'active' %> rides</h3>
               <p class="mt-1 text-sm text-gray-500">Get started by booking a new ride.</p>
             </div>
           <% end %>
@@ -136,3 +125,32 @@
 
 <%# Partial for booking card to be rendered %>
 <%# Create a new partial: app/views/bookings/_booking_card.html.erb %>
+
+<%= javascript_tag do %>
+  document.addEventListener('turbo:load', function() {
+    const currentTabElement = document.getElementById('current_tab');
+    if (!currentTabElement) return;
+    
+    const currentTab = currentTabElement.value;
+    
+    // Reset all tabs
+    document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
+      tab.classList.remove('bg-blue-600', 'text-white');
+      tab.classList.add('text-gray-700');
+    });
+    
+    // Set active tab
+    const activeTabElement = document.getElementById(currentTab + '_tab');
+    if (activeTabElement) {
+      activeTabElement.classList.add('bg-blue-600', 'text-white');
+      activeTabElement.classList.remove('text-gray-700');
+    } else {
+      // Default to active tab if no match
+      const defaultTab = document.getElementById('active_tab');
+      if (defaultTab) {
+        defaultTab.classList.add('bg-blue-600', 'text-white');
+        defaultTab.classList.remove('text-gray-700');
+      }
+    }
+  });
+<% end %>

@@ -1,4 +1,0 @@
-<% @bookings.each do |booking| %>
-  <%= render booking %>
-  <%= render 'rides/form', ride: Ride.new, booking_id: booking.id %>
-<% end %>

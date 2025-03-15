@@ -1,46 +1,67 @@
 <div id="<%= dom_id ride %>">
   <p class="my-5">
     <strong class="block font-medium mb-1">Driver:</strong>
-    <%= ride.driver_id %>
+    <%= ride.driver&.user&.full_name || "Not assigned" %>
   </p>
   <p class="my-5">
-    <strong class="block font-medium mb-1">Invitation code:</strong>
-    <%= ride.invitation_code %>
+    <strong class="block font-medium mb-1">Passenger:</strong>
+    <%= ride.passenger&.user&.full_name || "Not assigned" %>
+  </p>
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Pickup:</strong>
+    <%= ride.pickup_location %>
+  </p>
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Dropoff:</strong>
+    <%= ride.dropoff_location %>
+  </p>
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Scheduled Time:</strong>
+    <%= ride.scheduled_time&.strftime("%B %d, %Y at %I:%M %p") %>
   </p>
   <p class="my-5">
     <strong class="block font-medium mb-1">Status:</strong>
-    <%= ride.status %>
+    <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
+      <%= ride.status&.humanize || "Unknown" %>
+    </span>
   </p>
   <p class="my-5">
-    <strong class="block font-medium mb-1">Rating:</strong>
-    <%= ride.rating %>
+    <strong class="block font-medium mb-1">Requested Seats:</strong>
+    <%= ride.requested_seats %>
   </p>
   <p class="my-5">
-    <strong class="block font-medium mb-1">Available seats:</strong>
-    <%= ride.available_seats %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Status:</strong>
-    <%= ride.status %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Booking:</strong>
-    <%= ride.booking_id %>
+    <strong class="block font-medium mb-1">Estimated Price:</strong>
+    <%= number_to_currency(ride.estimated_price) if ride.estimated_price.present? %>
   </p>
 
-  <% if ride.status == "pending" %>
-    <%= link_to "Accept", accept_ride_path(ride), class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+  <% if ride.status == "pending" && current_user&.role_driver? %>
+    <%= button_to "Accept Ride", accept_ride_path(ride), method: :patch, class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
   <% end %>
 
-  <td class="px-4 py-2">
-    <% unless ride.paid? %>
-      <%= button_to "Mark as Paid", 
-                    mark_as_paid_ride_path(ride), 
-                    method: :patch,
-                    class: "bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded",
-                    data: { turbo_stream: true } %>
-    <% else %>
-      <span class="text-green-600 font-medium">Paid</span>
+  <% if ride.status == "accepted" && current_user&.role_driver? && current_user.driver_profile == ride.driver %>
+    <%= button_to "Start Ride", start_ride_path(ride), method: :patch, class: "inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500" %>
+  <% end %>
+
+  <% if ride.status == "in_progress" && current_user&.role_driver? && current_user.driver_profile == ride.driver %>
+    <%= button_to finish_ride_path(ride), method: :post, 
+                class: "inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500",
+                data: { turbo: true, confirm: "Are you sure you want to finish this ride?" } do %>
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        Finish Ride
+      </div>
     <% end %>
-  </td>
+  <% end %>
+
+  <% unless ride.paid? %>
+    <%= button_to "Mark as Paid", 
+                  mark_as_paid_ride_path(ride), 
+                  method: :patch,
+                  class: "inline-block mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md",
+                  data: { turbo_stream: true } %>
+  <% else %>
+    <span class="inline-block mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md">Paid</span>
+  <% end %>
 </div>

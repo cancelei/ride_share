@@ -9,18 +9,11 @@ class AddDiscardedAtToAllTables < ActiveRecord::Migration[8.0]
     add_column :passenger_profiles, :discarded_at, :datetime
     add_index :passenger_profiles, :discarded_at
 
-    # Rides and Bookings
-    add_column :rides, :discarded_at, :datetime
-    add_index :rides, :discarded_at
-
-    add_column :bookings, :discarded_at, :datetime
-    add_index :bookings, :discarded_at
-
     # Vehicles and Locations
     add_column :vehicles, :discarded_at, :datetime
     add_index :vehicles, :discarded_at
 
-    add_column :locations, :discarded_at, :datetime
-    add_index :locations, :discarded_at
+    add_column :rides, :discarded_at, :datetime
+    add_index :rides, :discarded_at
   end
 end

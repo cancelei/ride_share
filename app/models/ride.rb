@@ -9,36 +9,29 @@ class Ride < ApplicationRecord
   include PriceCalculator
   default_scope -> { kept }
 
-  belongs_to :driver, class_name: "User", optional: true
-  belongs_to :passenger, class_name: "User"
+  belongs_to :driver, class_name: "DriverProfile", optional: true
+  belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
 
-  has_many :bookings, -> { with_discarded }, dependent: :destroy
-  has_many :passengers, through: :bookings
-
-  has_one :booking, dependent: :nullify
-
   before_create :set_status, :generate_security_code
-  before_save :save_participants
-  after_save :update_booking, -> { booking_id.present? }
   after_update :broadcast_status_update
   after_commit :broadcast_ride_status, if: :saved_change_to_status?
-
-  attr_accessor :booking_id
+  after_create :ensure_status_set
 
   enum :status, {
-    pending: 0,
-    accepted: 1,
-    in_progress: 2,
-    completed: 3,
-    cancelled: 4
-  }, default: :pending
+    pending: "pending",
+    accepted: "accepted",
+    in_progress: "in_progress",
+    completed: "completed",
+    cancelled: "cancelled"
+  }
 
-  scope :active_rides, -> { where(status: [ :accepted, :in_progress ]) }
-  scope :past, -> { where("start_time < ?", Time.current) }
+  scope :active_rides, -> { where(status: [ :pending, :accepted, :in_progress ]) }
+  scope :historical_rides, -> { where(status: [ :completed, :cancelled ]) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
+  scope :past, -> { where(status: [ :completed ]) }
   scope :completed_rides, -> { where(status: :completed) }
-  scope :cancelled, -> { where(status: :cancelled) }
+  scope :cancelled_rides, -> { where(status: :cancelled) }
 
   scope :total_estimated_price_for_24_hours, -> {
     where("created_at >= ? AND paid = true", 1.day.ago)
@@ -55,14 +48,18 @@ class Ride < ApplicationRecord
     .sum(:estimated_price)
   }
 
-  validates :pickup_location, :dropoff_location, presence: true
+  validates :pickup_location, :dropoff_location, presence: true, if: -> { accepted? || in_progress? || completed? }
   validates :driver, presence: true, if: -> { accepted? || in_progress? || completed? }
   validates :vehicle, presence: true, if: -> { accepted? || in_progress? || completed? }
-
-  broadcasts_to ->(ride) { [ ride.driver.user, "dashboard" ] }
+  validates :scheduled_time, presence: true, if: -> { passenger.present? }
+  validates :requested_seats, presence: true, numericality: { greater_than: 0 }, if: -> { passenger.present? }
 
   attribute :participants_count, :integer, default: 0
   attribute :paid, :boolean, default: false
+
+  def titleize
+    ride.status
+  end
 
   def assign_driver(driver, vehicle)
     update(driver: driver, vehicle: vehicle)
@@ -78,44 +75,32 @@ class Ride < ApplicationRecord
 
   def start!
     self.start_time = Time.current
-    self.status = "in_progress"
-
-    # Update each booking individually to trigger callbacks
-    self.bookings.each do |booking|
-      booking.update(status: "in_progress")
-    end
+    self.status = :in_progress
 
     save!
   end
 
   def finish!
     self.end_time = Time.current
-    self.status = "completed"
-
-    # Update each booking individually to trigger callbacks
-    self.bookings.each do |booking|
-      booking.update(status: "completed")
-    end
+    self.status = :completed
 
     save!
   end
 
   def set_status
-    self.status = "accepted"
-  end
-
-  def update_booking
-    Booking.find_by(id: self.booking_id)&.update(status: "accepted", ride_id: self.id)
-
-    self.booking_id = nil
+    Rails.logger.debug "RIDE DEBUG: Inside set_status, current status: #{status.inspect}"
+    self.status ||= "pending"
+    Rails.logger.debug "RIDE DEBUG: After set_status, status: #{status.inspect}"
   end
 
   def status_color
     case status
-    when "scheduled" then "bg-green-100 text-green-800"
-    when "in_progress" then "bg-blue-100 text-blue-800"
-    when "completed" then "bg-gray-100 text-gray-800"
+    when "pending" then "bg-yellow-100 text-yellow-800"
+    when "accepted" then "bg-blue-100 text-blue-800"
+    when "in_progress" then "bg-indigo-100 text-indigo-800"
+    when "completed" then "bg-green-100 text-green-800"
     when "cancelled" then "bg-red-100 text-red-800"
+    else "bg-gray-100 text-gray-800"
     end
   end
 
@@ -125,18 +110,12 @@ class Ride < ApplicationRecord
   end
 
   def google_maps_url
-    origin = CGI.escape(bookings.first.pickup.to_s)
-    destination = CGI.escape(bookings.first.dropoff.to_s)
+    return unless pickup_location.present? && dropoff_location.present?
 
-    # If there are multiple bookings, add them as waypoints
-    waypoints = if bookings.count > 1
-      bookings[1..-1].map do |booking|
-        "via:#{CGI.escape(booking.pickup.to_s)}|via:#{CGI.escape(booking.dropoff.to_s)}"
-      end.join("|")
-    end
+    origin = CGI.escape(pickup_location.to_s)
+    destination = CGI.escape(dropoff_location.to_s)
 
     url = "https://www.google.com/maps/dir/?api=1&origin=#{origin}&destination=#{destination}"
-    url += "&waypoints=via:#{CGI.escape(bookings.first.pickup.to_s)}|#{waypoints}" if waypoints.present?
     url += "&travelmode=driving"
 
     url
@@ -164,52 +143,89 @@ class Ride < ApplicationRecord
     where("created_at >= ?", 1.week.ago).sum(:estimated_price)
   end
 
-  private
+  def calculate_price
+    return unless distance_km.present?
 
-  def save_participants
-    # Get the driver's vehicle capacity
-    vehicle_capacity = driver.selected_vehicle&.seating_capacity ||
-                      driver.vehicles.first&.seating_capacity || 0
+    # Base fare
+    base_fare = 5.0
 
-    # Set initial available seats to vehicle capacity if not set
-    self.available_seats ||= vehicle_capacity
+    # Price per kilometer
+    price_per_km = 1.5
 
-    # Calculate total requested seats from all accepted bookings
-    total_requested_seats = bookings.sum(:requested_seats)
-
-    # If this is a new booking being added
-    if booking_id.present?
-      new_booking = Booking.find_by(id: booking_id)
-      total_requested_seats += new_booking.requested_seats if new_booking
-    end
-
-    # Update available seats
-    self.available_seats = [ vehicle_capacity - total_requested_seats, 0 ].max
+    # Calculate price based on distance
+    self.estimated_price = base_fare + (distance_km.to_f * price_per_km)
   end
 
+  private
+
   def broadcast_ride_status
-    # Broadcast to all passengers in this ride's bookings
-    bookings.each do |booking|
+    Rails.logger.debug "DEBUG: Ride#broadcast_ride_status called for ride #{id}"
+    Rails.logger.debug "DEBUG: Ride status: #{status}"
+    Rails.logger.debug "DEBUG: Status changed from #{status_before_last_save} to #{status}"
+
+    # Broadcast to the passenger
+    if passenger.present?
+      Rails.logger.debug "DEBUG: Broadcasting to passenger: #{passenger.user_id}"
+      passenger_user = passenger.user
+
       Turbo::StreamsChannel.broadcast_replace_to(
-        "user_#{booking.passenger.user_id}_dashboard",
+        "user_#{passenger.user_id}_dashboard",
         target: "rides_content",
         partial: "dashboard/rides_content",
-        locals: { my_bookings: booking.passenger.bookings }
+        locals: {
+          my_rides: Ride.where(passenger_id: passenger.id),
+          params: { type: determine_tab_type },
+          user: passenger_user
+        }
       )
+
+      # Direct broadcast to the specific ride card when status changes to accepted
+      if status == "accepted"
+        Rails.logger.debug "DEBUG: Broadcasting accepted status to passenger's ride card"
+
+        Turbo::StreamsChannel.broadcast_replace_to(
+          "user_#{passenger.user_id}_rides",
+          target: "ride_#{id}",
+          partial: "rides/ride_card",
+          locals: {
+            ride: self,
+            current_user: passenger_user
+          }
+        )
+      end
     end
 
-    # Broadcast to driver
-    Turbo::StreamsChannel.broadcast_replace_to(
-      "user_#{driver.user_id}_dashboard",
-      target: "rides_content",
-      partial: "dashboard/rides_content",
-      locals: {
-        my_bookings: bookings,
-        active_rides: driver.rides.active_rides,
-        pending_bookings: Booking.pending,
-        past_rides: driver.rides.past
-      }
-    )
+    # Broadcast to the driver
+    if driver.present?
+      Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
+      driver_user = driver.user
+
+      Turbo::StreamsChannel.broadcast_replace_to(
+        "user_#{driver.user_id}_dashboard",
+        target: "driver_rides",
+        partial: "dashboard/driver_rides",
+        locals: {
+          active_rides: Ride.where(driver_id: driver.id, status: [ :pending, :accepted, :in_progress ]),
+          past_rides: Ride.where(driver_id: driver.id, status: [ :completed, :cancelled ]),
+          user: driver_user
+        }
+      )
+
+      # Direct broadcast to the specific ride card when status changes to accepted
+      if status == "accepted"
+        Rails.logger.debug "DEBUG: Broadcasting accepted status to driver's ride card"
+
+        Turbo::StreamsChannel.broadcast_replace_to(
+          "user_#{driver.user_id}_rides",
+          target: "ride_#{id}",
+          partial: "rides/ride_card",
+          locals: {
+            ride: self,
+            current_user: driver_user
+          }
+        )
+      end
+    end
   end
 
   def generate_security_code
@@ -237,6 +253,27 @@ class Ride < ApplicationRecord
   def validate_minimum_price
     if estimated_price.nil? || estimated_price <= 5
       errors.add(:estimated_price, "must be greater than $5.00")
+    end
+  end
+
+  def determine_tab_type
+    case status
+    when "pending", "accepted", "in_progress"
+      "active"
+    when "completed", "cancelled"
+      "past"
+    else
+      "all"
+    end
+  end
+
+  def ensure_status_set
+    Rails.logger.debug "RIDE DEBUG: Inside ensure_status_set, current status: #{status.inspect}"
+    # Only update if status is nil
+    if status.nil?
+      Rails.logger.debug "RIDE DEBUG: Status is nil, updating to pending"
+      update_column(:status, "pending")
+      Rails.logger.debug "RIDE DEBUG: After update_column, status: #{reload.status.inspect}"
     end
   end
 end

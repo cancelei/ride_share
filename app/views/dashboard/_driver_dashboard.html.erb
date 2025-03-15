@@ -1,13 +1,14 @@
 <%= turbo_stream_from current_user, "dashboard" %>
+<%= turbo_stream_from "user_#{current_user.id}_rides" %>
 
 <div class="space-y-6">
   <%= turbo_stream_from "user_#{current_user.id}_dashboard" %>
   
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Future Bookings</h2>
-    <div id="pending_bookings">
-      <%= render "dashboard/pending_bookings", 
-          pending_bookings: @pending_bookings, 
+    <h2 class="text-xl font-semibold mb-4">Available Rides</h2>
+    <div id="pending_rides">
+      <%= render "dashboard/pending_rides", 
+          pending_rides: @pending_rides, 
           current_user: current_user %>
     </div>
   </div>
@@ -15,61 +16,13 @@
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-semibold mb-4">Active Rides</h2>
     <% if @active_rides.any? %>
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div class="flex flex-col gap-6">
         <% @active_rides.each do |ride| %>
-          <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <h3 class="font-semibold text-lg"><%= ride.title %></h3>
-                <p class="text-gray-600"><%= ride.start_time %></p>
-              </div>
-              <span class="px-2 py-1 text-sm rounded-full <%= ride.status_color %>">
-                <%= ride.status.titleize %>
-              </span>
-            </div>
-
-            <%= render 'dashboard/booking_distance', booking: ride.bookings.first %>
-
-            <div class="space-y-2">
-              <p class="text-gray-600">
-                <strong>Scheduled Time:</strong> <%= ride.bookings.first&.scheduled_time&.strftime("%A, %B %d, %Y at %I:%M %p") %>
-              </p>
-              <p class="text-gray-600">
-                <strong>Participants:</strong> <%= ride.bookings.sum(:requested_seats) %> seats
-              </p>
-            </div>
-
-            <div class="flex flex-col gap-2 pt-2">
-              <% if ride.bookings.any? %>
-                <%= link_to ride.google_maps_url,
-                    target: "_blank",
-                    rel: "noopener noreferrer",
-                    class: "text-center items-center justify-center gap-2 rounded-md px-3.5 py-2 bg-green-600 hover:bg-green-500 text-white font-medium" do %>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                  </svg>
-                  Open in Maps
-                <% end %>
-              <% end %>
-
-              <% if ride.can_start?(current_user) %>
-                <div class="mt-4">
-                  <p class="text-sm text-gray-600 mb-2">Request passenger's security code to start ride</p>
-                  <%= render "rides/security_code_form", ride: ride %>
-                </div>
-              <% end %>
-
-              <% if ride.can_finish?(current_user) %>
-                <%= link_to "Finish Ride", finish_ride_path(ride),
-                    class: "text-center rounded-md px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium",
-                    data: { turbo_method: :post } %>
-              <% end %>
-            </div>
-          </div>
+          <%= render "rides/ride_card", ride: ride, current_user: current_user %>
         <% end %>
       </div>
     <% else %>
-      <p class="text-gray-500">No active rides</p>
+      <p class="text-gray-500">No active rides at the moment.</p>
     <% end %>
   </div>
 

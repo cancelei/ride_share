@@ -1,9 +1,19 @@
 <% content_for :title, "New ride" %>
 
-<div class="md:w-2/3 w-full">
-  <h1 class="font-bold text-4xl">New ride</h1>
+<div class="mx-auto md:w-2/3 w-full">
+  <h1 class="font-bold text-2xl mb-6">Request a Ride</h1>
 
-  <%= render "form", ride: @ride %>
+  <div id="new_ride">
+    <% if current_user&.role_passenger? %>
+      <%= render "passenger_form", ride: @ride %>
+    <% elsif current_user&.role_driver? %>
+      <%= render "form", ride: @ride %>
+    <% else %>
+      <p class="text-red-500">You must be logged in as a passenger or driver to create a ride.</p>
+    <% end %>
+  </div>
 
-  <%= link_to "Back to rides", rides_path, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
+  <div class="mt-6">
+    <%= link_to 'Back', rides_path, class: "rounded-md py-2 px-4 bg-gray-100 inline-block font-medium" %>
+  </div>
 </div>
