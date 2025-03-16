@@ -13,7 +13,7 @@ class Ride < ApplicationRecord
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
 
-  before_create :set_status, :generate_security_code
+  before_create :set_status, :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update
   after_commit :broadcast_ride_status, if: :saved_change_to_status?
   after_create :ensure_status_set
@@ -154,6 +154,19 @@ class Ride < ApplicationRecord
 
     # Calculate price based on distance
     self.estimated_price = base_fare + (distance_km.to_f * price_per_km)
+  end
+
+  def calculate_distance_and_duration
+    if pickup_location.present? && dropoff_location.present?
+      # Calculate the distanc_km and estimated_duration_minutes here
+      #
+      #
+      #
+      #
+      # response = GoogleMapsService.new.calculate_distance_and_duration(pickup_location, dropoff_location)
+      # self.distance_km = response[:distance].to_f / 1000
+      # self.duration = response[:duration]
+    end
   end
 
   private

@@ -2,7 +2,6 @@
   <% if ride.errors.any? %>
     <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
-
       <ul class="list-disc ml-6">
         <% ride.errors.each do |error| %>
           <li><%= error.full_message %></li>
@@ -11,29 +10,33 @@
     </div>
   <% end %>
 
-  <div class="my-5">
+  <!-- Pickup Location -->
+  <div class="my-5 relative">
     <%= form.label :pickup_location, class: "block font-medium text-gray-700" %>
-    <%= form.text_field :pickup_location, 
-                        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", 
+    <%= form.text_field :pickup_location,
+                        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
                         placeholder: "Enter a location",
-                        data: { 
-                          places_autocomplete_target: "pickup"
-                        } %>
-    
+                        data: { action: "input->places-autocomplete#fetchSuggestions", places_autocomplete_target: "pickupInput" } %>
+
+    <!-- Suggestions Dropdown -->
+    <div data-places-autocomplete-target="pickupSuggestions" class="autocomplete-dropdown"></div>
+
     <%= form.hidden_field :pickup_address, data: { places_autocomplete_target: "pickupAddress" } %>
     <%= form.hidden_field :pickup_lat, data: { places_autocomplete_target: "pickupLat" } %>
     <%= form.hidden_field :pickup_lng, data: { places_autocomplete_target: "pickupLng" } %>
   </div>
 
-  <div class="my-5">
+  <!-- Dropoff Location -->
+  <div class="my-5 relative">
     <%= form.label :dropoff_location, class: "block font-medium text-gray-700" %>
-    <%= form.text_field :dropoff_location, 
-                        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", 
+    <%= form.text_field :dropoff_location,
+                        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
                         placeholder: "Enter a location",
-                        data: { 
-                          places_autocomplete_target: "dropoff"
-                        } %>
-    
+                        data: { action: "input->places-autocomplete#fetchSuggestions", places_autocomplete_target: "dropoffInput" } %>
+
+    <!-- Suggestions Dropdown -->
+    <div data-places-autocomplete-target="dropoffSuggestions" class="autocomplete-dropdown"></div>
+
     <%= form.hidden_field :dropoff_address, data: { places_autocomplete_target: "dropoffAddress" } %>
     <%= form.hidden_field :dropoff_lat, data: { places_autocomplete_target: "dropoffLat" } %>
     <%= form.hidden_field :dropoff_lng, data: { places_autocomplete_target: "dropoffLng" } %>

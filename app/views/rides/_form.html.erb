@@ -23,7 +23,7 @@
 <% else %>
   <div class="bg-gray-50 text-gray-800 p-4 rounded-md">
     <p>N/A</p>
-    <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(current_user.driver_profile), 
+    <%= link_to "Add Vehicle", new_driver_profile_vehicle_path(current_user.driver_profile),
         class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" if current_user&.driver_profile %>
   </div>
 <% end %>
