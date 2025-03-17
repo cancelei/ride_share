@@ -23,25 +23,44 @@ export default class extends Controller {
 
     fetch(`/places/autocomplete?query=${query}`)
       .then((response) => response.json())
-      .then((data) => this.updateSuggestions(event.target, data))
+      .then((data) => this.updateSuggestions(event.target, data, query))
       .catch((error) => console.error("Error fetching places:", error));
   }
 
-  updateSuggestions(inputElement, locations) {
+  updateSuggestions(inputElement, locations, originalQuery) {
     const suggestionsTarget = this.getSuggestionsTarget(inputElement);
+
+    if (inputElement.value !== originalQuery) {
+      return;
+    }
+
     suggestionsTarget.innerHTML = "";
     suggestionsTarget.style.display = "block";
 
     locations.forEach((location) => {
       const div = document.createElement("div");
       div.textContent = location.address;
-      div.classList.add("autocomplete-item");
+      div.classList.add(
+        "autocomplete-item",
+        "px-4",
+        "py-2",
+        "cursor-pointer",
+        "hover:bg-gray-100",
+        "transition",
+        "rounded-md",
+        "border-b",
+        "border-gray-200",
+        "last:border-none"
+      );
+
       div.dataset.latitude = location.latitude;
       div.dataset.longitude = location.longitude;
       div.dataset.address = location.address;
+
       div.addEventListener("click", (event) =>
         this.selectLocation(event, inputElement, location)
       );
+
       suggestionsTarget.appendChild(div);
     });
   }

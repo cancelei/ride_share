@@ -157,16 +157,19 @@ class Ride < ApplicationRecord
   end
 
   def calculate_distance_and_duration
-    if pickup_location.present? && dropoff_location.present?
-      # Calculate the distanc_km and estimated_duration_minutes here
-      #
-      #
-      #
-      #
-      # response = GoogleMapsService.new.calculate_distance_and_duration(pickup_location, dropoff_location)
-      # self.distance_km = response[:distance].to_f / 1000
-      # self.duration = response[:duration]
-    end
+    return if pickup_location.blank? || dropoff_location.blank?
+
+    response = GooglePlacesService.new.fetch_distance_matrix(pickup_lat, pickup_lng, dropoff_lat, dropoff_lng)
+
+    return if response.blank? || response.dig("rows", 0, "elements", 0, "status") != "OK"
+
+    distance_meters = response.dig("rows", 0, "elements", 0, "distance", "value")
+    duration_seconds = response.dig("rows", 0, "elements", 0, "duration", "value")
+
+    self.distance_km = (distance_meters / 1000.0).round(2)
+    self.estimated_duration_minutes = (duration_seconds / 60.0).round
+
+    calculate_price
   end
 
   private
