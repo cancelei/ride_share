@@ -2,14 +2,7 @@
   <%= turbo_stream_from "user_#{current_user.id}_rides" %>
   
   <%# Profile Section - Left Sidebar %>
-  <div class="lg:col-span-1">
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4">User Information</h2>
-      <div class="space-y-4">
-        <p><strong>Name:</strong> <%= current_user.full_name %></p>
-        <p><strong>Email:</strong> <%= current_user.email %></p>
-      </div>
-    </div>
+  <%= render "dashboard/user_information", user: current_user %>  
 
     <div class="bg-white rounded-lg shadow p-6">
       <h2 class="text-xl font-semibold mb-4">Passenger Profile</h2>

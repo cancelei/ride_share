@@ -44,6 +44,7 @@ Rails.application.routes.draw do
   authenticated :user do
     get "/dashboard", to: "dashboard#index", as: :dashboard
     get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
+    patch "/toggle_role", to: "users#toggle_role", as: :toggle_role
   end
 
   post "driver/update_location", to: "driver_profiles#update_location"

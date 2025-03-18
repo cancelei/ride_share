@@ -1,0 +1,43 @@
+  <div class="lg:col-span-1">
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">User Information</h2>
+      <div class="space-y-4">
+        <p><strong>Name:</strong> <%= current_user.full_name %></p>
+        <p><strong>Email:</strong> <%= current_user.email %></p>
+        <p>
+          <strong>Current Role:</strong> 
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= current_user.role == 'driver' ? 'blue' : 'green' %>-100 text-<%= current_user.role == 'driver' ? 'blue' : 'green' %>-800 capitalize">
+            <%= current_user.role %>
+          </span>
+        </p>
+        
+        <% if current_user.role != "admin" %>
+          <div class="mt-6">
+            <div class="text-sm text-gray-600 mb-2">
+              <% if current_user.role == "passenger" %>
+                Switch to driver mode to accept rides and earn money
+              <% else %>
+                Switch to passenger mode to book rides
+              <% end %>
+            </div>
+            
+            <%= button_to toggle_role_path, 
+                method: :patch, 
+                class: "w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:from-blue-700 hover:to-indigo-700 transition duration-150 ease-in-out flex items-center justify-center gap-2 shadow-sm" do %>
+              <% if current_user.role == "passenger" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8 7a4 4 0 1 1 8 0 4 4 0 0 1-8 0zM8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                  <path d="M16 15a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                </svg>
+                <span>Switch to Driver Mode</span>
+              <% else %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                <span>Switch to Passenger Mode</span>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>

@@ -1,6 +1,7 @@
 class UsersController < ApplicationController
-  before_action :require_admin!
+  before_action :require_admin!, except: [ :toggle_role ]
   before_action :set_user, only: [ :edit, :update, :destroy, :restore, :permanent_delete ]
+  before_action :authenticate_user!, only: [ :toggle_role ]
 
   def index
     @users = if params[:show_deleted]
@@ -76,6 +77,38 @@ class UsersController < ApplicationController
   def restore
     @user.undiscard
     redirect_to users_path, notice: "User was successfully restored."
+  end
+
+  def toggle_role
+    # Only toggle between passenger and driver roles
+    current_role = current_user.role
+
+    new_role = case current_role
+    when "passenger"
+                 "driver"
+    when "driver"
+                 "passenger"
+    else
+                 current_role # Keep the same role if not passenger or driver
+    end
+
+    if current_user.update(role: new_role)
+      respond_to do |format|
+        format.html { redirect_to dashboard_path, notice: "Your role has been updated to #{new_role}." }
+        format.turbo_stream {
+          flash.now[:notice] = "Your role has been updated to #{new_role}."
+          redirect_to dashboard_path
+        }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to dashboard_path, alert: "There was a problem changing your role." }
+        format.turbo_stream {
+          flash.now[:alert] = "There was a problem changing your role."
+          redirect_to dashboard_path
+        }
+      end
+    end
   end
 
   private
