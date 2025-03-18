@@ -50,7 +50,7 @@
         <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap" aria-label="Tabs">
           <% active_tab = params[:type] || 'active' %>
           
-          <%= link_to passenger_rides_path(type: "active"),
+          <%= link_to user_rides_path(type: "active"),
               id: "active_tab",
               class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'active' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
               data: { 
@@ -67,7 +67,7 @@
             </span>
           <% end %>
 
-          <%= link_to passenger_rides_path(type: "history"),
+          <%= link_to user_rides_path(type: "history"),
               id: "history_tab",
               class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
               data: { 
@@ -87,7 +87,7 @@
 
       <%= turbo_frame_tag "rides_content" do %>
         <%= render "dashboard/rides_content", 
-                  my_rides: @my_rides, 
+                  my_rides: @filtered_rides, 
                   params: { type: params[:type] || 'active' }, 
                   user: current_user %>
       <% end %>

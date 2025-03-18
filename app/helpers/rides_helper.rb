@@ -15,4 +15,13 @@ module RidesHelper
       "gray"
     end
   end
+
+  def filter_rides_by_tab(rides, tab_type)
+    case tab_type.to_s
+    when "history"
+      rides.where(status: [ :completed, :cancelled ])
+    else # 'active' or any other value
+      rides.where(status: [ :pending, :accepted, :in_progress ])
+    end
+  end
 end

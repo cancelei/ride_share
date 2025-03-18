@@ -42,8 +42,8 @@ Rails.application.routes.draw do
 
   # Authenticated user routes
   authenticated :user do
-    get "/dashboard", to: "dashboard#show", as: :dashboard
-    get "/dashboard/passenger_rides", to: "dashboard#passenger_rides", as: :passenger_rides
+    get "/dashboard", to: "dashboard#index", as: :dashboard
+    get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
   end
 
   post "driver/update_location", to: "driver_profiles#update_location"

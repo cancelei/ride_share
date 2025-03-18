@@ -27,7 +27,7 @@
       <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap" aria-label="Tabs">
         <% active_tab = params[:type] || 'active' %>
         
-        <%= link_to dashboard_path(type: "active"),
+        <%= link_to user_rides_path(type: "active"),
             id: "active_tab",
             class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'active' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
             data: { 
@@ -44,7 +44,7 @@
           </span>
         <% end %>
 
-        <%= link_to dashboard_path(type: "history"),
+        <%= link_to user_rides_path(type: "history"),
             id: "history_tab",
             class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
             data: { 
@@ -63,14 +63,14 @@
     </div>
 
     <%= turbo_frame_tag "rides_content" do %>
-      <% if @active_rides.any? %>
+      <% if @filtered_rides.any? %>
         <div class="flex flex-col gap-6">
-          <% @active_rides.each do |ride| %>
+          <% @filtered_rides.each do |ride| %>
             <%= render "rides/ride_card", ride: ride, current_user: current_user %>
           <% end %>
         </div>
       <% else %>
-        <p class="text-gray-500">No active rides at the moment.</p>
+        <p class="text-gray-500">No rides at the moment.</p>
       <% end %>
     <% end %>
   </div>
