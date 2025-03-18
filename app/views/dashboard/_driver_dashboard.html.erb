@@ -14,15 +14,64 @@
   </div>
 
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Active Rides</h2>
-    <% if @active_rides.any? %>
-      <div class="flex flex-col gap-6">
-        <% @active_rides.each do |ride| %>
-          <%= render "rides/ride_card", ride: ride, current_user: current_user %>
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold">Rides</h2>
+    </div>
+
+    <%# Tabs Navigation %>
+    <div class="border-b border-gray-200 mb-6 overflow-x-auto">
+      <%= turbo_frame_tag "tab_state" do %>
+        <input type="hidden" id="current_tab" value="<%= params[:type] || 'active' %>" />
+      <% end %>
+      
+      <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap" aria-label="Tabs">
+        <% active_tab = params[:type] || 'active' %>
+        
+        <%= link_to dashboard_path(type: "active"),
+            id: "active_tab",
+            class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'active' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
+            data: { 
+              turbo_frame: "rides_content",
+              turbo_action: "replace",
+              tab_type: "active"
+            } do %>
+          <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+              <path fill-rule="evenodd" d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h12.5a1 1 0 001-1V5a1 1 0 00-1-1H3zm4 3.5a1 1 0 10-2 0 1 1 0 002 0zm2 0a1 1 0 11-2 0 1 1 0 012 0zm2 0a1 1 0 10-2 0 1 1 0 002 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Active</span>
+          </span>
         <% end %>
-      </div>
-    <% else %>
-      <p class="text-gray-500">No active rides at the moment.</p>
+
+        <%= link_to dashboard_path(type: "history"),
+            id: "history_tab",
+            class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
+            data: { 
+              turbo_frame: "rides_content",
+              turbo_action: "replace",
+              tab_type: "history"
+            } do %>
+          <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.303C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.981 5.981 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clip-rule="evenodd"/>
+            </svg>
+            <span>History</span>
+          </span>
+        <% end %>
+      </nav>
+    </div>
+
+    <%= turbo_frame_tag "rides_content" do %>
+      <% if @active_rides.any? %>
+        <div class="flex flex-col gap-6">
+          <% @active_rides.each do |ride| %>
+            <%= render "rides/ride_card", ride: ride, current_user: current_user %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500">No active rides at the moment.</p>
+      <% end %>
     <% end %>
   </div>
 
@@ -137,3 +186,97 @@
 
   
 </div>
+
+<%= javascript_tag do %>
+  // Function to update tab styling based on the current tab
+  function updateTabStyling() {
+    // Get the current tab from the hidden input or URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramType = urlParams.get('type');
+    const currentTabElement = document.getElementById('current_tab');
+    const currentTabStateElement = document.getElementById('current_tab_state');
+    
+    // Priority: 1. URL param, 2. current_tab_state, 3. current_tab, 4. default to 'active'
+    const currentTab = paramType || 
+                      (currentTabStateElement ? currentTabStateElement.value : null) || 
+                      (currentTabElement ? currentTabElement.value : null) || 
+                      'active';
+    
+    // Reset all tabs
+    document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
+      tab.classList.remove('bg-blue-600', 'text-white');
+      tab.classList.add('text-gray-700');
+    });
+    
+    // Set active tab
+    const activeTabElement = document.getElementById(currentTab + '_tab');
+    if (activeTabElement) {
+      activeTabElement.classList.add('bg-blue-600', 'text-white');
+      activeTabElement.classList.remove('text-gray-700');
+    } else {
+      // Default to active tab if no match
+      const defaultTab = document.getElementById('active_tab');
+      if (defaultTab) {
+        defaultTab.classList.add('bg-blue-600', 'text-white');
+        defaultTab.classList.remove('text-gray-700');
+      }
+    }
+    
+    // Update hidden inputs to maintain state
+    if (currentTabElement) {
+      currentTabElement.value = currentTab;
+    }
+    if (currentTabStateElement) {
+      currentTabStateElement.value = currentTab;
+    }
+  }
+
+  // Add click event listeners to tabs
+  function setupTabListeners() {
+    document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Get the tab type from the data attribute
+        const tabType = this.dataset.tabType;
+        
+        // Update all hidden inputs with the new tab value
+        document.querySelectorAll('#current_tab, #current_tab_state').forEach(input => {
+          if (input) input.value = tabType;
+        });
+        
+        // Update tab styling immediately
+        document.querySelectorAll('#active_tab, #history_tab').forEach(t => {
+          t.classList.remove('bg-blue-600', 'text-white');
+          t.classList.add('text-gray-700');
+        });
+        
+        this.classList.add('bg-blue-600', 'text-white');
+        this.classList.remove('text-gray-700');
+      });
+    });
+  }
+
+  // Run on initial page load
+  document.addEventListener('turbo:load', function() {
+    updateTabStyling();
+    setupTabListeners();
+  });
+  
+  // Run when a turbo frame is loaded (for tab switching)
+  document.addEventListener('turbo:frame-load', function(event) {
+    if (event.target.id === 'rides_content') {
+      updateTabStyling();
+    }
+  });
+  
+  // Run when a turbo frame is rendered
+  document.addEventListener('turbo:render', function() {
+    updateTabStyling();
+    setupTabListeners();
+  });
+  
+  // Initialize on DOMContentLoaded as well for non-Turbo cases
+  document.addEventListener('DOMContentLoaded', function() {
+    updateTabStyling();
+    setupTabListeners();
+  });
+<% end %>

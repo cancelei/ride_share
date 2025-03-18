@@ -336,35 +336,7 @@ class RidesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_ride
-      @ride = scoped_find_ride
-    end
-
-    # Find a ride scoped to the current user's role
-    def scoped_find_ride
-      Rails.logger.debug "SCOPED_FIND: Finding ride #{params[:id]} for user #{current_user&.id} with role #{current_user&.role} in action #{action_name}"
-
-      # For public access, only show completed rides
-      return Ride.completed.find_by!(id: params[:id]) unless current_user
-
-      if current_user.role_admin?
-        Rails.logger.debug "SCOPED_FIND: Admin access - finding any ride"
-        Ride.find_by!(id: params[:id])
-      elsif current_user.role_driver?
-        # For accept action, drivers need to access rides they haven't been assigned to yet
-        if action_name == "accept"
-          Rails.logger.debug "SCOPED_FIND: Driver accept action - finding pending rides only"
-          Ride.pending.where.not(driver: current_user.driver_profile).find_by!(id: params[:id])
-        else
-          Rails.logger.debug "SCOPED_FIND: Driver regular access - finding assigned rides"
-          current_user.driver_profile.rides.find(params[:id])
-        end
-      elsif current_user.role_passenger?
-        Rails.logger.debug "SCOPED_FIND: Passenger access - finding passenger's rides"
-        current_user.passenger_profile.rides.find(params[:id])
-      else
-        Rails.logger.debug "SCOPED_FIND: Unknown role - access denied"
-        raise ActiveRecord::RecordNotFound
-      end
+      @ride = Ride.find_by(id: params[:id])
     end
 
     # Only allow a list of trusted parameters through.
