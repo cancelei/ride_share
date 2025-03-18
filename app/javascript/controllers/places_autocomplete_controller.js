@@ -14,6 +14,14 @@ export default class extends Controller {
     "dropoffLng",
   ];
 
+  static values = {
+    debounce: { type: Number, default: 300 } // 300ms debounce
+  }
+
+  connect() {
+    this.debouncedFetch = this.debounce(this.performFetch.bind(this), this.debounceValue);
+  }
+
   fetchSuggestions(event) {
     const query = event.target.value;
     if (query.length < 3) {
@@ -21,10 +29,22 @@ export default class extends Controller {
       return;
     }
 
+    this.debouncedFetch(event.target, query);
+  }
+
+  performFetch(inputElement, query) {
     fetch(`/places/autocomplete?query=${query}`)
       .then((response) => response.json())
-      .then((data) => this.updateSuggestions(event.target, data, query))
+      .then((data) => this.updateSuggestions(inputElement, data, query))
       .catch((error) => console.error("Error fetching places:", error));
+  }
+
+  debounce(func, wait) {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
   }
 
   updateSuggestions(inputElement, locations, originalQuery) {
