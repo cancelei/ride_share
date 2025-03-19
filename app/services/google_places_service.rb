@@ -3,6 +3,7 @@ require "net/http"
 class GooglePlacesService
   GOOGLE_PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json"
   GOOGLE_PLACE_DETAILS_API_URL = "https://maps.googleapis.com/maps/api/place/details/json"
+  GOOGLE_DISTANCE_MATRIX_API_URL = "https://maps.googleapis.com/maps/api/distancematrix/json"
 
   def initialize
     @api_key = ENV["GOOGLE_MAPS_API_KEY"]
@@ -21,11 +22,9 @@ class GooglePlacesService
     data = JSON.parse(response.body)
 
     locations = data["predictions"].map do |prediction|
-      place_details = get_place_details(prediction["place_id"])
       {
-        address: prediction["description"],
-        latitude: place_details["lat"],
-        longitude: place_details["lng"]
+        id: prediction["place_id"],
+        address: prediction["description"]
       }
     end
 
@@ -35,7 +34,7 @@ class GooglePlacesService
   def fetch_distance_matrix(pickup_lat, pickup_lng, dropoff_lat, dropoff_lng)
     origin = "#{pickup_lat},#{pickup_lng}"
     destination = "#{dropoff_lat},#{dropoff_lng}"
-    uri = URI("https://maps.googleapis.com/maps/api/distancematrix/json")
+    uri = URI(GOOGLE_DISTANCE_MATRIX_API_URL)
     params = {
       origins: origin,
       destinations: destination,
@@ -48,9 +47,7 @@ class GooglePlacesService
     JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
   end
 
-  private
-
-  def get_place_details(place_id)
+  def details(place_id)
     uri = URI(GOOGLE_PLACE_DETAILS_API_URL)
     params = {
       place_id: place_id,
@@ -62,10 +59,11 @@ class GooglePlacesService
     response = Net::HTTP.get_response(uri)
     data = JSON.parse(response.body)
 
-    if data["status"] == "OK"
-      data.dig("result", "geometry", "location") || {}
-    else
-      {}
-    end
+    details = {}
+
+    details = data.dig("result", "geometry", "location") || {} if data["status"] == "OK"
+
+    # get only lat and lng from details
+    { latitude: details["lat"], longitude: details["lng"] } if details.present?
   end
 end

@@ -5,4 +5,10 @@ class PlacesController < ApplicationController
 
     render json: locations
   end
+
+  def details
+    place_details = GooglePlacesService.new.details(params["place_id"])
+
+    render json: place_details
+  end
 end

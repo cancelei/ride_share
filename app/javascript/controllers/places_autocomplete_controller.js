@@ -15,11 +15,14 @@ export default class extends Controller {
   ];
 
   static values = {
-    debounce: { type: Number, default: 300 } // 300ms debounce
-  }
+    debounce: { type: Number, default: 300 }, // 300ms debounce
+  };
 
   connect() {
-    this.debouncedFetch = this.debounce(this.performFetch.bind(this), this.debounceValue);
+    this.debouncedFetch = this.debounce(
+      this.performFetch.bind(this),
+      this.debounceValue
+    );
   }
 
   fetchSuggestions(event) {
@@ -88,6 +91,23 @@ export default class extends Controller {
   selectLocation(event, inputElement, location) {
     inputElement.value = location.address;
 
+    this.clearSuggestions(inputElement);
+
+    fetch(`/places/details?place_id=${location.id}`)
+      .then((response) => response.json())
+      .then((data) =>
+        this.updateFormFields(inputElement, { ...location, ...data })
+      )
+      .catch((error) => console.error("Error fetching place location:", error));
+  }
+
+  getSuggestionsTarget(inputElement) {
+    return inputElement === this.pickupInputTarget
+      ? this.pickupSuggestionsTarget
+      : this.dropoffSuggestionsTarget;
+  }
+
+  updateFormFields(inputElement, location) {
     if (inputElement === this.pickupInputTarget) {
       this.pickupAddressTarget.value = location.address;
       this.pickupLatTarget.value = location.latitude;
@@ -97,14 +117,6 @@ export default class extends Controller {
       this.dropoffLatTarget.value = location.latitude;
       this.dropoffLngTarget.value = location.longitude;
     }
-
-    this.clearSuggestions(inputElement);
-  }
-
-  getSuggestionsTarget(inputElement) {
-    return inputElement === this.pickupInputTarget
-      ? this.pickupSuggestionsTarget
-      : this.dropoffSuggestionsTarget;
   }
 
   clearSuggestions(inputElement) {

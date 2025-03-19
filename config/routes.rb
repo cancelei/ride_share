@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   end
 
   get "places/autocomplete"
+  get "places/details"
 
   devise_for :users, controllers: {
     registrations: "users/registrations",
