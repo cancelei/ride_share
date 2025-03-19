@@ -1,6 +1,6 @@
 class VehiclesController < ApplicationController
   before_action :set_driver_profile
-  before_action :set_vehicle, only: %i[ show edit update destroy select ]
+  before_action :set_vehicle, only: [ :show, :edit, :update, :destroy ]
 
   # GET /vehicles or /vehicles.json
   def index
@@ -9,6 +9,22 @@ class VehiclesController < ApplicationController
 
   # GET /vehicles/1 or /vehicles/1.json
   def show
+    @driver_profile = @vehicle.driver_profile
+
+    respond_to do |format|
+      format.html
+      format.turbo_stream do
+        if params[:expanded] == "true"
+          render turbo_stream: turbo_stream.update(
+            "vehicle_details_#{@vehicle.id}",
+            partial: "vehicles/vehicle_details",
+            locals: { vehicle: @vehicle }
+          )
+        else
+          render turbo_stream: turbo_stream.update("vehicle_details_#{@vehicle.id}", "")
+        end
+      end
+    end
   end
 
   # GET /vehicles/new

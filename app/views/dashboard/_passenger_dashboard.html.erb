@@ -1,23 +1,8 @@
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
   <%= turbo_stream_from "user_#{current_user.id}_rides" %>
   
   <%# Profile Section - Left Sidebar %>
   <%= render "dashboard/user_information", user: current_user %>  
-
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-xl font-semibold mb-4">Passenger Profile</h2>
-        <% if @passenger_profile %>
-          <div class="space-y-4">
-            <p><strong>WhatsApp:</strong> <%= @passenger_profile.whatsapp_number %></p>
-            <p><strong>Telegram:</strong> <%= @passenger_profile.telegram_username %></p>
-            <%= link_to "Edit Profile", edit_passenger_profile_path(@passenger_profile),
-                class: "inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-          </div>
-        <% else %>
-          <%= link_to "Create Passenger Profile", new_passenger_profile_path,
-              class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-        <% end %>
-    </div>
   </div>
 
   <%# Rides Section - Right Content %>
@@ -86,8 +71,6 @@
       <% end %>
     </div>
   </div>
-</div>
-
 
 <%# Partial for ride card to be rendered %>
 <%# Create a new partial: app/views/rides/_ride_card.html.erb %>

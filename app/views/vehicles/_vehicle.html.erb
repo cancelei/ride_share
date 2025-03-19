@@ -1,41 +1,53 @@
-<div id="<%= dom_id vehicle %>">
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Driver profile:</strong>
-    <%= vehicle.driver_profile_id %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Registration number:</strong>
-    <%= vehicle.registration_number %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Seating capacity:</strong>
-    <%= vehicle.seating_capacity %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Brand:</strong>
-    <%= vehicle.brand %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Model:</strong>
-    <%= vehicle.model %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Color:</strong>
-    <%= vehicle.color %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Fuel avg:</strong>
-    <%= vehicle.fuel_avg %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Built year:</strong>
-    <%= vehicle.built_year %>
-  </p>
-  <p class="my-5">
-    <strong class="block font-medium mb-1">Has private insurance:</strong>
-    <%= vehicle.has_private_insurance %>
-  </p>
-  <% if @driver_profile.selected_vehicle == vehicle %>
-    Current Vehicle
-  <% end %>
+<div id="<%= dom_id vehicle %>" class="bg-gray-50 rounded-lg p-4">
+  <%# Main Vehicle Card - Always Visible %>
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-3">
+      <div class="text-blue-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-medium text-gray-900"><%= "#{vehicle.brand} #{vehicle.model}" %></h3>
+        <p class="text-sm text-gray-500"><%= "#{vehicle.seating_capacity} seats | Registration: #{vehicle.registration_number}" %></p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+    
+      <% if driver_profile.selected_vehicle == vehicle %>
+      <div class="mt-4 flex justify-end">
+    <%= link_to edit_driver_profile_vehicle_path(vehicle.driver_profile, vehicle),
+        class: "text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 inline-flex items-center gap-2" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+      </svg>
+      Edit Vehicle
+    <% end %>
+  </div>
+        <span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">Current</span>
+      <% else %>
+        <%= button_to select_driver_profile_vehicle_path(driver_profile, vehicle),
+            method: :post,
+            class: "text-sm px-3 py-1 text-gray-700 hover:text-blue-600 rounded-lg border border-gray-200 hover:border-blue-600" do %>
+          Select
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Toggle Details Link %>
+  <div class="flex items-center mt-2">
+    <%= link_to driver_profile_vehicle_path(driver_profile, vehicle, expanded: true, format: :turbo_stream),
+        data: { turbo_stream: true, turbo_frame: "vehicle_details_#{vehicle.id}" },
+        class: "flex items-center text-sm text-blue-600 hover:text-blue-800" do %>
+      <span>View Details</span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    <% end %>
+  </div>
+
+  <%# Turbo Frame for Details %>
+  <%= turbo_frame_tag "vehicle_details_#{vehicle.id}" %>
 </div>

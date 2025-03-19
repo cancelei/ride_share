@@ -3,6 +3,7 @@
 
 <%# Profile Section - Left Sidebar %>
 <%= render "dashboard/user_information", user: current_user %>
+<%= render "dashboard/vehicle_information", user: current_user if current_user.driver_profile&.vehicles&.any? %>
 <div class="space-y-6">
   <%= turbo_stream_from "user_#{current_user.id}_dashboard" %>
   
