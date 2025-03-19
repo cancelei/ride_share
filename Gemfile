@@ -80,3 +80,7 @@ gem "discard", "~> 1.4"
 
 # Add Brevo (formerly Sendinblue) API client
 gem "sib-api-v3-sdk"
+
+gem "image_processing", "~> 1.12"
+
+gem "active_storage_validations"
