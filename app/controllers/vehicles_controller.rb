@@ -1,6 +1,7 @@
 class VehiclesController < ApplicationController
+  include ActionView::RecordIdentifier
   before_action :set_driver_profile
-  before_action :set_vehicle, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_vehicle, only: [ :show, :edit, :update, :destroy, :select ]
 
   # GET /vehicles or /vehicles.json
   def index
@@ -76,8 +77,31 @@ class VehiclesController < ApplicationController
   end
 
   def select
+    previous_vehicle = @driver_profile.selected_vehicle
     @driver_profile.update!(selected_vehicle_id: @vehicle.id)
-    redirect_to root_path, notice: "Vehicle was successfully set as current."
+
+    respond_to do |format|
+      format.html { redirect_to root_path, notice: "Vehicle was successfully set as current." }
+      format.turbo_stream {
+        streams = []
+
+        # Update the newly selected vehicle
+        streams << turbo_stream.replace(dom_id(@vehicle),
+          partial: "vehicles/vehicle",
+          locals: { vehicle: @vehicle, driver_profile: @driver_profile }
+        )
+
+        # Update the previously selected vehicle if it exists
+        if previous_vehicle && previous_vehicle != @vehicle
+          streams << turbo_stream.replace(dom_id(previous_vehicle),
+            partial: "vehicles/vehicle",
+            locals: { vehicle: previous_vehicle, driver_profile: @driver_profile }
+          )
+        end
+
+        render turbo_stream: streams
+      }
+    end
   end
 
   private
