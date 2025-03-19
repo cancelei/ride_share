@@ -1,0 +1,41 @@
+<%# 
+  Renders a user avatar with optional sizing
+  Usage: 
+  <%= render 'shared/avatar', user: current_user, size: :medium %>
+
+
+<% 
+  # Set default size if not provided
+  size ||= :medium
+  
+  # Set dimensions based on size
+  size_class = case size
+               when :small then "w-8 h-8"
+               when :medium then "w-12 h-12"
+               when :large then "w-24 h-24"
+               else "w-#{size} h-#{size}"
+               end
+  
+  # Set variant size based on container size, ensuring proper image resolution
+  variant_size = case size
+                 when :small then 64
+                 when :medium then 96
+                 when :large then 192
+                 else size.to_i * 2  # Double for retina displays
+                 end
+  
+  # Merge provided classes with size class
+  classes = "overflow-hidden rounded-full bg-gray-100 flex items-center justify-center #{size_class} #{local_assigns[:class]}"
+%>
+
+<div class="<%= classes %>">
+  <% if user.avatar.attached? %>
+    <%= image_tag user.avatar.variant(resize_to_fill: [variant_size, variant_size]), 
+                 class: "w-full h-full object-cover",
+                 alt: "#{user.full_name}'s avatar" %>
+  <% else %>
+    <div class="font-bold text-gray-400 text-center" style="font-size: <%= variant_size / 4 %>px;">
+      <%= user.initials %>
+    </div>
+  <% end %>
+</div> 

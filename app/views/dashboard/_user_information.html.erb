@@ -4,10 +4,8 @@
       <%# Profile Header %>
       <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
         <%# Avatar %>
-        <div class="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-          </svg>
+        <div class="flex-shrink-0">
+          <%= render 'shared/avatar', user: current_user, size: :large %>
         </div>
 
         <%# Name and Rating %>
@@ -115,6 +113,17 @@
 
       <%# Profile Actions %>
       <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 px-4 sm:px-0">
+        <%= link_to edit_user_registration_path,
+            class: "flex-1 py-3 px-6 bg-indigo-600 text-white text-center text-sm font-medium hover:bg-indigo-700 rounded-lg transition-colors duration-150 shadow-md" do %>
+          <span class="flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+              <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+            </svg>
+            Edit User Info
+          </span>
+        <% end %>
+        
         <% if current_user.role == "passenger" %>
           <% if current_user.passenger_profile %>
             <%= link_to edit_passenger_profile_path(current_user.passenger_profile),

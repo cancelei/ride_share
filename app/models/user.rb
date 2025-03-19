@@ -7,6 +7,19 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  has_one_attached :avatar
+
+  validates :avatar,
+  content_type: {
+    in: %w[image/png image/jpeg],
+    message: "must be a PNG, JPEG, or JPG"
+  },
+  size: {
+    less_than: 5.megabytes,
+    message: "must be less than 5MB"
+  },
+  allow_nil: true
+
   enum :role, { admin: 0, driver: 1, passenger: 2 }, prefix: true
 
   has_one :driver_profile, -> { with_discarded }, dependent: :destroy
