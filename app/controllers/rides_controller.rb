@@ -144,7 +144,7 @@ class RidesController < ApplicationController
       end
 
       # Check if driver has a selected vehicle
-      if current_user.driver_profile.selected_vehicle.nil?
+      if current_user.driver_profile.nil? || current_user.driver_profile.selected_vehicle.nil?
         Rails.logger.debug "RIDE ACCEPT: Failed - Driver #{current_user.id} has no selected vehicle"
         redirect_to dashboard_path, alert: "You need to select a vehicle before accepting rides."
         return
