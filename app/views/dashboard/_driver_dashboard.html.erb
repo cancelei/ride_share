@@ -2,12 +2,13 @@
 <%= turbo_stream_from "user_#{current_user.id}_rides" %>
 <%= turbo_stream_from current_user.driver_profile, "vehicles" if current_user.driver_profile %>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-  <%# Profile Section - Left Sidebar %>
-  <%= render "dashboard/user_information", user: current_user %>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <%# Left Column - Profile and Vehicles %>
+  <div class="lg:col-span-4 space-y-6">
+    <%# Profile Section %>
+    <%= render "dashboard/user_information", user: current_user %>
 
-  <%# Vehicles Section %>
-  <div class="lg:col-span-2">
+    <%# Vehicles Section %>
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold text-[#001D3D]">Vehicles</h2>
@@ -29,35 +30,34 @@
       </div>
     </div>
   </div>
-</div>
 
-<%# Available Rides Section %>
-<div class="mt-6">
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-[#001D3D] mb-4">Available Rides Near You</h2>
-    <div id="pending_rides">
-      <%= render "dashboard/pending_rides", 
-          pending_rides: @pending_rides, 
-          current_user: current_user %>
-    </div>
-  </div>
-</div>
-
-<%# My Rides Section %>
-<div class="mt-6">
-  <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-semibold text-[#001D3D]">My Rides</h2>
+  <%# Right Column - Available Rides and My Rides %>
+  <div class="lg:col-span-8">
+    <%# Available Rides Near You %>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-[#001D3D] mb-4">Available Rides Near You</h2>
+      <div id="pending_rides">
+        <%= render "dashboard/pending_rides", 
+            pending_rides: @pending_rides, 
+            current_user: current_user %>
+      </div>
     </div>
 
-    <%= render "shared/tab_navigation" %>
+    <%# My Rides %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-[#001D3D]">My Rides</h2>
+      </div>
 
-    <%= turbo_frame_tag "rides_content" do %>
-      <%= render "dashboard/rides_content",
-          my_rides: @filtered_rides,
-          params: { type: params[:type] || 'active' },
-          user: current_user %>
-    <% end %>
+      <%= render "shared/tab_navigation" %>
+
+      <%= turbo_frame_tag "rides_content" do %>
+        <%= render "dashboard/rides_content",
+            my_rides: @filtered_rides,
+            params: { type: params[:type] || 'active' },
+            user: current_user %>
+      <% end %>
+    </div>
   </div>
 </div>
 
