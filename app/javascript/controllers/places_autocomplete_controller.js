@@ -23,6 +23,19 @@ export default class extends Controller {
       this.performFetch.bind(this),
       this.debounceValue
     );
+    console.log("Places autocomplete controller connected");
+    
+    // Apply initial styling to the suggestions dropdowns
+    this.applySuggestionsStyle(this.pickupSuggestionsTarget);
+    this.applySuggestionsStyle(this.dropoffSuggestionsTarget);
+  }
+  
+  // Apply consistent styling to the suggestions elements
+  applySuggestionsStyle(element) {
+    // Most styles are now in the CSS class, but we can add dynamic ones here if needed
+    element.addEventListener('mouseenter', () => {
+      // Add hover effects, etc. if needed beyond CSS
+    });
   }
 
   fetchSuggestions(event) {
@@ -59,6 +72,20 @@ export default class extends Controller {
 
     suggestionsTarget.innerHTML = "";
     suggestionsTarget.style.display = "block";
+
+    if (locations.length === 0) {
+      const noResults = document.createElement("div");
+      noResults.textContent = "No locations found";
+      noResults.classList.add(
+        "px-4",
+        "py-2",
+        "text-gray-500",
+        "italic",
+        "text-center"
+      );
+      suggestionsTarget.appendChild(noResults);
+      return;
+    }
 
     locations.forEach((location) => {
       const div = document.createElement("div");
@@ -116,6 +143,82 @@ export default class extends Controller {
       this.dropoffAddressTarget.value = location.address;
       this.dropoffLatTarget.value = location.latitude;
       this.dropoffLngTarget.value = location.longitude;
+    }
+    
+    // Add a subtle highlighting effect to show the selected location
+    inputElement.classList.add('bg-green-50');
+    setTimeout(() => {
+      inputElement.classList.remove('bg-green-50');
+    }, 500);
+    
+    // Notify the map controller about updated locations
+    this.notifyLocationChange();
+  }
+  
+  notifyLocationChange() {
+    // Only dispatch the event if we have both pickup and dropoff coordinates
+    if (
+      this.pickupLatTarget.value && 
+      this.pickupLngTarget.value && 
+      this.dropoffLatTarget.value && 
+      this.dropoffLngTarget.value
+    ) {
+      console.log("Notifying location change:", {
+        pickupLat: parseFloat(this.pickupLatTarget.value),
+        pickupLng: parseFloat(this.pickupLngTarget.value),
+        dropoffLat: parseFloat(this.dropoffLatTarget.value),
+        dropoffLng: parseFloat(this.dropoffLngTarget.value)
+      });
+      
+      // Use Stimulus dispatch instead of regular CustomEvent
+      // This will send the event through the Stimulus system which handles controller communication
+      this.dispatch("locationChanged", { 
+        detail: {
+          pickupLat: parseFloat(this.pickupLatTarget.value),
+          pickupLng: parseFloat(this.pickupLngTarget.value),
+          dropoffLat: parseFloat(this.dropoffLatTarget.value),
+          dropoffLng: parseFloat(this.dropoffLngTarget.value)
+        }
+      });
+      
+      // Update the map controller targets if they exist
+      const pickupLatInput = document.querySelector('[data-map-target="pickupLat"]');
+      const pickupLngInput = document.querySelector('[data-map-target="pickupLng"]');
+      const dropoffLatInput = document.querySelector('[data-map-target="dropoffLat"]');
+      const dropoffLngInput = document.querySelector('[data-map-target="dropoffLng"]');
+      
+      if (pickupLatInput) pickupLatInput.value = this.pickupLatTarget.value;
+      if (pickupLngInput) pickupLngInput.value = this.pickupLngTarget.value;
+      if (dropoffLatInput) dropoffLatInput.value = this.dropoffLatTarget.value;
+      if (dropoffLngInput) dropoffLngInput.value = this.dropoffLngTarget.value;
+
+    } else {
+      // For debugging only - even if we only have pickup coordinates, center the map there
+      if (this.pickupLatTarget.value && this.pickupLngTarget.value) {
+        console.log("Only pickup location available, updating map with single location");
+        this.dispatch("locationChanged", { 
+          detail: {
+            pickupLat: parseFloat(this.pickupLatTarget.value),
+            pickupLng: parseFloat(this.pickupLngTarget.value),
+            dropoffLat: null,
+            dropoffLng: null
+          }
+        });
+        
+        // Update the map controller targets if they exist
+        const pickupLatInput = document.querySelector('[data-map-target="pickupLat"]');
+        const pickupLngInput = document.querySelector('[data-map-target="pickupLng"]');
+        
+        if (pickupLatInput) pickupLatInput.value = this.pickupLatTarget.value;
+        if (pickupLngInput) pickupLngInput.value = this.pickupLngTarget.value;
+      } else {
+        console.log("Missing coordinates for location change:", {
+          pickupLat: this.pickupLatTarget.value,
+          pickupLng: this.pickupLngTarget.value,
+          dropoffLat: this.dropoffLatTarget.value,
+          dropoffLng: this.dropoffLngTarget.value
+        });
+      }
     }
   }
 
