@@ -3,9 +3,33 @@
     <div class="bg-white rounded-lg shadow-sm p-6 md:p-8">
       <h1 class="font-bold text-2xl md:text-4xl mb-6">Edit <%= resource_name.to_s.humanize %></h1>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-4", data: { turbo: true } }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+      <% if resource.errors.any? %>
+        <div class="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md" data-turbo-cache="false">
+          <div class="flex items-center mb-2">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">
+                <%= I18n.t("errors.messages.not_saved",
+                         count: resource.errors.count,
+                         resource: resource.class.model_name.human.downcase) %>
+              </h3>
+            </div>
+          </div>
+          <div class="ml-8">
+            <ul class="list-disc pl-5 space-y-1">
+              <% resource.errors.full_messages.each do |message| %>
+                <li class="text-sm text-red-700"><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
 
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-4", data: { turbo: true } }) do |f| %>
   <div class="flex flex-col space-y-6 md:flex-row md:space-y-0 md:space-x-6">
     <div class="w-full md:w-1/3">
       <div class="flex flex-col items-center p-6 bg-white rounded-lg shadow" data-controller="avatar-preview">
@@ -72,7 +96,14 @@
       <div class="field">
         <%= f.label :current_password, class: "block text-sm font-medium text-gray-700" %>
         <div class="text-xs text-gray-500 mb-1">(we need your current password to confirm your changes)</div>
-        <%= f.password_field :current_password, autocomplete: "current-password", class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+        <%= f.password_field :current_password, 
+                           autocomplete: "current-password", 
+                           class: "mt-1 block w-full rounded-md #{resource.errors[:current_password].any? ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'} shadow-sm" %>
+        <% if resource.errors[:current_password].any? %>
+          <p class="mt-1 text-sm text-red-600">
+            <%= resource.errors[:current_password].join(', ') %>
+          </p>
+        <% end %>
       </div>
 
       <div class="flex justify-between items-center pt-5">

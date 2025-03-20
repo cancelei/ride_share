@@ -29,10 +29,17 @@
 %>
 
 <div class="<%= classes %>">
-  <% if user.avatar.attached? %>
-    <%= image_tag user.avatar.variant(resize_to_fill: [variant_size, variant_size]), 
-                 class: "w-full h-full object-cover",
-                 alt: "#{user.full_name}'s avatar" %>
+  <% if user.persisted? && user.avatar.attached? %>
+    <% begin %> # we need to fix in the future - FIX ME!!!
+      
+      <%= image_tag user.avatar.variant(resize_to_fill: [variant_size, variant_size]), 
+                   class: "w-full h-full object-cover",
+                   alt: "#{user.full_name}'s avatar" %>
+    <% rescue StandardError => e %>
+      <div class="font-bold text-gray-400 text-center" style="font-size: <%= variant_size / 4 %>px;">
+        <%= user.initials %>
+      </div>
+    <% end %>
   <% else %>
     <div class="font-bold text-gray-400 text-center" style="font-size: <%= variant_size / 4 %>px;">
       <%= user.initials %>
