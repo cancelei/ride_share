@@ -78,29 +78,45 @@ class VehiclesController < ApplicationController
 
   def select
     previous_vehicle = @driver_profile.selected_vehicle
-    @driver_profile.update!(selected_vehicle_id: @vehicle.id)
+    was_already_selected = previous_vehicle == @vehicle
+
+    if was_already_selected
+      # If clicking the same vehicle, deselect it
+      @driver_profile.update!(selected_vehicle_id: nil)
+    else
+      # Select the new vehicle
+      @driver_profile.update!(selected_vehicle_id: @vehicle.id)
+    end
 
     respond_to do |format|
-      format.html { redirect_to root_path, notice: "Vehicle was successfully set as current." }
-      format.turbo_stream {
+      format.html { redirect_to root_path, notice: was_already_selected ? "Vehicle was unselected." : "Vehicle was successfully set as current." }
+      format.turbo_stream do
         streams = []
 
-        # Update the newly selected vehicle
-        streams << turbo_stream.replace(dom_id(@vehicle),
-          partial: "vehicles/vehicle",
-          locals: { vehicle: @vehicle, driver_profile: @driver_profile }
+        # Update the clicked vehicle
+        streams << turbo_stream.replace(
+          dom_id(@vehicle),
+          partial: "dashboard/vehicles_list",
+          locals: {
+            vehicles: [ @vehicle ],
+            driver_profile: @driver_profile.reload
+          }
         )
 
-        # Update the previously selected vehicle if it exists
+        # Update the previously selected vehicle if it exists and is different
         if previous_vehicle && previous_vehicle != @vehicle
-          streams << turbo_stream.replace(dom_id(previous_vehicle),
-            partial: "vehicles/vehicle",
-            locals: { vehicle: previous_vehicle, driver_profile: @driver_profile }
+          streams << turbo_stream.replace(
+            dom_id(previous_vehicle),
+            partial: "dashboard/vehicles_list",
+            locals: {
+              vehicles: [ previous_vehicle ],
+              driver_profile: @driver_profile
+            }
           )
         end
 
         render turbo_stream: streams
-      }
+      end
     end
   end
 

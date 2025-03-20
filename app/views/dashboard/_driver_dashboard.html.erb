@@ -1,152 +1,64 @@
 <%= turbo_stream_from current_user, "dashboard" %>
 <%= turbo_stream_from "user_#{current_user.id}_rides" %>
+<%= turbo_stream_from current_user.driver_profile, "vehicles" if current_user.driver_profile %>
 
-<%# Profile Section - Left Sidebar %>
-<%= render "dashboard/user_information", user: current_user %>
-<%= render "dashboard/vehicle_information", user: current_user if current_user.driver_profile&.vehicles&.any? %>
-<div class="space-y-6">
-  <%= turbo_stream_from "user_#{current_user.id}_dashboard" %>
-  
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <%# Profile Section - Left Sidebar %>
+  <%= render "dashboard/user_information", user: current_user %>
+
+  <%# Vehicles Section %>
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-[#001D3D]">Vehicles</h2>
+        <% if current_user.driver_profile %>
+          <%= link_to new_driver_profile_vehicle_path(current_user.driver_profile),
+              class: "inline-flex items-center px-4 py-2 bg-[#3758F9] text-white rounded-lg hover:bg-blue-600 transition-colors" do %>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Add Vehicle
+          <% end %>
+        <% end %>
+      </div>
+
+      <div id="vehicles_list" class="space-y-4">
+        <%= render "dashboard/vehicles_list",
+            vehicles: current_user.driver_profile&.vehicles || [],
+            driver_profile: current_user.driver_profile %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Available Rides Section %>
+<div class="mt-6">
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Available Rides Near To You</h2>
+    <h2 class="text-xl font-semibold text-[#001D3D] mb-4">Available Rides Near You</h2>
     <div id="pending_rides">
       <%= render "dashboard/pending_rides", 
           pending_rides: @pending_rides, 
           current_user: current_user %>
     </div>
   </div>
+</div>
 
+<%# My Rides Section %>
+<div class="mt-6">
   <div class="bg-white rounded-lg shadow p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-semibold">Rides</h2>
+      <h2 class="text-xl font-semibold text-[#001D3D]">My Rides</h2>
     </div>
 
-    <%# Replace the tab navigation with the partial %>
     <%= render "shared/tab_navigation" %>
 
     <%= turbo_frame_tag "rides_content" do %>
-      <% if @filtered_rides.any? %>
-        <div class="flex flex-col gap-6">
-          <% @filtered_rides.each do |ride| %>
-            <%= render "rides/ride_card", ride: ride, current_user: current_user %>
-          <% end %>
-        </div>
-      <% else %>
-        <p class="text-gray-500">No rides at the moment.</p>
-      <% end %>
+      <%= render "dashboard/rides_content",
+          my_rides: @filtered_rides,
+          params: { type: params[:type] || 'active' },
+          user: current_user %>
     <% end %>
   </div>
-
-  <%= render "dashboard/past_rides",
-      past_rides: @past_rides,
-      last_week_rides_total: @last_week_rides_total,
-      monthly_rides_total: @monthly_rides_total %>
-
-  <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex justify-between items-start mb-4">
-      <h2 class="text-xl font-semibold">Current Vehicle</h2>
-      <% if current_user.driver_profile && current_user.driver_profile.vehicles.any? %>
-        <%= link_to "Add Another Vehicle",
-            new_driver_profile_vehicle_path(current_user.driver_profile),
-            class: "text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500" %>
-      <% elsif !current_user.driver_profile %>
-        <%= link_to "Create Driver Profile", new_driver_profile_path,
-            class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-      <% else %>
-        <!-- nothing -->
-      <% end %>
-    </div>
-
-    <% if current_user.driver_profile&.vehicles&.any? %>
-      <% vehicle = current_user.driver_profile.selected_vehicle || current_user.driver_profile.vehicles.first %>
-      <div class="bg-gray-50 rounded-lg p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="col-span-1">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <p class="text-gray-600">Vehicle</p>
-                <p class="font-medium"><%= "#{vehicle.brand} #{vehicle.model} (#{vehicle.built_year})" %></p>
-              </div>
-              <div>
-                <p class="text-gray-600">Registration</p>
-                <p class="font-medium"><%= vehicle.registration_number %></p>
-              </div>
-              <div>
-                <p class="text-gray-600">Color</p>
-                <p class="font-medium"><%= vehicle.color %></p>
-              </div>
-              <div>
-                <p class="text-gray-600">Seating Capacity</p>
-                <p class="font-medium"><%= vehicle.seating_capacity %> seats</p>
-              </div>
-              <% if vehicle.fuel_avg.present? %>
-                <div>
-                  <p class="text-gray-600">Fuel Average</p>
-                  <p class="font-medium"><%= vehicle.fuel_avg %> km/l</p>
-                </div>
-              <% end %>
-            </div>
-          </div>
-
-          <div class="col-span-1 md:border-l md:pl-4 pt-4 md:pt-0">
-            <p class="text-gray-600 mb-2">Other Vehicles</p>
-            <div class="space-y-2">
-              <% current_user.driver_profile.vehicles.limit(3).each do |v| %>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm flex-1 mr-2"><%= "#{v.brand} #{v.model} (#{v.built_year})" %></span>
-                  <% if v.id != vehicle.id %>
-                    <%= button_to "Select",
-                        select_driver_profile_vehicle_path(current_user.driver_profile, v),
-                        method: :post,
-                        class: "text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 whitespace-nowrap" %>
-                  <% else %>
-                    <span class="text-sm px-3 py-1 bg-gray-200 text-gray-600 rounded whitespace-nowrap">Current</span>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-4 flex space-x-3">
-          <%= link_to "Edit Vehicle",
-              edit_driver_profile_vehicle_path(current_user.driver_profile, vehicle),
-              class: "text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-gray-500" %>
-        </div>
-      </div>
-    <% else %>
-      <% if current_user.driver_profile %>
-      <div class="bg-gray-50 text-gray-800 p-4 rounded-md">
-        <p>N/A</p>
-        <%= link_to "Add Vehicle",
-            new_driver_profile_vehicle_path(current_user.driver_profile),
-            class: "mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-      </div>
-      <% end %>
-    <% end %>
-  </div>
-
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Driver Profile</h2>
-    <% if @driver_profile %>
-      <div class="space-y-4">
-        <p><strong>License:</strong> <%= @driver_profile.license %></p>
-        <p><strong>Issuer:</strong> <%= @driver_profile.license_issuer %></p>
-        <p><strong>Payment Methods: (add at least one)</strong>
-        <p><strong>Bitcoin:</strong> <%= @driver_profile.bitcoin_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.bitcoin_address}');" %>
-        <p><strong>ICC:</strong> <%= @driver_profile.icc_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.icc_address}');" %>
-        <p><strong>Ethereum:</strong> <%= @driver_profile.ethereum_address %></p> <%= link_to "Copy", "javascript:void(0);", class: "text-blue-600 hover:text-blue-500", onclick: "navigator.clipboard.writeText('#{@driver_profile.ethereum_address}');" %>
-        </p>
-      </div>
-      <%= link_to "Edit Driver Profile", edit_driver_profile_path(@driver_profile),
-          class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-    <% else %>
-      <%= link_to "Create Driver Profile", new_driver_profile_path,
-          class: "inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
-    <% end %>
-  </div>
-
-  
 </div>
 
 <%= javascript_tag do %>

@@ -216,13 +216,16 @@ class Ride < ApplicationRecord
       Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
       driver_user = driver.user
 
+      # Get the driver's rides
+      driver_rides = Ride.where(driver_id: driver.id)
+
       Turbo::StreamsChannel.broadcast_replace_to(
         "user_#{driver.user_id}_dashboard",
-        target: "driver_rides",
-        partial: "dashboard/driver_rides",
+        target: "rides_content",
+        partial: "dashboard/rides_content",
         locals: {
-          active_rides: Ride.where(driver_id: driver.id, status: [ :pending, :accepted, :in_progress ]),
-          past_rides: Ride.where(driver_id: driver.id, status: [ :completed, :cancelled ]),
+          my_rides: driver_rides,
+          params: { type: determine_tab_type },
           user: driver_user
         }
       )
