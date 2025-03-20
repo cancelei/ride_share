@@ -24,7 +24,7 @@
 
       <%= turbo_frame_tag "rides_content" do %>
         <% if @filtered_rides.any? %>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="grid grid-cols-1 gap-6 mt-6">
             <% @filtered_rides.each do |ride| %>
               <%= render "rides/ride_card", ride: ride, current_user: current_user %>
             <% end %>
@@ -55,95 +55,8 @@
 </div>
 
 <%= javascript_tag do %>
-  // Function to update tab styling based on the current tab
-  function updateTabStyling() {
-    // Get the current tab from the hidden input or URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const paramType = urlParams.get('type');
-    const currentTabElement = document.getElementById('current_tab');
-    const currentTabStateElement = document.getElementById('current_tab_state');
-    
-    // Priority: 1. URL param, 2. current_tab_state, 3. current_tab, 4. default to 'active'
-    const currentTab = paramType || 
-                      (currentTabStateElement ? currentTabStateElement.value : null) || 
-                      (currentTabElement ? currentTabElement.value : null) || 
-                      'active';
-    
-    // Reset all tabs
-    document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
-      tab.classList.remove('bg-blue-600', 'text-white');
-      tab.classList.add('text-gray-700');
-    });
-    
-    // Set active tab
-    const activeTabElement = document.getElementById(currentTab + '_tab');
-    if (activeTabElement) {
-      activeTabElement.classList.add('bg-blue-600', 'text-white');
-      activeTabElement.classList.remove('text-gray-700');
-    } else {
-      // Default to active tab if no match
-      const defaultTab = document.getElementById('active_tab');
-      if (defaultTab) {
-        defaultTab.classList.add('bg-blue-600', 'text-white');
-        defaultTab.classList.remove('text-gray-700');
-      }
-    }
-    
-    // Update hidden inputs to maintain state
-    if (currentTabElement) {
-      currentTabElement.value = currentTab;
-    }
-    if (currentTabStateElement) {
-      currentTabStateElement.value = currentTab;
-    }
-  }
-
-  // Add click event listeners to tabs
-  function setupTabListeners() {
-    document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        // Get the tab type from the data attribute
-        const tabType = this.dataset.tabType;
-        
-        // Update all hidden inputs with the new tab value
-        document.querySelectorAll('#current_tab, #current_tab_state').forEach(input => {
-          if (input) input.value = tabType;
-        });
-        
-        // Update tab styling immediately
-        document.querySelectorAll('#active_tab, #history_tab').forEach(t => {
-          t.classList.remove('bg-blue-600', 'text-white');
-          t.classList.add('text-gray-700');
-        });
-        
-        this.classList.add('bg-blue-600', 'text-white');
-        this.classList.remove('text-gray-700');
-      });
-    });
-  }
-
-  // Run on initial page load
+  // This only handles passenger-specific functionality
   document.addEventListener('turbo:load', function() {
-    updateTabStyling();
-    setupTabListeners();
-  });
-  
-  // Run when a turbo frame is loaded (for tab switching)
-  document.addEventListener('turbo:frame-load', function(event) {
-    if (event.target.id === 'rides_content') {
-      updateTabStyling();
-    }
-  });
-  
-  // Run when a turbo frame is rendered
-  document.addEventListener('turbo:render', function() {
-    updateTabStyling();
-    setupTabListeners();
-  });
-  
-  // Initialize on DOMContentLoaded as well for non-Turbo cases
-  document.addEventListener('DOMContentLoaded', function() {
-    updateTabStyling();
-    setupTabListeners();
+    // Passenger-specific initialization if needed
   });
 <% end %>

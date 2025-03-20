@@ -105,6 +105,36 @@
     <!-- Finish Ride Button (Only for in_progress rides and drivers) -->
     <% if ride.status == "in_progress" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
       <div class="mt-4 pt-4 border-t border-gray-200">
+        <!-- Google Maps Navigation to Destination -->
+        <div class="mb-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
+          <h4 class="text-sm font-medium text-gray-900 mb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Navigate to Destination
+          </h4>
+          
+          <div class="mb-3">
+            <p class="text-xs text-gray-500">Use Google Maps to navigate to the drop-off location.</p>
+          </div>
+          
+          <div class="flex justify-center">
+            <% dropoff_address = CGI.escape(ride.dropoff_address || ride.dropoff_location) %>
+            <% google_maps_url = "https://www.google.com/maps/dir/?api=1&destination=#{dropoff_address}&travelmode=driving" %>
+            
+            <%= link_to google_maps_url, 
+                target: "_blank", 
+                class: "flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 shadow-sm transition-colors w-full sm:w-auto",
+                rel: "noopener noreferrer" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span>Navigate to Drop-off</span>
+            <% end %>
+          </div>
+        </div>
+      
         <%= button_to finish_ride_path(ride), method: :post, 
                     class: "w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors",
                     data: { turbo: true, confirm: "Are you sure you want to finish this ride?" } do %>
@@ -137,6 +167,50 @@
                 class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
                 data: { disable_with: "Verifying..." } %>
           <% end %>
+          
+          <!-- Google Maps Navigation Section -->
+          <div class="mt-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
+            <h4 class="text-sm font-medium text-gray-900 mb-2 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Navigate to Passenger
+            </h4>
+            
+            <div class="mb-3">
+              <p class="text-xs text-gray-500">Use Google Maps to navigate to pickup location and then to destination.</p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2">
+              <%# Google Maps URL with waypoints: current location -> pickup -> dropoff %>
+              <% pickup_address = CGI.escape(ride.pickup_address || ride.pickup_location) %>
+              <% dropoff_address = CGI.escape(ride.dropoff_address || ride.dropoff_location) %>
+              <% google_maps_url = "https://www.google.com/maps/dir/?api=1&destination=#{pickup_address}&travelmode=driving" %>
+              <% google_maps_full_route_url = "https://www.google.com/maps/dir/?api=1&waypoints=#{pickup_address}&destination=#{dropoff_address}&travelmode=driving" %>
+              
+              <%= link_to google_maps_url, 
+                  target: "_blank", 
+                  class: "flex-1 flex items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 shadow-sm transition-colors",
+                  rel: "noopener noreferrer" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                <span>Navigate to Pickup</span>
+              <% end %>
+              
+              <%= link_to google_maps_full_route_url, 
+                  target: "_blank", 
+                  class: "flex-1 flex items-center justify-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 shadow-sm transition-colors",
+                  rel: "noopener noreferrer" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span>View Complete Route</span>
+              <% end %>
+            </div>
+          </div>
         </div>
       <% end %>
     <% end %>

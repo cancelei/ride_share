@@ -16,9 +16,9 @@
   </div>
 <% end %>
 
-<div class="space-y-4">
+<div class="mt-6">
   <% if rides_to_display.present? %>
-    <div class="flex flex-col gap-6">
+    <div class="grid grid-cols-1 gap-6">
       <% rides_to_display.each do |ride| %>
         <%= render "rides/ride_card", ride: ride, current_user: user %>
       <% end %>

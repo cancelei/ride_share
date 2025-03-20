@@ -1,14 +1,14 @@
 <div class="border-b border-gray-200 mb-6 overflow-x-auto">
   <%= turbo_frame_tag "tab_state" do %>
-    <input type="hidden" id="current_tab" value="<%= params[:type] || 'active' %>" />
+    <input type="hidden" id="current_tab" value="<%= params[:type] || 'active' %>" data-turbo-permanent />
   <% end %>
   
-  <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap" aria-label="Tabs">
+  <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap -mb-px" aria-label="Tabs">
     <% active_tab = params[:type] || 'active' %>
     
     <%= link_to user_rides_path(type: "active"),
         id: "active_tab",
-        class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'active' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
+        class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg border-t border-l border-r relative #{active_tab == 'active' ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50 border-transparent'}",
         data: { 
           turbo_frame: "rides_content",
           turbo_action: "replace",
@@ -25,7 +25,7 @@
 
     <%= link_to user_rides_path(type: "history"),
         id: "history_tab",
-        class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg relative #{active_tab == 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}",
+        class: "whitespace-nowrap px-4 py-3 text-sm font-medium rounded-t-lg border-t border-l border-r relative #{active_tab == 'history' ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50 border-transparent'}",
         data: { 
           turbo_frame: "rides_content",
           turbo_action: "replace",
@@ -39,4 +39,36 @@
       </span>
     <% end %>
   </nav>
-</div> 
+</div>
+
+<%= turbo_frame_tag "rides_content_script" do %>
+  <%= javascript_tag do %>
+    document.addEventListener('turbo:load', function() {
+      updateTabStyling();
+    });
+    
+    document.addEventListener('turbo:render', function() {
+      updateTabStyling();
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      updateTabStyling();
+    });
+    
+    function updateTabStyling() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramType = urlParams.get('type');
+      const currentTab = paramType || document.getElementById('current_tab')?.value || 'active';
+      
+      document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
+        if (tab.id === currentTab + '_tab') {
+          tab.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+          tab.classList.remove('text-gray-700', 'border-transparent');
+        } else {
+          tab.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+          tab.classList.add('text-gray-700', 'border-transparent');
+        }
+      });
+    }
+  <% end %>
+<% end %> 
