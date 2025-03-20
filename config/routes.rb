@@ -64,6 +64,6 @@ Rails.application.routes.draw do
 
   # Email testing routes (development only)
   if Rails.env.development?
-    get "test_email/:email_type", to: "rides#test_emails", as: :test_email
+    get "test_email/:email_type", to: "application#test_email", as: :test_email
   end
 end
