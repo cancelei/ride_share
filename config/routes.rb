@@ -23,6 +23,7 @@ Rails.application.routes.draw do
 
   get "places/autocomplete"
   get "places/details"
+  get "places/reverse_geocode"
 
   # Maps API routes that proxy Google Maps requests
   get "maps/directions"

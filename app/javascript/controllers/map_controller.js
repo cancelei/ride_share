@@ -52,16 +52,25 @@ export default class extends Controller {
         console.log("Google Maps already loaded");
       }
       
-      console.log("Creating map instance with mapId:", mapDetails.config.mapId);
-      this.map = new google.maps.Map(this.mapContainerTarget, {
+      // Create map options - don't include both mapId and styles
+      const mapOptions = {
         zoom: 13,
         center: { lat: 0, lng: 0 },
         mapTypeControl: false,
         fullscreenControl: false,
-        streetViewControl: false,
-        mapId: mapDetails.config.mapId || undefined, // Use mapId from backend
-        styles: this.getMapStyles() // Add custom map styles
-      });
+        streetViewControl: false
+      };
+      
+      // Use either mapId or styles, not both (mapId takes precedence)
+      if (mapDetails.config.mapId) {
+        console.log("Creating map instance with mapId:", mapDetails.config.mapId);
+        mapOptions.mapId = mapDetails.config.mapId;
+      } else {
+        console.log("Creating map instance with custom styles");
+        mapOptions.styles = this.getMapStyles();
+      }
+      
+      this.map = new google.maps.Map(this.mapContainerTarget, mapOptions);
       console.log("Map instance created successfully");
 
       // Keep track of the current markers and polylines so we can clear them
@@ -114,44 +123,95 @@ export default class extends Controller {
   }
 
   updateMapWithCurrentLocations() {
-    console.log("Updating map with locations", {
-      hasPickupLat: this.hasPickupLatValue,
-      pickupLat: this.pickupLatValue,
-      hasPickupLng: this.hasPickupLngValue,
-      pickupLng: this.pickupLngValue,
-      hasDropoffLat: this.hasDropoffLatValue,
-      dropoffLat: this.dropoffLatValue,
-      hasDropoffLng: this.hasDropoffLngValue,
-      dropoffLng: this.dropoffLngValue
+    const pickupCoordinates = this.getLocationCoordinates('pickup');
+    const dropoffCoordinates = this.getLocationCoordinates('dropoff');
+    
+    if (pickupCoordinates) {
+      this.createMarker(pickupCoordinates, 'P', 'origin-marker');
+      
+      // Center the map on the pickup location
+      this.map.setCenter(pickupCoordinates);
+      this.map.setZoom(15);  // Zoom in enough to see the area
+    }
+    
+    if (pickupCoordinates && dropoffCoordinates) {
+      this.createMarker(dropoffCoordinates, 'D', 'destination-marker');
+      this.displayRoute(pickupCoordinates, dropoffCoordinates);
+    }
+  }
+
+  getLocationCoordinates(type) {
+    if (type === 'pickup' && this.pickupLatValue && this.pickupLngValue) {
+      return {
+        lat: parseFloat(this.pickupLatValue),
+        lng: parseFloat(this.pickupLngValue)
+      };
+    } else if (type === 'dropoff' && this.dropoffLatValue && this.dropoffLngValue) {
+      return {
+        lat: parseFloat(this.dropoffLatValue),
+        lng: parseFloat(this.dropoffLngValue)
+      };
+    }
+    return null;
+  }
+  
+  createMarker(position, label, type) {
+    // Clear any existing markers of the same type
+    this.currentMarkers = this.currentMarkers.filter(marker => {
+      if (marker.type === type) {
+        marker.map = null;
+        return false;
+      }
+      return true;
     });
     
-    if (this.hasPickupLatValue && this.hasPickupLngValue && this.pickupLatValue && this.pickupLngValue) {
-      const pickupLocation = { 
-        lat: this.pickupLatValue, 
-        lng: this.pickupLngValue 
-      };
+    let markerColor = '#367CFF'; // Default blue
+    if (type === 'origin-marker') {
+      markerColor = '#4CAF50'; // Green for pickup
+    } else if (type === 'destination-marker') {
+      markerColor = '#F44336'; // Red for dropoff
+    } else if (type === 'user-location-marker') {
+      markerColor = '#9C27B0'; // Purple for user's current location
+    }
+    
+    // Create a marker using AdvancedMarkerElement if available
+    if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+      const markerPin = new google.maps.marker.PinElement({
+        background: markerColor,
+        borderColor: '#FFFFFF',
+        glyphColor: '#FFFFFF',
+        glyph: label,
+        scale: 1.0
+      });
       
-      if (
-        this.hasDropoffLatValue && 
-        this.hasDropoffLngValue && 
-        this.dropoffLatValue && 
-        this.dropoffLngValue &&
-        this.dropoffLatValue !== null &&
-        this.dropoffLngValue !== null
-      ) {
-        const dropoffLocation = { 
-          lat: this.dropoffLatValue, 
-          lng: this.dropoffLngValue 
-        };
-        
-        console.log("Both pickup and dropoff locations available, displaying route");
-        this.displayRoute(pickupLocation, dropoffLocation);
-      } else {
-        console.log("Only pickup location available, centering map");
-        this.centerMapOnLocation(pickupLocation);
-      }
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: position,
+        map: this.map,
+        content: markerPin.element,
+        title: type === 'origin-marker' ? 'Pickup Location' : 
+               type === 'destination-marker' ? 'Dropoff Location' : 'Current Location'
+      });
+      
+      marker.type = type; // Store the type for later reference
+      this.currentMarkers.push(marker);
     } else {
-      console.log("No locations available yet");
+      // Fallback to standard Marker if AdvancedMarkerElement is not available
+      const marker = new google.maps.Marker({
+        position: position,
+        label: label,
+        map: this.map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: markerColor,
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: '#FFFFFF',
+          scale: 8
+        }
+      });
+      
+      marker.type = type; // Store the type for later reference
+      this.currentMarkers.push(marker);
     }
   }
 
@@ -236,7 +296,15 @@ export default class extends Controller {
         const routeInfoEvent = new CustomEvent("route:calculated", {
           detail: { 
             distance: routeData.distance.text, 
-            duration: routeData.duration.text 
+            duration: routeData.duration.text,
+            distance_value: routeData.distance.value,  // Raw distance value in meters
+            duration_value: routeData.duration.value,  // Raw duration value in seconds
+            origin: origin,
+            destination: destination,
+            route_data: {
+              distance: routeData.distance,
+              duration: routeData.duration
+            }
           },
           bubbles: true
         });
@@ -323,11 +391,77 @@ export default class extends Controller {
       console.log("Updating map with new locations");
       this.updateMapWithCurrentLocations();
     });
+    
+    // Listen for current location usage
+    window.addEventListener("use-current-location", () => {
+      console.log("Received use-current-location event");
+      this.showUserLocation();
+    });
   }
   
   showRouteInfo(event) {
-    // This method handles the route:calculated event dispatched by the map
-    // The event data is already being used in the inline script in the view
-    console.log("Route calculated:", event.detail);
+    const distanceText = event.response.routes[0].legs[0].distance.text;
+    const durationText = event.response.routes[0].legs[0].duration.text;
+    const distanceValue = event.response.routes[0].legs[0].distance.value;
+    const durationValue = event.response.routes[0].legs[0].duration.value;
+    
+    console.log(`Route calculated: ${distanceText} (${distanceValue}m), ${durationText} (${durationValue}s)`);
+    
+    const routeInfoEvent = new CustomEvent('route:calculated', {
+      detail: {
+        distance: distanceText,
+        duration: durationText,
+        distance_value: distanceValue,
+        duration_value: durationValue,
+        origin: event.response.routes[0].legs[0].start_location,
+        destination: event.response.routes[0].legs[0].end_location,
+        route_data: {
+          distance: {
+            text: distanceText,
+            value: distanceValue
+          },
+          duration: {
+            text: durationText,
+            value: durationValue
+          }
+        }
+      }
+    });
+    
+    document.dispatchEvent(routeInfoEvent);
+  }
+
+  showUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          // Create a special marker for user's location
+          this.createMarker(userLocation, '📍', 'user-location-marker');
+          
+          // Center map on user location
+          this.map.setCenter(userLocation);
+          this.map.setZoom(15);
+          
+          // Dispatch an event that can be used by other controllers
+          const event = new CustomEvent('map:user-location-shown', {
+            detail: { location: userLocation }
+          });
+          window.dispatchEvent(event);
+        },
+        (error) => {
+          console.error('Error getting current location:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    }
   }
 } 

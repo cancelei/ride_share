@@ -16,40 +16,67 @@
       <h2 class="text-xl font-medium text-gray-700 mb-6">Book a ride</h2>
 
       <!-- Pickup Location -->
-      <div class="my-5 relative">
-        <%= form.label :pickup_location, "From", class: "block font-medium text-gray-500" %>
-        <%= form.text_field :pickup_location,
-                          class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
-                          placeholder: "Enter a pickup location",
-                          data: { action: "input->places-autocomplete#fetchSuggestions", places_autocomplete_target: "pickupInput" } %>
-
-        <!-- Suggestions Dropdown -->
-        <div data-places-autocomplete-target="pickupSuggestions" class="autocomplete-dropdown z-10 absolute w-full bg-white shadow-lg rounded-md"></div>
-
-        <%= form.hidden_field :pickup_address, data: { places_autocomplete_target: "pickupAddress" } %>
-        <%= form.hidden_field :pickup_lat, data: { places_autocomplete_target: "pickupLat", map_target: "pickupLat" } %>
-        <%= form.hidden_field :pickup_lng, data: { places_autocomplete_target: "pickupLng", map_target: "pickupLng" } %>
+      <div class="mb-6">
+        <label for="pickup_location" class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+        <div class="flex items-center gap-2">
+          <div class="relative flex-grow">
+            <input type="text" 
+                  id="pickup_location" 
+                  name="ride[pickup_address]" 
+                  class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" 
+                  placeholder="Enter pickup location" 
+                  data-places-autocomplete-target="pickupInput"
+                  autocomplete="off" />
+            <div class="autocomplete-dropdown" data-places-autocomplete-target="pickupSuggestions"></div>
+            <input type="hidden" 
+                  id="pickup_lat_field" 
+                  name="ride[pickup_lat]" 
+                  data-places-autocomplete-target="pickupLat">
+            <input type="hidden" 
+                  id="pickup_lng_field" 
+                  name="ride[pickup_lng]" 
+                  data-places-autocomplete-target="pickupLng">
+          </div>
+          <button type="button" 
+                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  data-action="click->places-autocomplete#useCurrentLocation">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Use current
+          </button>
+        </div>
+        <div data-places-autocomplete-target="locationStatus" class="mt-1 transition-opacity duration-500"></div>
       </div>
 
       <!-- Dropoff Location -->
-      <div class="my-5 relative">
-        <%= form.label :dropoff_location, "To", class: "block font-medium text-gray-500" %>
-        <%= form.text_field :dropoff_location,
-                          class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
-                          placeholder: "Enter a destination",
-                          data: { action: "input->places-autocomplete#fetchSuggestions", places_autocomplete_target: "dropoffInput" } %>
-
-        <!-- Suggestions Dropdown -->
-        <div data-places-autocomplete-target="dropoffSuggestions" class="autocomplete-dropdown z-10 absolute w-full bg-white shadow-lg rounded-md"></div>
-
-        <%= form.hidden_field :dropoff_address, data: { places_autocomplete_target: "dropoffAddress" } %>
-        <%= form.hidden_field :dropoff_lat, data: { places_autocomplete_target: "dropoffLat", map_target: "dropoffLat" } %>
-        <%= form.hidden_field :dropoff_lng, data: { places_autocomplete_target: "dropoffLng", map_target: "dropoffLng" } %>
+      <div class="mb-6">
+        <label for="dropoff_location" class="block text-sm font-medium text-gray-700 mb-1">Dropoff Location</label>
+        <div class="relative">
+          <input type="text" 
+                id="dropoff_location" 
+                name="ride[dropoff_address]" 
+                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" 
+                placeholder="Enter dropoff location" 
+                data-places-autocomplete-target="dropoffInput"
+                autocomplete="off" />
+          <div class="autocomplete-dropdown" data-places-autocomplete-target="dropoffSuggestions"></div>
+          <input type="hidden" name="ride[dropoff_address]" data-places-autocomplete-target="dropoffAddress">
+          <input type="hidden"
+                 id="dropoff_lat_field" 
+                 name="ride[dropoff_lat]" 
+                 data-places-autocomplete-target="dropoffLat">
+          <input type="hidden" 
+                 id="dropoff_lng_field" 
+                 name="ride[dropoff_lng]" 
+                 data-places-autocomplete-target="dropoffLng">
+        </div>
       </div>
 
       <div class="my-5">
         <%= form.label :scheduled_time, "Schedule time", class: "block font-medium text-gray-500" %>
-        <%= form.datetime_field :scheduled_time, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+        <%= form.datetime_field :scheduled_time, value: ride.scheduled_time || Time.current, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
       </div>
 
       <div class="my-5">
@@ -61,6 +88,10 @@
         <%= form.label :special_instructions, "Special Instructions", class: "block font-medium text-gray-500" %>
         <%= form.text_area :special_instructions, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
       </div>
+      
+      <!-- Hidden fields for estimated price and distance -->
+      <input type="hidden" name="ride[estimated_price]" id="estimated_price_field" value="0.00">
+      <input type="hidden" name="ride[distance_km]" id="distance_km_field" value="0.00">
 
       <!-- Trip Information (shows when route is calculated) -->
       <div id="trip-info" class="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden">
@@ -75,8 +106,8 @@
             <p id="trip-duration" class="font-bold text-gray-800">--</p>
           </div>
           <div>
-            <p class="text-xs uppercase text-gray-400 font-semibold">Status</p>
-            <p class="font-bold text-gray-800">Pending</p>
+            <p class="text-xs uppercase text-gray-400 font-semibold">Est. Price</p>
+            <p id="trip-price" class="font-bold text-gray-800">--</p>
           </div>
         </div>
       </div>
@@ -177,10 +208,62 @@
       const tripInfo = document.getElementById('trip-info');
       const tripDistance = document.getElementById('trip-distance');
       const tripDuration = document.getElementById('trip-duration');
+      const tripPrice = document.getElementById('trip-price');
+      const estimatedPriceField = document.getElementById('estimated_price_field');
+      const distanceKmField = document.getElementById('distance_km_field');
       
+      // Show trip info section
       tripInfo.classList.remove('hidden');
+      
+      // Update the visible elements
       tripDistance.textContent = event.detail.distance;
       tripDuration.textContent = event.detail.duration;
+      
+      // Extract distance value in kilometers
+      let distanceKm = 0;
+      
+      if (event.detail.distance_value) {
+        // If we have the raw value in meters, convert to km
+        distanceKm = event.detail.distance_value / 1000;
+      } else {
+        // Fallback to parsing the text if raw value isn't available
+        const distanceText = event.detail.distance;
+        const distanceValue = parseFloat(distanceText.replace(/[^0-9.]/g, ''));
+        distanceKm = distanceValue;
+        
+        // Check if the distance is in miles and convert to km if needed
+        if (distanceText.toLowerCase().includes('mi')) {
+          distanceKm = distanceValue * 1.60934;
+        }
+      }
+      
+      // Calculate estimated price (base fare + per km rate)
+      const baseFare = 5.00;
+      const perKmRate = 1.50;
+      const estimatedPrice = baseFare + (distanceKm * perKmRate);
+      
+      // Format the price for display
+      const formattedPrice = '$' + estimatedPrice.toFixed(2);
+      tripPrice.textContent = formattedPrice;
+      
+      // Log values for debugging
+      console.log("Distance (km):", distanceKm);
+      console.log("Estimated price:", estimatedPrice);
+      
+      // Update hidden fields - make sure they exist before updating
+      if (estimatedPriceField) {
+        estimatedPriceField.value = estimatedPrice.toFixed(2);
+        console.log("Set estimated_price_field to:", estimatedPriceField.value);
+      } else {
+        console.warn("Could not find estimated_price_field element");
+      }
+      
+      if (distanceKmField) {
+        distanceKmField.value = distanceKm.toFixed(2);
+        console.log("Set distance_km_field to:", distanceKmField.value);
+      } else {
+        console.warn("Could not find distance_km_field element");
+      }
     });
   });
 </script>

@@ -66,4 +66,32 @@ class GooglePlacesService
     # get only lat and lng from details
     { latitude: details["lat"], longitude: details["lng"] } if details.present?
   end
+
+  def reverse_geocode(lat, lng)
+    # Google Geocoding API URL
+    geocoding_api_url = "https://maps.googleapis.com/maps/api/geocode/json"
+
+    uri = URI(geocoding_api_url)
+    params = {
+      latlng: "#{lat},#{lng}",
+      key: @api_key
+    }
+    uri.query = URI.encode_www_form(params)
+
+    response = Net::HTTP.get_response(uri)
+    data = JSON.parse(response.body)
+
+    if data["status"] == "OK" && data["results"].present?
+      result = data["results"].first
+
+      {
+        id: result["place_id"],
+        address: result["formatted_address"],
+        latitude: lat,
+        longitude: lng
+      }
+    else
+      { error: "Unable to find address for the given coordinates" }
+    end
+  end
 end

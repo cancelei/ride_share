@@ -17,6 +17,8 @@ class Ride < ApplicationRecord
   after_update :broadcast_status_update
   after_commit :broadcast_ride_status, if: :saved_change_to_status?
   after_create :ensure_status_set
+  before_validation :set_coordinates_from_params
+  before_save :sync_locations
 
   enum :status, {
     pending: "pending",
@@ -48,7 +50,16 @@ class Ride < ApplicationRecord
     .sum(:estimated_price)
   }
 
-  validates :pickup_location, :dropoff_location, presence: true, if: -> { accepted? || in_progress? || completed? }
+  validates :pickup_location, :dropoff_location, presence: true, if: -> {
+    (accepted? || in_progress? || completed?) &&
+    pickup_address.blank? && dropoff_address.blank?
+  }
+
+  validates :pickup_address, :dropoff_address, presence: true, if: -> {
+    (accepted? || in_progress? || completed?) &&
+    pickup_location.blank? && dropoff_location.blank?
+  }
+
   validates :driver, presence: true, if: -> { accepted? || in_progress? || completed? }
   validates :vehicle, presence: true, if: -> { accepted? || in_progress? || completed? }
   validates :scheduled_time, presence: true, if: -> { passenger.present? }
@@ -157,7 +168,7 @@ class Ride < ApplicationRecord
   end
 
   def calculate_distance_and_duration
-    return if pickup_location.blank? || dropoff_location.blank?
+    return if pickup_lat.blank? || pickup_lng.blank? || dropoff_lat.blank? || dropoff_lng.blank?
 
     response = GooglePlacesService.new.fetch_distance_matrix(pickup_lat, pickup_lng, dropoff_lat, dropoff_lng)
 
@@ -293,6 +304,42 @@ class Ride < ApplicationRecord
       Rails.logger.debug "RIDE DEBUG: Status is nil, updating to pending"
       update_column(:status, "pending")
       Rails.logger.debug "RIDE DEBUG: After update_column, status: #{reload.status.inspect}"
+    end
+  end
+
+  def set_coordinates_from_params
+    # Make sure we have latitude and longitude values
+    # This is needed because the form might submit with different field names
+    if pickup_lat.blank? && attributes["pickup_latitude"].present?
+      self.pickup_lat = attributes["pickup_latitude"]
+    end
+
+    if pickup_lng.blank? && attributes["pickup_longitude"].present?
+      self.pickup_lng = attributes["pickup_longitude"]
+    end
+
+    if dropoff_lat.blank? && attributes["dropoff_latitude"].present?
+      self.dropoff_lat = attributes["dropoff_latitude"]
+    end
+
+    if dropoff_lng.blank? && attributes["dropoff_longitude"].present?
+      self.dropoff_lng = attributes["dropoff_longitude"]
+    end
+  end
+
+  def sync_locations
+    # Synchronize pickup_location and pickup_address
+    if pickup_address.present? && (pickup_location.blank? || pickup_location != pickup_address)
+      self.pickup_location = pickup_address
+    elsif pickup_location.present? && (pickup_address.blank? || pickup_address != pickup_location)
+      self.pickup_address = pickup_location
+    end
+
+    # Synchronize dropoff_location and dropoff_address
+    if dropoff_address.present? && (dropoff_location.blank? || dropoff_location != dropoff_address)
+      self.dropoff_location = dropoff_address
+    elsif dropoff_location.present? && (dropoff_address.blank? || dropoff_address != dropoff_location)
+      self.dropoff_address = dropoff_location
     end
   end
 end

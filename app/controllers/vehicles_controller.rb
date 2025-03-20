@@ -35,6 +35,16 @@ class VehiclesController < ApplicationController
 
   # GET /vehicles/1/edit
   def edit
+    respond_to do |format|
+      format.html
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.update(
+          dom_id(@vehicle),
+          partial: "vehicles/form_frame",
+          locals: { vehicle: @vehicle, driver_profile: @driver_profile }
+        )
+      end
+    end
   end
 
   # POST /vehicles or /vehicles.json
@@ -59,20 +69,51 @@ class VehiclesController < ApplicationController
       if @vehicle.update(vehicle_params)
         format.html { redirect_to root_path, notice: "Vehicle was successfully updated." }
         format.json { render :show, status: :ok, location: @vehicle }
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            dom_id(@vehicle),
+            partial: "dashboard/vehicles_list",
+            locals: { vehicles: [ @vehicle ], driver_profile: @driver_profile }
+          )
+        end
       else
         format.html { render :edit, status: :unprocessable_entity }
         format.json { render json: @vehicle.errors, status: :unprocessable_entity }
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            dom_id(@vehicle),
+            partial: "vehicles/form_frame",
+            locals: { vehicle: @vehicle, driver_profile: @driver_profile }
+          )
+        end
       end
     end
   end
 
   # DELETE /vehicles/1 or /vehicles/1.json
   def destroy
+    vehicle_id = @vehicle.id
+    was_selected = @driver_profile.selected_vehicle_id == @vehicle.id
+
+    # If deleting the selected vehicle, select another one if available
+    if was_selected
+      # Find another vehicle to select
+      another_vehicle = @driver_profile.vehicles.where.not(id: @vehicle.id).first
+      @driver_profile.update(selected_vehicle_id: another_vehicle&.id)
+    end
+
     @vehicle.destroy!
 
     respond_to do |format|
-      format.html { redirect_to root_path, notice: "Vehicle was successfully destroyed." }
+      format.html {
+        flash[:notice] = "Vehicle was successfully removed."
+        redirect_to root_path
+      }
       format.json { head :no_content }
+      format.turbo_stream {
+        flash[:notice] = "Vehicle was successfully removed."
+        redirect_to root_path
+      }
     end
   end
 

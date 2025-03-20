@@ -73,8 +73,13 @@ class RidesController < ApplicationController
       @ride.status = "pending"
       Rails.logger.debug "RIDE DEBUG: After setting passenger status: #{@ride.status.inspect}"
 
-      # Calculate estimated price based on distance
-      @ride.calculate_price if @ride.pickup_location.present? && @ride.dropoff_location.present?
+      # If distance_km and estimated_price are blank but we have coordinates, calculate them
+      if @ride.distance_km.blank? && @ride.estimated_price.blank? &&
+         @ride.pickup_lat.present? && @ride.pickup_lng.present? &&
+         @ride.dropoff_lat.present? && @ride.dropoff_lng.present?
+        Rails.logger.debug "RIDE DEBUG: Calculating distance and price from coordinates"
+        @ride.calculate_distance_and_duration
+      end
     elsif current_user&.role_driver?
       # Set driver to current user's driver profile
       @ride.driver = current_user.driver_profile
@@ -347,7 +352,8 @@ class RidesController < ApplicationController
         :passenger_id, :requested_seats, :special_instructions,
         :pickup_lat, :pickup_lng, :dropoff_lat, :dropoff_lng,
         :pickup_address, :dropoff_address,
-        :distance_km, :estimated_duration_minutes, :total_travel_duration_minutes
+        :distance_km, :estimated_duration_minutes, :total_travel_duration_minutes,
+        :estimated_price
       )
     end
 
