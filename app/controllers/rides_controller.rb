@@ -148,8 +148,14 @@ class RidesController < ApplicationController
         return
       end
 
+      if current_user.driver_profile.nil?
+        Rails.logger.debug "RIDE ACCEPT: Failed - Driver #{current_user.id} has no driver profile"
+        redirect_to dashboard_path, alert: "You need to create a driver profile before accepting rides."
+        return
+      end
+
       # Check if driver has a selected vehicle
-      if current_user.driver_profile.nil? || current_user.driver_profile.selected_vehicle.nil?
+      if current_user.driver_profile.selected_vehicle.nil?
         Rails.logger.debug "RIDE ACCEPT: Failed - Driver #{current_user.id} has no selected vehicle"
         redirect_to dashboard_path, alert: "You need to select a vehicle before accepting rides."
         return
@@ -241,12 +247,33 @@ class RidesController < ApplicationController
       @ride.status = :cancelled
 
       if @ride.save
-        redirect_to dashboard_path, notice: "Ride cancelled successfully."
+        respond_to do |format|
+          format.html { redirect_to dashboard_path, notice: "Ride cancelled successfully." }
+          format.turbo_stream {
+            flash.now[:notice] = "Ride cancelled successfully."
+            render turbo_stream: [
+              turbo_stream.replace("ride_details_#{@ride.id}", ""),
+              turbo_stream.update("flash", partial: "shared/flash")
+            ]
+          }
+        end
       else
-        redirect_to ride_path(@ride), alert: "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}"
+        respond_to do |format|
+          format.html { redirect_to ride_path(@ride), alert: "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}" }
+          format.turbo_stream {
+            flash.now[:alert] = "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}"
+            render turbo_stream.update("flash", partial: "shared/flash")
+          }
+        end
       end
     else
-      redirect_to dashboard_path, alert: "You don't have permission to cancel this ride."
+      respond_to do |format|
+        format.html { redirect_to dashboard_path, alert: "You don't have permission to cancel this ride." }
+        format.turbo_stream {
+          flash.now[:alert] = "You don't have permission to cancel this ride."
+          render turbo_stream.update("flash", partial: "shared/flash")
+        }
+      end
     end
   end
 
