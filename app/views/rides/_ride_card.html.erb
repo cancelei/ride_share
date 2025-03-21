@@ -64,7 +64,8 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-gray-900 truncate">
-          <span class="inline-block w-full truncate"><%= ride.pickup_address || ride.pickup_location %></span>
+          <span class="inline-block w-full truncate hidden sm:inline"><%= ride.pickup_address || ride.pickup_location %></span>
+          <span class="inline-block w-full truncate sm:hidden"><%= (ride.pickup_address || ride.pickup_location).to_s.truncate(20) %></span>
         </p>
       </div>
       
@@ -79,7 +80,8 @@
       
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-gray-900 truncate">
-          <span class="inline-block w-full truncate"><%= ride.dropoff_address || ride.dropoff_location %></span>
+          <span class="inline-block w-full truncate hidden sm:inline"><%= ride.dropoff_address || ride.dropoff_location %></span>
+          <span class="inline-block w-full truncate sm:hidden"><%= (ride.dropoff_address || ride.dropoff_location).to_s.truncate(20) %></span>
         </p>
       </div>
     </div>
