@@ -36,9 +36,6 @@
     </div>
     
     <div class="mt-4 flex justify-between">
-      <%= link_to ride_path(ride), class: "text-sm text-blue-600 hover:text-blue-800" do %>
-        Full Details
-      <% end %>
       
       <% if ride.status == "pending" && current_user&.role_passenger? && current_user.passenger_profile == ride.passenger %>
         <%= button_to cancel_ride_path(ride), 

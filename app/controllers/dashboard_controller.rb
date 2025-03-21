@@ -17,8 +17,8 @@ class DashboardController < ApplicationController
       @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
 
       # Get all rides for display
-      all_rides = Ride.where(driver: @driver_profile)
-
+      all_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :in_progress, :completed, :cancelled ])
+      # binding.pry
       # Filter rides based on tab type using helper
       @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
 

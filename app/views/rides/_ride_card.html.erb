@@ -55,6 +55,11 @@
       </div>
     <% end %>
     
+    <!-- Driver Information and Payment Methods for Passengers -->
+    <% if show_driver_payment_info?(ride, current_user) %>
+      <%= render "rides/driver_payment_info", ride: ride %>
+    <% end %>
+    
     <!-- Ride Route -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
       <div class="flex-1 min-w-0">
