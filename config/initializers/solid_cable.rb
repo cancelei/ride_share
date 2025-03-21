@@ -15,7 +15,7 @@ Rails.application.config.to_prepare do
         SolidCable::Record.connects_to(database: db_config)
       else
         # Fallback to a standard database connection if connects_to isn't specified
-        SolidCable::Record.connects_to(database: { writing: cable_config[:database] || :cable })
+        SolidCable::Record.connects_to(database: { writing: :cable || cable_config[:database] })
       end
     end
   end
