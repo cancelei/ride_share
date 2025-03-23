@@ -46,8 +46,39 @@ class DashboardController < ApplicationController
       @total_rides = Ride.with_discarded.count
       @active_rides = Ride.kept.count
       @recent_rides = Ride.with_discarded.order(created_at: :desc).limit(10)
+    when "company"
+      tab_type = params[:type].to_s
+
+      @company_profile = @user.company_profile
+
+      # Get all drivers associated with this company
+      @company_drivers = @company_profile ? DriverProfile.joins(:company_drivers).where(company_drivers: { company_profile_id: @company_profile.id }) : []
+
+      # Get all rides from drivers associated with this company
+      driver_ids = @company_drivers.pluck(:id)
+      all_rides = Ride.where(driver_id: driver_ids).order(scheduled_time: :desc)
+
+      # Filter rides based on tab type using helper
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
+
+      # Set the tab_type for the view
+      tab_type = "active" unless tab_type == "history"
+
+      # Aggregated statistics for the company
+      @active_rides = all_rides.where(status: [ :accepted, :in_progress ])
+      @completed_rides = all_rides.where(status: :completed)
+      @cancelled_rides = all_rides.where(status: :cancelled)
+
+      # Financial stats
+      @last_week_rides_total = all_rides.where(status: :completed)
+                                        .where("created_at >= ?", 1.week.ago)
+                                        .sum(:effective_price)
+      @monthly_rides_total = all_rides.where(status: :completed)
+                                      .where("created_at >= ?", 30.days.ago)
+                                      .sum(:effective_price)
     else
       redirect_to root_path, alert: "Invalid user role"
+      return
     end
 
     render "dashboard/show"
@@ -95,6 +126,34 @@ class DashboardController < ApplicationController
       # Additional data needed for passenger dashboard
       @my_rides = all_rides.limit(5)
       @past_rides = all_rides.where(status: :completed).order(created_at: :desc).limit(5)
+    when "company"
+      @company_profile = @user.company_profile
+
+      # Get all drivers associated with this company
+      @company_drivers = @company_profile ? DriverProfile.joins(:company_drivers).where(company_drivers: { company_profile_id: @company_profile.id }) : []
+
+      # Get all rides from drivers associated with this company
+      driver_ids = @company_drivers.pluck(:id)
+      all_rides = Ride.where(driver_id: driver_ids).order(scheduled_time: :desc)
+
+      # Filter rides based on tab type using helper
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
+
+      # Set the tab_type for the view
+      tab_type = "active" unless tab_type == "history"
+
+      # Aggregated statistics for the company dashboard
+      @active_rides = all_rides.where(status: [ :accepted, :in_progress ])
+      @completed_rides = all_rides.where(status: :completed)
+      @cancelled_rides = all_rides.where(status: :cancelled)
+
+      # Financial statistics
+      @last_week_rides_total = all_rides.where(status: :completed)
+                                        .where("created_at >= ?", 1.week.ago)
+                                        .sum(:effective_price)
+      @monthly_rides_total = all_rides.where(status: :completed)
+                                      .where("created_at >= ?", 30.days.ago)
+                                      .sum(:effective_price)
     else
       redirect_to root_path, alert: "Invalid user role"
       return
@@ -131,4 +190,5 @@ class DashboardController < ApplicationController
   # Alias methods for backwards compatibility
   alias_method :passenger_rides, :user_rides
   alias_method :driver_rides, :user_rides
+  alias_method :company_rides, :user_rides
 end

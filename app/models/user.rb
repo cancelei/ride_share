@@ -20,10 +20,11 @@ class User < ApplicationRecord
   },
   allow_nil: true
 
-  enum :role, { admin: 0, driver: 1, passenger: 2 }, prefix: true
+  enum :role, { admin: 0, driver: 1, passenger: 2, company: 3 }, prefix: true
 
   has_one :driver_profile, -> { with_discarded }, dependent: :destroy
   has_one :passenger_profile, -> { with_discarded }, dependent: :destroy
+  has_one :company_profile, -> { with_discarded }, dependent: :destroy
 
   after_create :send_welcome_email
   before_discard :discard_profiles
@@ -71,10 +72,12 @@ class User < ApplicationRecord
   def discard_profiles
     driver_profile&.discard
     passenger_profile&.discard
+    company_profile&.discard
   end
 
   def undiscard_profiles
     driver_profile&.undiscard
     passenger_profile&.undiscard
+    company_profile&.undiscard
   end
 end

@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :company_profiles
+  resources :company_drivers
   resources :rides do
     member do
       post :cancel

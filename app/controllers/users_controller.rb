@@ -87,6 +87,8 @@ class UsersController < ApplicationController
     when "passenger"
                  "driver"
     when "driver"
+                 "company"
+    when "company"
                  "passenger"
     else
                  current_role # Keep the same role if not passenger or driver

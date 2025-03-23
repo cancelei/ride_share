@@ -3,8 +3,10 @@ class DriverProfile < ApplicationRecord
   default_scope -> { kept }
 
   belongs_to :user, -> { with_discarded }
+  belongs_to :company_profile, -> { with_discarded }, optional: true
   has_many :vehicles, -> { with_discarded }, dependent: :destroy
   has_many :rides, -> { with_discarded }, foreign_key: "driver_id", dependent: :destroy
+  has_many :company_drivers, dependent: :destroy
 
   validates :license, :license_issuer, presence: true
   validate :at_least_one_payment_address
