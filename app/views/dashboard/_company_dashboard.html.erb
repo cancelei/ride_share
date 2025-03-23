@@ -1,0 +1,338 @@
+<%= turbo_stream_from current_user, "dashboard" %>
+<%= turbo_stream_from "user_#{current_user.id}_rides" %>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <%# Left Column - Company Profile Information %>
+  <div class="lg:col-span-3">
+    <%# Profile Section %>
+    <%= render "dashboard/user_information", user: current_user %>
+  </div>
+
+  <%# Right Column - Company Dashboard Content %>
+  <div class="lg:col-span-9 space-y-6">
+    <%# Stats Overview Cards %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <%# Financial Summary Card %>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-700 font-medium">Financial Summary</h3>
+          <span class="p-2 bg-blue-50 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <div class="mb-2">
+            <span class="text-sm text-gray-500">Last 7 Days</span>
+            <p class="text-xl font-semibold text-gray-800"><%= number_to_currency(@last_week_rides_total || 0) %></p>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Last 30 Days</span>
+            <p class="text-xl font-semibold text-gray-800"><%= number_to_currency(@monthly_rides_total || 0) %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Rides Stats Card %>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-700 font-medium">Ride Statistics</h3>
+          <span class="p-2 bg-green-50 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="text-center">
+            <span class="text-sm text-gray-500">Active</span>
+            <p class="text-xl font-semibold text-gray-800"><%= @active_rides&.count || 0 %></p>
+          </div>
+          <div class="text-center">
+            <span class="text-sm text-gray-500">Completed</span>
+            <p class="text-xl font-semibold text-green-600"><%= @completed_rides&.count || 0 %></p>
+          </div>
+          <div class="text-center">
+            <span class="text-sm text-gray-500">Cancelled</span>
+            <p class="text-xl font-semibold text-red-600"><%= @cancelled_rides&.count || 0 %></p>
+          </div>
+        </div>
+      </div>
+
+      <%# Drivers Card %>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-700 font-medium">Drivers</h3>
+          <span class="p-2 bg-purple-50 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <div class="mb-2">
+            <span class="text-sm text-gray-500">Total Drivers</span>
+            <p class="text-xl font-semibold text-gray-800"><%= @company_drivers&.count || 0 %></p>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Active Drivers</span>
+            <p class="text-xl font-semibold text-gray-800">
+              <%= @company_drivers&.joins(:rides).where(rides: { status: [:accepted, :in_progress] }).distinct.count || 0 %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <%# Performance Card %>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-gray-700 font-medium">Performance</h3>
+          <span class="p-2 bg-yellow-50 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <div class="mb-2">
+            <span class="text-sm text-gray-500">Completion Rate</span>
+            <% total_rides = (@completed_rides&.count || 0) + (@cancelled_rides&.count || 0) %>
+            <% completion_rate = total_rides > 0 ? ((@completed_rides&.count || 0).to_f / total_rides * 100).round : 0 %>
+            <p class="text-xl font-semibold text-gray-800"><%= completion_rate %>%</p>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Average Rating</span>
+            <% avg_rating = @completed_rides&.where.not(rating: nil)&.average(:rating)&.to_f&.round(1) || 0 %>
+            <p class="text-xl font-semibold text-gray-800"><%= avg_rating %> / 5</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Driver Performance Section %>
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Driver Performance</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Compare performance metrics across your drivers.</p>
+      </div>
+      <div class="p-4">
+        <% if @company_drivers.present? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Rides</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cancelled</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% @company_drivers.each do |driver| %>
+                  <% driver_rides = Ride.where(driver_id: driver.id) %>
+                  <% driver_completed = driver_rides.where(status: :completed) %>
+                  <% driver_cancelled = driver_rides.where(status: :cancelled) %>
+                  <% driver_active = driver_rides.where(status: [:accepted, :in_progress]) %>
+                  <% driver_revenue = driver_completed.sum(:effective_price) %>
+                  <% driver_rating = driver_completed.where.not(rating: nil).average(:rating)&.to_f&.round(1) || 0 %>
+                  
+                  <tr>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                          <% user = User.find(driver.user_id) %>
+                          <% if user.avatar.attached? %>
+                            <%= image_tag user.avatar, class: "h-10 w-10 rounded-full" %>
+                          <% else %>
+                            <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                              <%= [user.first_name, user.last_name].compact.map { |n| n[0] }.join('').upcase %>
+                            </div>
+                          <% end %>
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">
+                            <%= "#{user.first_name} #{user.last_name}" %>
+                          </div>
+                          <div class="text-sm text-gray-500">
+                            <%= user.email %>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= driver_rides.count %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        <%= driver_completed.count %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        <%= driver_cancelled.count %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= number_to_currency(driver_revenue) %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <% 5.times do |i| %>
+                          <svg xmlns="http://www.w3.org/2000/svg" 
+                               class="h-4 w-4 <%= i < driver_rating ? 'text-yellow-400' : 'text-gray-300' %>" 
+                               viewBox="0 0 20 20" 
+                               fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        <% end %>
+                        <span class="ml-1 text-sm text-gray-700">(<%= driver_rating %>)</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <% if driver_active.any? %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          Active
+                        </span>
+                      <% else %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                          Standby
+                        </span>
+                      <% end %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <%= link_to "View Details", "#", class: "text-indigo-600 hover:text-indigo-900" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="bg-yellow-50 p-4 rounded-md">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">No drivers found</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                  <p>You currently don't have any drivers associated with your company. Add drivers to start managing your fleet.</p>
+                </div>
+                <div class="mt-4">
+                  <%= link_to "Add Drivers", "#", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Recent Activity / Ride Status %>
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Rides</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">The most recent rides from your drivers.</p>
+      </div>
+      
+      <div class="p-4">
+        <% if @filtered_rides.present? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ride ID</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passenger</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% @filtered_rides.limit(10).each do |ride| %>
+                  <tr>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #<%= ride.id %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <% if ride.driver %>
+                        <% driver_user = User.find(ride.driver.user_id) %>
+                        <div class="text-sm text-gray-900"><%= "#{driver_user.first_name} #{driver_user.last_name}" %></div>
+                      <% else %>
+                        <div class="text-sm text-gray-500">Unassigned</div>
+                      <% end %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <% if ride.passenger %>
+                        <% passenger_user = User.find(ride.passenger.user_id) %>
+                        <div class="text-sm text-gray-900"><%= "#{passenger_user.first_name} #{passenger_user.last_name}" %></div>
+                      <% else %>
+                        <div class="text-sm text-gray-500">Unknown</div>
+                      <% end %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900"><%= ride.pickup_address&.truncate(15) || "N/A" %></div>
+                      <div class="text-sm text-gray-500">→ <%= ride.dropoff_address&.truncate(15) || "N/A" %></div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <% status_class = {
+                        'pending' => 'bg-yellow-100 text-yellow-800',
+                        'accepted' => 'bg-blue-100 text-blue-800',
+                        'in_progress' => 'bg-indigo-100 text-indigo-800',
+                        'completed' => 'bg-green-100 text-green-800',
+                        'cancelled' => 'bg-red-100 text-red-800'
+                      }[ride.status] || 'bg-gray-100 text-gray-800' %>
+                      
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= status_class %>">
+                        <%= ride.status&.humanize %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= number_to_currency(ride.effective_price || ride.estimated_price || 0) %>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900"><%= ride.scheduled_time&.strftime("%b %d, %Y") || "N/A" %></div>
+                      <div class="text-sm text-gray-500"><%= ride.scheduled_time&.strftime("%H:%M") || "N/A" %></div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <%= link_to "View", ride_path(ride), class: "text-indigo-600 hover:text-indigo-900" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mt-4 flex justify-center">
+            <%= link_to "View All Rides", user_rides_path(type: params[:type] || "active"), class: "text-indigo-600 hover:text-indigo-900" %>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No rides found</h3>
+            <p class="mt-1 text-sm text-gray-500">There are currently no rides in this category.</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= javascript_tag do %>
+  // This only handles company-specific functionality
+  document.addEventListener('turbo:load', function() {
+    // Company-specific initialization if needed
+  });
+<% end %>

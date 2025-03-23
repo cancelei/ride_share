@@ -37,6 +37,8 @@
     <%= render "admin_dashboard" %>
   <% elsif @user.role_driver? %>
     <%= render "driver_dashboard" %>
+  <% elsif @user.role_company? %>
+    <%= render "company_dashboard" %>
   <% else %>
     <%= render "passenger_dashboard" %>
   <% end %>
