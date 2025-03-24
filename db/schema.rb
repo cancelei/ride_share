@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_23_164116) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_24_175248) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -312,7 +312,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_23_164116) do
   add_foreign_key "company_profiles", "users"
   add_foreign_key "driver_profiles", "company_profiles"
   add_foreign_key "driver_profiles", "users"
-  add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id"
+  add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id", on_delete: :nullify
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
   add_foreign_key "rides", "passenger_profiles", column: "passenger_id"

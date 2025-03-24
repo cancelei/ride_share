@@ -72,10 +72,10 @@ class DashboardController < ApplicationController
       # Financial stats
       @last_week_rides_total = all_rides.where(status: :completed)
                                         .where("created_at >= ?", 1.week.ago)
-                                        .sum(:effective_price)
+                                        .sum(:estimated_price)
       @monthly_rides_total = all_rides.where(status: :completed)
                                       .where("created_at >= ?", 30.days.ago)
-                                      .sum(:effective_price)
+                                      .sum(:estimated_price)
     else
       redirect_to root_path, alert: "Invalid user role"
       return
@@ -150,10 +150,10 @@ class DashboardController < ApplicationController
       # Financial statistics
       @last_week_rides_total = all_rides.where(status: :completed)
                                         .where("created_at >= ?", 1.week.ago)
-                                        .sum(:effective_price)
+                                        .sum(:estimated_price)
       @monthly_rides_total = all_rides.where(status: :completed)
                                       .where("created_at >= ?", 30.days.ago)
-                                      .sum(:effective_price)
+                                      .sum(:estimated_price)
     else
       redirect_to root_path, alert: "Invalid user role"
       return

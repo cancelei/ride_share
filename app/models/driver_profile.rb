@@ -7,6 +7,7 @@ class DriverProfile < ApplicationRecord
   has_many :vehicles, -> { with_discarded }, dependent: :destroy
   has_many :rides, -> { with_discarded }, foreign_key: "driver_id", dependent: :destroy
   has_many :company_drivers, dependent: :destroy
+  belongs_to :selected_vehicle, class_name: "Vehicle", foreign_key: "selected_vehicle_id"
 
   validates :license, :license_issuer, presence: true
   validate :at_least_one_payment_address
@@ -34,6 +35,4 @@ class DriverProfile < ApplicationRecord
       errors.add(:base, "At least one payment address (Bitcoin, Ethereum, or ICC) must be provided.")
     end
   end
-
-  belongs_to :selected_vehicle, class_name: "Vehicle", optional: true
 end

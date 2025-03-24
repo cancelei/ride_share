@@ -25,11 +25,11 @@
         <div class="flex flex-col">
           <div class="mb-2">
             <span class="text-sm text-gray-500">Last 7 Days</span>
-            <p class="text-xl font-semibold text-gray-800"><%= number_to_currency(@last_week_rides_total || 0) %></p>
+            <p class="text-xl font-semibold text-gray-800"><%= number_to_currency(@last_week_rides_total) %></p>
           </div>
           <div>
             <span class="text-sm text-gray-500">Last 30 Days</span>
-            <p class="text-xl font-semibold text-gray-800"><%= number_to_currency(@monthly_rides_total || 0) %></p>
+            <p class="text-xl font-semibold text-gray-800"><%= number_to_currency(@monthly_rides_total) %></p>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@
         <div class="flex flex-col">
           <div class="mb-2">
             <span class="text-sm text-gray-500">Completion Rate</span>
-            <% total_rides = (@completed_rides&.count || 0) + (@cancelled_rides&.count || 0) %>
+            <% total_rides = (@completed_rides&.count || 0) + (@cancelled_rides&.count || 0) + (@active_rides&.count || 0) %>
             <% completion_rate = total_rides > 0 ? ((@completed_rides&.count || 0).to_f / total_rides * 100).round : 0 %>
             <p class="text-xl font-semibold text-gray-800"><%= completion_rate %>%</p>
           </div>
