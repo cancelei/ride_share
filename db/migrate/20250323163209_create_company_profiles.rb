@@ -11,5 +11,7 @@ class CreateCompanyProfiles < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
+
+    add_reference :driver_profiles, :company_profile, foreign_key: true
   end
 end

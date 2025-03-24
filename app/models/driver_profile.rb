@@ -11,6 +11,17 @@ class DriverProfile < ApplicationRecord
   validates :license, :license_issuer, presence: true
   validate :at_least_one_payment_address
   validate :only_one_active_driver_profile_per_user, on: :create
+  after_save :check_company_driver
+
+  def check_company_driver
+    return unless saved_change_to_company_profile_id?
+
+    if company_profile.present?
+      CompanyDriver.create(company_profile_id: company_profile_id, driver_profile_id: self.id)
+    else
+      CompanyDriver.where(driver_profile_id: self.id).destroy_all
+    end
+  end
 
   def only_one_active_driver_profile_per_user
     if DriverProfile.where(user: user).count > 0

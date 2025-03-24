@@ -83,16 +83,7 @@ class UsersController < ApplicationController
     # Only toggle between passenger and driver roles
     current_role = current_user.role
 
-    new_role = case current_role
-    when "passenger"
-                 "driver"
-    when "driver"
-                 "company"
-    when "company"
-                 "passenger"
-    else
-                 current_role # Keep the same role if not passenger or driver
-    end
+    new_role = User.roles.keys.include?(params[:role]) ? params[:role] : current_role
 
     if current_user.update(role: new_role)
       respond_to do |format|

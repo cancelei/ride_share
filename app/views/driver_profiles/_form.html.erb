@@ -22,7 +22,12 @@
     <%= form.label :license_issuer %>
     <%= form.text_field :license_issuer, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:license_issuer].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:license_issuer].any?}] %>
   </div>
-  
+
+  <div class="my-5">
+    <%= form.label :company_profile_id %>
+    <%= form.collection_select :company_profile_id, CompanyProfile.all, :id, :name, { include_blank: 'Solo Driver' }, class: ["block shadow rounded-md border outline-none px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": driver_profile.errors[:company_profile_id].none?, "border-red-400 focus:outline-red-600": driver_profile.errors[:company_profile_id].any?}] %>
+  </div>
+
   <p class="text-lg font-bold">Payment Methods</p>
   <div class="my-5">
     <%= form.label :bitcoin_address %>

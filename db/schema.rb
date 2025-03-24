@@ -75,6 +75,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_23_164116) do
     t.datetime "updated_at", null: false
     t.bigint "selected_vehicle_id"
     t.datetime "discarded_at"
+    t.bigint "company_profile_id"
+    t.index ["company_profile_id"], name: "index_driver_profiles_on_company_profile_id"
     t.index ["discarded_at"], name: "index_driver_profiles_on_discarded_at"
     t.index ["selected_vehicle_id"], name: "index_driver_profiles_on_selected_vehicle_id"
     t.index ["user_id"], name: "index_driver_profiles_on_user_id"
@@ -308,6 +310,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_23_164116) do
   add_foreign_key "company_drivers", "company_profiles"
   add_foreign_key "company_drivers", "driver_profiles"
   add_foreign_key "company_profiles", "users"
+  add_foreign_key "driver_profiles", "company_profiles"
   add_foreign_key "driver_profiles", "users"
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id"
   add_foreign_key "passenger_profiles", "users"

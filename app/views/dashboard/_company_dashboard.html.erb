@@ -3,13 +3,13 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
   <%# Left Column - Company Profile Information %>
-  <div class="lg:col-span-3">
+  <div class="lg:col-span-4 space-y-6">
     <%# Profile Section %>
     <%= render "dashboard/user_information", user: current_user %>
   </div>
 
   <%# Right Column - Company Dashboard Content %>
-  <div class="lg:col-span-9 space-y-6">
+  <div class="lg:col-span-8 space-y-6">
     <%# Stats Overview Cards %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <%# Financial Summary Card %>
@@ -44,16 +44,16 @@
             </svg>
           </span>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div class="text-center">
+        <div class="flex flex-col">
+          <div class="mb-2">
             <span class="text-sm text-gray-500">Active</span>
             <p class="text-xl font-semibold text-gray-800"><%= @active_rides&.count || 0 %></p>
           </div>
-          <div class="text-center">
+          <div class="mb-2">
             <span class="text-sm text-gray-500">Completed</span>
             <p class="text-xl font-semibold text-green-600"><%= @completed_rides&.count || 0 %></p>
           </div>
-          <div class="text-center">
+          <div>
             <span class="text-sm text-gray-500">Cancelled</span>
             <p class="text-xl font-semibold text-red-600"><%= @cancelled_rides&.count || 0 %></p>
           </div>
@@ -78,7 +78,11 @@
           <div>
             <span class="text-sm text-gray-500">Active Drivers</span>
             <p class="text-xl font-semibold text-gray-800">
-              <%= @company_drivers&.joins(:rides).where(rides: { status: [:accepted, :in_progress] }).distinct.count || 0 %>
+              <% if @company_drivers.present? %>
+                <%= @company_drivers&.joins(:rides).where(rides: { status: [:accepted, :in_progress] }).distinct.count %>
+              <% else %>
+                0
+              <% end %>
             </p>
           </div>
         </div>
@@ -140,7 +144,7 @@
                   <% driver_active = driver_rides.where(status: [:accepted, :in_progress]) %>
                   <% driver_revenue = driver_completed.sum(:effective_price) %>
                   <% driver_rating = driver_completed.where.not(rating: nil).average(:rating)&.to_f&.round(1) || 0 %>
-                  
+
                   <tr>
                     <td class="px-4 py-4 whitespace-nowrap">
                       <div class="flex items-center">
@@ -183,9 +187,9 @@
                     <td class="px-4 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <% 5.times do |i| %>
-                          <svg xmlns="http://www.w3.org/2000/svg" 
-                               class="h-4 w-4 <%= i < driver_rating ? 'text-yellow-400' : 'text-gray-300' %>" 
-                               viewBox="0 0 20 20" 
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                               class="h-4 w-4 <%= i < driver_rating ? 'text-yellow-400' : 'text-gray-300' %>"
+                               viewBox="0 0 20 20"
                                fill="currentColor">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
@@ -241,7 +245,7 @@
         <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Rides</h3>
         <p class="mt-1 max-w-2xl text-sm text-gray-500">The most recent rides from your drivers.</p>
       </div>
-      
+
       <div class="p-4">
         <% if @filtered_rides.present? %>
           <div class="overflow-x-auto">
@@ -292,7 +296,7 @@
                         'completed' => 'bg-green-100 text-green-800',
                         'cancelled' => 'bg-red-100 text-red-800'
                       }[ride.status] || 'bg-gray-100 text-gray-800' %>
-                      
+
                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= status_class %>">
                         <%= ride.status&.humanize %>
                       </span>
@@ -312,7 +316,7 @@
               </tbody>
             </table>
           </div>
-          
+
           <div class="mt-4 flex justify-center">
             <%= link_to "View All Rides", user_rides_path(type: params[:type] || "active"), class: "text-indigo-600 hover:text-indigo-900" %>
           </div>
@@ -329,10 +333,3 @@
     </div>
   </div>
 </div>
-
-<%= javascript_tag do %>
-  // This only handles company-specific functionality
-  document.addEventListener('turbo:load', function() {
-    // Company-specific initialization if needed
-  });
-<% end %>

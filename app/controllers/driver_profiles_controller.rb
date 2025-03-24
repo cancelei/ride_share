@@ -78,6 +78,6 @@ class DriverProfilesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def driver_profile_params
-      params.require(:driver_profile).permit(:user_id, :license, :license_issuer, :bitcoin_address, :icc_address, :ethereum_address)
+      params.require(:driver_profile).permit(:user_id, :license, :license_issuer, :company_profile_id, :bitcoin_address, :icc_address, :ethereum_address)
     end
 end
