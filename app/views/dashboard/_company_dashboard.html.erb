@@ -142,7 +142,7 @@
                   <% driver_completed = driver_rides.where(status: :completed) %>
                   <% driver_cancelled = driver_rides.where(status: :cancelled) %>
                   <% driver_active = driver_rides.where(status: [:accepted, :in_progress]) %>
-                  <% completed_revenue = driver_completed.sum(:effective_price) %>
+                  <% completed_revenue = driver_completed.sum(:estimated_price) %>
                   <% active_estimated_revenue = driver_active.sum(:estimated_price) %>
                   <% driver_revenue = completed_revenue + active_estimated_revenue %>
                   <% driver_rating = driver_completed.where.not(rating: nil).average(:rating)&.to_f&.round(1) || 0 %>
@@ -304,7 +304,7 @@
                       </span>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= number_to_currency(ride.effective_price || ride.estimated_price || 0) %>
+                      <%= number_to_currency(ride.estimated_price || 0) %>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900"><%= ride.scheduled_time&.strftime("%b %d, %Y") || "N/A" %></div>
