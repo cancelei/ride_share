@@ -233,12 +233,15 @@ class RidesController < ApplicationController
       @ride.status = :completed
 
       if @ride.save
-        redirect_to ride_path(@ride), notice: "Ride completed successfully."
+        set_flash(:notice, "Ride completed successfully.")
+        redirect_to ride_path(@ride)
       else
-        redirect_to ride_path(@ride), alert: "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}"
+        set_flash(:alert, "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}")
+        redirect_to ride_path(@ride)
       end
     else
-      redirect_to dashboard_path, alert: "You don't have permission to complete this ride."
+      set_flash(:alert, "You don't have permission to complete this ride.")
+      redirect_to dashboard_path
     end
   end
 
@@ -247,32 +250,32 @@ class RidesController < ApplicationController
       @ride.status = :cancelled
 
       if @ride.save
+        set_flash(:notice, "Ride cancelled successfully.")
+
         respond_to do |format|
-          format.html { redirect_to dashboard_path, notice: "Ride cancelled successfully." }
+          format.html { redirect_to dashboard_path }
           format.turbo_stream {
-            flash.now[:notice] = "Ride cancelled successfully."
             render turbo_stream: [
               turbo_stream.replace("ride_details_#{@ride.id}", ""),
-              turbo_stream.update("flash", partial: "shared/flash")
+              render_flash_turbo_stream
             ]
           }
         end
       else
+        error_message = "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}"
+        set_flash(:alert, error_message)
+
         respond_to do |format|
-          format.html { redirect_to ride_path(@ride), alert: "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}" }
-          format.turbo_stream {
-            flash.now[:alert] = "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}"
-            render turbo_stream.update("flash", partial: "shared/flash")
-          }
+          format.html { redirect_to ride_path(@ride) }
+          format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
         end
       end
     else
+      set_flash(:alert, "You don't have permission to cancel this ride.")
+
       respond_to do |format|
-        format.html { redirect_to dashboard_path, alert: "You don't have permission to cancel this ride." }
-        format.turbo_stream {
-          flash.now[:alert] = "You don't have permission to cancel this ride."
-          render turbo_stream.update("flash", partial: "shared/flash")
-        }
+        format.html { redirect_to dashboard_path }
+        format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
       end
     end
   end
@@ -282,29 +285,28 @@ class RidesController < ApplicationController
     if @ride.security_code == params[:security_code]
       @ride.update(status: "in_progress", start_time: Time.current)
 
-      respond_to do |format|
-        format.html { redirect_to @ride, notice: "Ride started successfully!" }
-        format.turbo_stream {
-          flash.now[:notice] = "Ride started successfully!"
+      set_flash(:notice, "Ride started successfully!")
 
+      respond_to do |format|
+        format.html { redirect_to @ride }
+        format.turbo_stream {
           # Broadcast the status change
           broadcast_ride_acceptance(@ride, current_user)
 
           render turbo_stream: [
             turbo_stream.replace("ride_#{@ride.id}",
-                                partial: "rides/ride_card",
-                                locals: { ride: @ride.reload, current_user: current_user }),
-            turbo_stream.update("flash", partial: "shared/flash")
+                              partial: "rides/ride_card",
+                              locals: { ride: @ride.reload, current_user: current_user }),
+            render_flash_turbo_stream
           ]
         }
       end
     else
+      set_flash(:alert, "Invalid security code. Please try again.")
+
       respond_to do |format|
-        format.html { redirect_to @ride, alert: "Invalid security code. Please try again." }
-        format.turbo_stream {
-          flash.now[:alert] = "Invalid security code. Please try again."
-          render turbo_stream.update("flash", partial: "shared/flash")
-        }
+        format.html { redirect_to @ride }
+        format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
       end
     end
   end
