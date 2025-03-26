@@ -311,33 +311,6 @@ class RidesController < ApplicationController
     end
   end
 
-  # Test email templates (development only)
-  def test_emails
-    if Rails.env.development?
-      @ride = Ride.last
-
-      case params[:email_type]
-      when "confirmation"
-        UserMailer.ride_confirmation(@ride).deliver_now
-      when "accepted"
-        UserMailer.ride_accepted(@ride).deliver_now
-      when "driver_arrived"
-        UserMailer.driver_arrived(@ride).deliver_now
-      when "completion_passenger"
-        UserMailer.ride_completion_passenger(@ride).deliver_now
-      when "completion_driver"
-        UserMailer.ride_completion_driver(@ride).deliver_now
-      else
-        render plain: "Invalid email type"
-        return
-      end
-
-      render plain: "Email sent: #{params[:email_type]}"
-    else
-      render plain: "Only available in development"
-    end
-  end
-
   # GET /rides/1/driver_location
   def driver_location
     # Get the driver's current location
