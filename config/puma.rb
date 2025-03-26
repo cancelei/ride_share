@@ -32,6 +32,16 @@ port ENV.fetch("PORT", 3000)
 
 bind "tcp://0.0.0.0:" + ENV.fetch("PORT", "3000")
 
+# Set the number of workers based on environment
+workers_count = ENV.fetch("WEB_CONCURRENCY") { Rails.env.production? || Rails.env.staging? ? 2 : 1 }
+workers workers_count
+
+# Puma worker timeout
+worker_timeout 60
+
+# Preload the application to reduce memory usage across workers
+preload_app!
+
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
 
@@ -41,3 +51,24 @@ plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
+
+# Add worker-specific before_fork and on_worker_boot hooks
+before_fork do
+  ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+  
+  # Force GC before forking to reduce memory footprint of workers
+  GC.compact if GC.respond_to?(:compact)
+  GC.start
+end
+
+on_worker_boot do
+  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+end
+
+# Add worker specific shutdown hook
+on_worker_shutdown do
+  ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+end
+
+# Periodically check if we should restart workers
+worker_check_interval 30
