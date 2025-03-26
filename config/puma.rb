@@ -55,7 +55,7 @@ pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 # Add worker-specific before_fork and on_worker_boot hooks
 before_fork do
   ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
-  
+
   # Force GC before forking to reduce memory footprint of workers
   GC.compact if GC.respond_to?(:compact)
   GC.start

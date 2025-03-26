@@ -2,23 +2,23 @@
 if defined?(GC) && !Rails.env.test?
   # Run garbage collection after each request in development mode
   if Rails.env.development?
-    require 'objspace'
-    
+    require "objspace"
+
     Rails.application.middleware.insert_before(0, Rack::Runtime) do |app|
       lambda do |env|
         # Run GC before processing request
         GC.start(full_mark: true) if rand < 0.01 # 1% chance to run full GC
-        
+
         result = app.call(env)
-        
+
         # Run GC after processing request
         GC.start(full_mark: false) if rand < 0.1 # 10% chance to run regular GC
-        
+
         result
       end
     end
   end
-  
+
   # Configure GC for production
   if Rails.env.production? || Rails.env.staging?
     # Reduce memory fragmentation and encourage the GC to run more aggressively
@@ -30,4 +30,4 @@ if defined?(GC) && !Rails.env.test?
       oldmalloc_limit_max: 128_000_000 # Maximum oldmalloc_limit
     )
   end
-end 
+end
