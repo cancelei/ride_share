@@ -20,14 +20,26 @@ if defined?(GC) && !Rails.env.test?
   end
 
   # Configure GC for production
-  if Rails.env.production? || Rails.env.staging?
-    # Reduce memory fragmentation and encourage the GC to run more aggressively
-    GC.configure(
-      malloc_limit: 16_000_000,       # Run major GC when malloc exceeds this value
-      malloc_limit_max: 32_000_000,   # Maximum malloc_limit
-      malloc_limit_growth_factor: 1.4, # Growth factor for malloc_limit
-      oldmalloc_limit: 16_000_000,    # Run major GC when oldmalloc exceeds this value
-      oldmalloc_limit_max: 128_000_000 # Maximum oldmalloc_limit
-    )
+  if Rails.env.production?
+    # Individual setters instead of configure
+    if GC.respond_to?(:malloc_limit=)
+      GC.malloc_limit = 16_000_000
+    end
+
+    if GC.respond_to?(:malloc_limit_max=)
+      GC.malloc_limit_max = 32_000_000
+    end
+
+    if GC.respond_to?(:malloc_limit_growth_factor=)
+      GC.malloc_limit_growth_factor = 1.4
+    end
+
+    if GC.respond_to?(:oldmalloc_limit=)
+      GC.oldmalloc_limit = 16_000_000
+    end
+
+    if GC.respond_to?(:oldmalloc_limit_max=)
+      GC.oldmalloc_limit_max = 128_000_000
+    end
   end
 end
