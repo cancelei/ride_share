@@ -33,10 +33,10 @@ port ENV.fetch("PORT", 3000)
 bind "tcp://0.0.0.0:" + ENV.fetch("PORT", "3000")
 
 # Set the number of workers based on environment
-workers_count = ENV.fetch("WEB_CONCURRENCY") { Rails.env.production? || Rails.env.staging? ? 2 : 1 }
+workers_count = ENV.fetch("WEB_CONCURRENCY") { Rails.env.production? ? 2 : 1 }
 workers workers_count
 
-# Puma worker timeout
+# Worker timeout (restart workers if they're stuck)
 worker_timeout 60
 
 # Preload the application to reduce memory usage across workers
@@ -52,7 +52,7 @@ plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 
-# Add worker-specific before_fork and on_worker_boot hooks
+# Before forking, disconnect active connections
 before_fork do
   ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
 
@@ -61,8 +61,11 @@ before_fork do
   GC.start
 end
 
+# After worker boots, reconnect to the database
 on_worker_boot do
   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+  # Start GC after worker boot to clean up memory
+  GC.start if rand < 0.5
 end
 
 # Add worker specific shutdown hook
