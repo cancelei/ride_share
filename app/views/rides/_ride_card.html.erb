@@ -55,6 +55,40 @@
       </div>
     <% end %>
     
+    <!-- Driver Arrived Alert for Passengers -->
+    <% if ride.waiting_for_passenger_boarding? && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %>
+      <div id="driver_arrived_alert_<%= ride.id %>" class="mb-4 bg-purple-100 border-l-4 border-purple-500 p-4 rounded-md animate-bounce">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3 flex-1">
+            <p class="text-sm text-purple-800 font-bold">
+              Your driver has arrived at the pickup location!
+            </p>
+            <p class="mt-1 text-sm text-purple-700">
+              Please meet your driver and share your security code to start the ride.
+            </p>
+            <div class="mt-2 flex items-center">
+              <div class="bg-white rounded-md px-6 py-3 text-2xl font-bold tracking-wider text-purple-700 inline-block shadow-sm">
+                <%= ride.security_code %>
+              </div>
+              <div class="ml-3 text-xs text-purple-600">
+                <span class="inline-flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  Share this code with driver
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
     <!-- Driver Information and Payment Methods for Passengers -->
     <% if show_driver_payment_info?(ride, current_user) %>
       <%= render "rides/driver_payment_info", ride: ride %>
@@ -155,71 +189,111 @@
       </div>
     <% end %>
     
-    <!-- Security Code Verification (Only for accepted rides and drivers) -->
-    <% if ride.status == "accepted" && current_user&.present? %>
-      <% if current_user.role_driver? && current_user.driver_profile == ride.driver %>
-        <div class="mt-4 pt-4 border-t border-gray-200">
-          <h3 class="text-sm font-medium text-gray-900 mb-2">Verify Security Code</h3>
-          <p class="text-xs text-gray-500 mb-2">Ask the passenger for their 4-digit security code to start the ride.</p>
-          <%= form_with(url: verify_security_code_ride_path(ride), method: :post, 
-                        class: "flex items-center gap-2", 
-                        id: "security_code_form_#{ride.id}",
-                        data: { turbo: true }) do |form| %>
-            <%= form.text_field :security_code,
-                class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm",
-                placeholder: "Enter 4-digit code",
-                maxlength: 4,
-                required: true %>
-            <%= form.submit "Verify & Start",
-                class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
-                data: { disable_with: "Verifying..." } %>
-          <% end %>
-          
-          <!-- Google Maps Navigation Section -->
-          <div class="mt-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
-            <h4 class="text-sm font-medium text-gray-900 mb-2 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    <!-- Security Code Verification (Only for waiting_for_passenger_boarding rides and drivers) -->
+    <% if ride.waiting_for_passenger_boarding? && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <!-- Include driver waiting message -->
+        <%= render "rides/driver_waiting_message", ride: ride %>
+        
+        <h3 class="text-sm font-medium text-gray-900 mb-2 mt-4">Verify Security Code</h3>
+        <p class="text-xs text-gray-500 mb-2">Ask the passenger for their 4-digit security code to start the ride.</p>
+        <%= form_with(url: verify_security_code_ride_path(ride), method: :post, 
+                      class: "flex items-center gap-2", 
+                      id: "security_code_form_#{ride.id}",
+                      data: { turbo: true }) do |form| %>
+          <%= form.text_field :security_code,
+              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm",
+              placeholder: "Enter 4-digit code",
+              maxlength: 4,
+              required: true %>
+          <%= form.submit "Verify & Start",
+              class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
+              data: { disable_with: "Verifying..." } %>
+        <% end %>
+        
+        <!-- Cancel Button -->
+        <div class="mt-4">
+          <%= button_to cancel_ride_path(ride),
+                method: :post,
+                class: "w-full rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition-colors",
+                data: { 
+                  turbo: true,
+                  confirm: "Are you sure you want to cancel this ride? This cannot be undone."
+                } do %>
+            <div class="flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
-              Navigate to Passenger
-            </h4>
-            
-            <div class="mb-3">
-              <p class="text-xs text-gray-500">Use Google Maps to navigate to pickup location and then to destination.</p>
+              Cancel Ride
             </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Navigation and Arrived Button (Only for accepted rides and drivers) -->
+    <% if ride.status == "accepted" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <!-- Google Maps Navigation Section -->
+        <div class="mt-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
+          <h4 class="text-sm font-medium text-gray-900 mb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Navigate to Passenger
+          </h4>
+          
+          <div class="mb-3">
+            <p class="text-xs text-gray-500">Use Google Maps to navigate to pickup location and then to destination.</p>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-2">
+            <%# Google Maps URL with waypoints: current location -> pickup -> dropoff %>
+            <% pickup_address = CGI.escape(ride.pickup_address || ride.pickup_location) %>
+            <% dropoff_address = CGI.escape(ride.dropoff_address || ride.dropoff_location) %>
+            <% google_maps_url = "https://www.google.com/maps/dir/?api=1&destination=#{pickup_address}&travelmode=driving" %>
+            <% google_maps_full_route_url = "https://www.google.com/maps/dir/?api=1&waypoints=#{pickup_address}&destination=#{dropoff_address}&travelmode=driving" %>
             
-            <div class="flex flex-col sm:flex-row gap-2">
-              <%# Google Maps URL with waypoints: current location -> pickup -> dropoff %>
-              <% pickup_address = CGI.escape(ride.pickup_address || ride.pickup_location) %>
-              <% dropoff_address = CGI.escape(ride.dropoff_address || ride.dropoff_location) %>
-              <% google_maps_url = "https://www.google.com/maps/dir/?api=1&destination=#{pickup_address}&travelmode=driving" %>
-              <% google_maps_full_route_url = "https://www.google.com/maps/dir/?api=1&waypoints=#{pickup_address}&destination=#{dropoff_address}&travelmode=driving" %>
-              
-              <%= link_to google_maps_url, 
-                  target: "_blank", 
-                  class: "flex-1 flex items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 shadow-sm transition-colors",
-                  rel: "noopener noreferrer" do %>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="16" />
-                  <line x1="8" y1="12" x2="16" y2="12" />
+            <%= link_to google_maps_url, 
+                target: "_blank", 
+                class: "flex-1 flex items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 shadow-sm transition-colors",
+                rel: "noopener noreferrer" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+              <span>Navigate to Pickup</span>
+            <% end %>
+            
+            <%= link_to google_maps_full_route_url, 
+                target: "_blank", 
+                class: "flex-1 flex items-center justify-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 shadow-sm transition-colors",
+                rel: "noopener noreferrer" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span>View Complete Route</span>
+            <% end %>
+          </div>
+
+          <!-- "I've Arrived" Button -->
+          <div class="mt-4">
+            <%= button_to arrived_at_pickup_ride_path(ride), 
+                        method: :post,
+                        class: "w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors",
+                        data: { turbo: true } do %>
+              <div class="flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                 </svg>
-                <span>Navigate to Pickup</span>
-              <% end %>
-              
-              <%= link_to google_maps_full_route_url, 
-                  target: "_blank", 
-                  class: "flex-1 flex items-center justify-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 shadow-sm transition-colors",
-                  rel: "noopener noreferrer" do %>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                <span>View Complete Route</span>
-              <% end %>
-            </div>
+                I've Arrived at Pickup
+              </div>
+            <% end %>
+            <p class="text-xs text-gray-500 mt-1 text-center">Click when you've reached the pickup location</p>
           </div>
         </div>
-      <% end %>
+      </div>
     <% end %>
     
     <!-- Expandable Details Section -->

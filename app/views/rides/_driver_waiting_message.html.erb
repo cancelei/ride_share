@@ -1,0 +1,36 @@
+<%# Display only when the ride is in waiting_for_passenger_boarding status %>
+<% if ride.waiting_for_passenger_boarding? %>
+  <div id="waiting_message_for_ride_<%= ride.id %>" class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200" 
+       data-controller="waiting-timer"
+       data-waiting-timer-id-value="<%= ride.id %>"
+       data-waiting-timer-seconds-value="180">
+    <h3 class="text-lg font-semibold text-blue-700 mb-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Waiting for passenger
+    </h3>
+    
+    <p class="mb-3 text-blue-700">
+      You've marked yourself as arrived at the pickup location. The passenger has been notified.
+    </p>
+    
+    <div class="flex items-center mb-3">
+      <div class="flex-1 bg-gray-200 rounded-full h-2">
+        <div data-waiting-timer-target="bar" class="bg-blue-500 h-2 rounded-full" style="width: 100%;"></div>
+      </div>
+      <span data-waiting-timer-target="display" class="ml-2 text-sm text-blue-700 font-medium">3:00</span>
+    </div>
+    
+    <div class="text-sm text-blue-700">
+      <p>Please wait for 3 minutes for the passenger. If they don't arrive:</p>
+      <ul class="list-disc list-inside mt-1 mb-3">
+        <li>Try calling the passenger</li>
+        <li>Check nearby for anyone waiting</li>
+        <li>Look for messages from the passenger</li>
+      </ul>
+    </div>
+  </div>
+<% else %>
+  <div id="driver_waiting_message"></div>
+<% end %> 

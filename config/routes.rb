@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       post :start
       post :finish
       post :verify_security_code
+      post :arrived_at_pickup
       patch :mark_as_paid
       patch :accept
       patch :complete

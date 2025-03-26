@@ -27,7 +27,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Driver Assigned - Your RideFlow Ride"
+        subject: "Driver Assigned to your Ride via RideFlow"
       )
     end
 
@@ -82,6 +82,18 @@ class UserMailer < ApplicationMailer
       end
     end
 
+    def ride_in_progress(ride)
+      @ride = ride
+      @passenger = ride.passenger.user
+      @driver = ride.driver.user
+      @url = UserMailer.mailer_url
+
+      mail(
+        to: @passenger.email,
+        subject: "Your Ride Has Started - RideFlow"
+      )
+    end
+
     def ride_confirmation(ride)
       @ride = ride
       @passenger = ride.passenger.user
@@ -89,7 +101,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Ride Confirmation - RideFlow"
+        subject: "Confirmed Ride Request via RideFlow"
       )
     end
 end

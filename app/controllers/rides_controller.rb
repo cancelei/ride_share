@@ -1,6 +1,6 @@
 class RidesController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid complete cancel verify_security_code driver_location ]
+  before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid complete cancel verify_security_code driver_location arrived_at_pickup ]
   before_action :check_driver_requirements, only: %i[ new create ], if: -> { current_user&.role_driver? }
   before_action :ensure_passenger_profile, only: %i[ new create ], if: -> { current_user&.role_passenger? }
 
@@ -295,8 +295,8 @@ class RidesController < ApplicationController
 
           render turbo_stream: [
             turbo_stream.replace("ride_#{@ride.id}",
-                              partial: "rides/ride_card",
-                              locals: { ride: @ride.reload, current_user: current_user }),
+                            partial: "rides/ride_card",
+                            locals: { ride: @ride.reload, current_user: current_user }),
             render_flash_turbo_stream
           ]
         }
@@ -337,6 +337,48 @@ class RidesController < ApplicationController
       render json: location_data
     else
       render json: { error: "Driver location not available" }, status: :not_found
+    end
+  end
+
+  # POST /rides/1/arrived_at_pickup
+  def arrived_at_pickup
+    if current_user&.role_driver? && @ride.driver == current_user.driver_profile
+      @ride.arrived_time = Time.current
+      @ride.status = :waiting_for_passenger_boarding
+
+      if @ride.save
+        # Make sure both driver and passenger get updated UI
+        broadcast_ride_acceptance(@ride, current_user)
+
+        set_flash(:notice, "You've marked yourself as arrived. The passenger has been notified.")
+
+        respond_to do |format|
+          format.html { redirect_to @ride }
+          format.turbo_stream {
+            render turbo_stream: [
+              turbo_stream.replace("ride_#{@ride.id}",
+                partial: "rides/ride_card",
+                locals: { ride: @ride.reload, current_user: current_user }
+              ),
+              render_flash_turbo_stream
+            ]
+          }
+        end
+      else
+        set_flash(:alert, "Failed to update ride status: #{@ride.errors.full_messages.join(', ')}")
+
+        respond_to do |format|
+          format.html { redirect_to @ride }
+          format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+        end
+      end
+    else
+      set_flash(:alert, "You don't have permission to perform this action.")
+
+      respond_to do |format|
+        format.html { redirect_to dashboard_path }
+        format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+      end
     end
   end
 

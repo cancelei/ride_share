@@ -5,6 +5,8 @@ module RidesHelper
       "yellow"
     when "accepted"
       "blue"
+    when "waiting_for_passenger_boarding"
+      "purple"
     when "in_progress"
       "indigo"
     when "completed"
@@ -22,6 +24,8 @@ module RidesHelper
       "bg-yellow-100 text-yellow-800"
     when "accepted"
       "bg-blue-100 text-blue-800"
+    when "waiting_for_passenger_boarding"
+      "bg-purple-100 text-purple-800"
     when "in_progress"
       "bg-indigo-100 text-indigo-800"
     when "completed"
@@ -38,13 +42,13 @@ module RidesHelper
     when "history"
       rides.where(status: [ :completed, :cancelled ])
     else # 'active' or any other value
-      rides.where(status: [ :pending, :accepted, :in_progress ])
+      rides.where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress ])
     end
   end
 
   # Check if driver payment info should be displayed
   def show_driver_payment_info?(ride, current_user)
-    (ride.status == "accepted" || ride.status == "in_progress") &&
+    (ride.status == "accepted" || ride.status == "waiting_for_passenger_boarding" || ride.status == "in_progress") &&
       current_user&.role_passenger? &&
       current_user&.passenger_profile == ride.passenger
   end

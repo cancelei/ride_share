@@ -24,12 +24,13 @@ class Ride < ApplicationRecord
   enum :status, {
     pending: "pending",
     accepted: "accepted",
+    waiting_for_passenger_boarding: "waiting_for_passenger_boarding",
     in_progress: "in_progress",
     completed: "completed",
     cancelled: "cancelled"
   }
 
-  scope :active_rides, -> { where(status: [ :pending, :accepted, :in_progress ]) }
+  scope :active_rides, -> { where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress ]) }
   scope :historical_rides, -> { where(status: [ :completed, :cancelled ]) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
   scope :past, -> { where(status: [ :completed ]) }
@@ -113,6 +114,7 @@ class Ride < ApplicationRecord
     case status
     when "pending" then "bg-yellow-100 text-yellow-800"
     when "accepted" then "bg-blue-100 text-blue-800"
+    when "waiting_for_passenger_boarding" then "bg-purple-100 text-purple-800"
     when "in_progress" then "bg-indigo-100 text-indigo-800"
     when "completed" then "bg-green-100 text-green-800"
     when "cancelled" then "bg-red-100 text-red-800"
@@ -194,8 +196,10 @@ class Ride < ApplicationRecord
       case status
       when "accepted"
         deliver_email(UserMailer, :ride_accepted, self)
-      when "in_progress"
+      when "waiting_for_passenger_boarding"
         deliver_email(UserMailer, :driver_arrived, self)
+      when "in_progress"
+        deliver_email(UserMailer, :ride_in_progress, self)
       when "completed"
         deliver_email(UserMailer, :ride_completion_passenger, self)
         deliver_email(UserMailer, :ride_completion_driver, self)
@@ -231,9 +235,9 @@ class Ride < ApplicationRecord
         }
       )
 
-      # Direct broadcast to the specific ride card when status changes to accepted
-      if status == "accepted"
-        Rails.logger.debug "DEBUG: Broadcasting accepted status to passenger's ride card"
+      # Direct broadcast to the specific ride card when status changes to accepted or waiting_for_passenger_boarding
+      if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
+        Rails.logger.debug "DEBUG: Broadcasting status #{status} to passenger's ride card"
 
         Turbo::StreamsChannel.broadcast_replace_to(
           "user_#{passenger.user_id}_rides",
@@ -266,9 +270,9 @@ class Ride < ApplicationRecord
         }
       )
 
-      # Direct broadcast to the specific ride card when status changes to accepted
-      if status == "accepted"
-        Rails.logger.debug "DEBUG: Broadcasting accepted status to driver's ride card"
+      # Direct broadcast to the specific ride card when status changes to accepted or other states
+      if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
+        Rails.logger.debug "DEBUG: Broadcasting status #{status} to driver's ride card"
 
         Turbo::StreamsChannel.broadcast_replace_to(
           "user_#{driver.user_id}_rides",
@@ -313,7 +317,7 @@ class Ride < ApplicationRecord
 
   def determine_tab_type
     case status
-    when "pending", "accepted", "in_progress"
+    when "pending", "accepted", "waiting_for_passenger_boarding", "in_progress"
       "active"
     when "completed", "cancelled"
       "past"
