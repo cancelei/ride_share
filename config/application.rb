@@ -11,6 +11,9 @@ module RideShare
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 
+    # Load lib directory
+    config.autoload_paths += %W[#{config.root}/lib]
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
@@ -19,6 +22,9 @@ module RideShare
     if Rails.env.development? || Rails.env.test?
       Dotenv::Rails.load
     end
+
+    # Set ActiveJob queue adapter
+    config.active_job.queue_adapter = :solid_queue
 
     # Configuration for the application, engines, and railties goes here.
     #

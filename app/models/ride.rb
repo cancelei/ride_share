@@ -7,6 +7,7 @@ class Ride < ApplicationRecord
   include RideStatusBroadcaster
   include ActionView::RecordIdentifier
   include PriceCalculator
+  include EmailNotification
   default_scope -> { kept }
 
   belongs_to :driver, class_name: "DriverProfile", optional: true
@@ -67,6 +68,9 @@ class Ride < ApplicationRecord
 
   attribute :participants_count, :integer, default: 0
   attribute :paid, :boolean, default: false
+
+  # Configure email notifications for different ride states
+  notify_by_email after_update: true, on: :handle_state_change_notifications
 
   def titleize
     ride.status
@@ -181,6 +185,23 @@ class Ride < ApplicationRecord
     self.estimated_duration_minutes = (duration_seconds / 60.0).round
 
     calculate_price
+  end
+
+  # Handle notifications based on state changes
+  def handle_state_change_notifications
+    if saved_change_to_state?
+      case state
+      when "pending"
+        deliver_email(UserMailer, :ride_confirmation, self)
+      when "accepted"
+        deliver_email(UserMailer, :ride_accepted, self)
+      when "arrived"
+        deliver_email(UserMailer, :driver_arrived, self)
+      when "completed"
+        deliver_email(UserMailer, :ride_completion_passenger, self)
+        deliver_email(UserMailer, :ride_completion_driver, self)
+      end
+    end
   end
 
   private

@@ -1,3 +1,36 @@
+# RideFlow
+
+RideFlow is a ride-sharing application built with Ruby on Rails.
+
+## Environment URLs
+
+- Production: https://rideflow.live
+- Staging: https://staging.rideflow.live
+- Development: http://localhost:3000
+
+## Email Configuration
+
+Emails are sent in production and staging environments, and are only logged in development.
+
+## Background Jobs
+
+This application uses SolidQueue for background job processing, including email delivery.
+
+### Running the Worker
+
+To process background jobs locally, run the following command:
+
+```bash
+bin/rails solid_queue:work
+```
+
+For production/staging environments, you'll want to run a dedicated worker process using a process manager like systemd or Kamal.
+
+### Monitoring Jobs
+
+You can monitor jobs through the SolidQueue web interface at `/solid_queue` 
+(admin-only access in production/staging).
+
 # Ride Flow - Network State Apps
 
 A Ruby on Rails application that helps you find the best ride for your trips, it has an extensive roadmap that could be already implemented without any updates on the readme.

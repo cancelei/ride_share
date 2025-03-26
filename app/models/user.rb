@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   include DriverLocationBroadcaster
   include Discard::Model
+  include EmailNotification
   default_scope -> { kept }
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
@@ -26,12 +27,15 @@ class User < ApplicationRecord
   has_one :passenger_profile, -> { with_discarded }, dependent: :destroy
   has_one :company_profile, -> { with_discarded }, dependent: :destroy
 
-  after_create :send_welcome_email
   before_discard :discard_profiles
   before_undiscard :undiscard_profiles
 
-  def send_welcome_email
-      UserMailer.welcome_email(self).deliver_now
+  # Configure email notifications
+  notify_by_email after_create: true
+
+  # Email notification methods
+  def send_creation_email
+    deliver_email(UserMailer, :welcome_email, self)
   end
 
   def full_name

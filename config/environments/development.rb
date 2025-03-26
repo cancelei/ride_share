@@ -1,6 +1,10 @@
 require "active_support/core_ext/integer/time"
+require "email_interceptor"
+
 
 Rails.application.configure do
+  ActionMailer::Base.register_interceptor(EmailInterceptor)
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Make code changes take effect immediately without server restart.
@@ -79,6 +83,10 @@ Rails.application.configure do
 
   # Configure Letter Opener to use 'letter_opener_web' instead of the default GTK-based preview
   config.action_mailer.delivery_method = :letter_opener_web
-  config.action_mailer.perform_deliveries = true
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  config.action_mailer.perform_deliveries = false # Don't actually send emails
+  config.action_mailer.logger = ActiveSupport::Logger.new(STDOUT)
+
+  # Set the Active Job queue adapter to solid_queue
+  config.active_job.queue_adapter = :solid_queue
 end

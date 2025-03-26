@@ -73,4 +73,13 @@ Rails.application.routes.draw do
   if Rails.env.development?
     get "test_email/:email_type", to: "application#test_email", as: :test_email
   end
+
+  # SolidQueue Web UI
+  if Rails.env.production? || Rails.env.staging?
+    authenticate :user, lambda { |u| u.admin? } do
+      mount SolidQueue::Engine, at: "/solid_queue"
+    end
+  else
+    mount SolidQueue::Engine, at: "/solid_queue"
+  end
 end
