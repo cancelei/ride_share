@@ -31,11 +31,7 @@ class User < ApplicationRecord
   before_undiscard :undiscard_profiles
 
   def send_welcome_email
-    if Rails.env.production?
       UserMailer.welcome_email(self).deliver_now
-    else
-      puts "Welcome email not sent in development environment"
-    end
   end
 
   def full_name
