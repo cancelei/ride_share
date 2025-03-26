@@ -71,9 +71,10 @@ class Ride < ApplicationRecord
 
   # Configure email notifications for different ride statuses
   notify_by_email after_update: true, on: :handle_status_change_notifications
+  notify_by_email after_create: true, on: :send_creation_notification
 
   def titleize
-    ride.status
+    status.to_s.humanize
   end
 
   def assign_driver(driver, vehicle)
@@ -191,17 +192,20 @@ class Ride < ApplicationRecord
   def handle_status_change_notifications
     if saved_change_to_status?
       case status
-      when "pending"
-        deliver_email(UserMailer, :ride_confirmation, self)
       when "accepted"
         deliver_email(UserMailer, :ride_accepted, self)
-      when "arrived"
+      when "in_progress"
         deliver_email(UserMailer, :driver_arrived, self)
       when "completed"
         deliver_email(UserMailer, :ride_completion_passenger, self)
         deliver_email(UserMailer, :ride_completion_driver, self)
       end
     end
+  end
+
+  # Send notification when ride is first created
+  def send_creation_notification
+    deliver_email(UserMailer, :ride_confirmation, self)
   end
 
   private
