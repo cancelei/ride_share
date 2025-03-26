@@ -1,5 +1,5 @@
 class RidesController < ApplicationController
-  before_action :authenticate_user!, except: [ :index, :show, :test_emails ]
+  before_action :authenticate_user!, except: [ :index, :show ]
   before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid complete cancel verify_security_code driver_location ]
   before_action :check_driver_requirements, only: %i[ new create ], if: -> { current_user&.role_driver? }
   before_action :ensure_passenger_profile, only: %i[ new create ], if: -> { current_user&.role_passenger? }
