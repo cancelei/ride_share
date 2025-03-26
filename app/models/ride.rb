@@ -69,8 +69,8 @@ class Ride < ApplicationRecord
   attribute :participants_count, :integer, default: 0
   attribute :paid, :boolean, default: false
 
-  # Configure email notifications for different ride states
-  notify_by_email after_update: true, on: :handle_state_change_notifications
+  # Configure email notifications for different ride statuses
+  notify_by_email after_update: true, on: :handle_status_change_notifications
 
   def titleize
     ride.status
@@ -187,10 +187,10 @@ class Ride < ApplicationRecord
     calculate_price
   end
 
-  # Handle notifications based on state changes
-  def handle_state_change_notifications
-    if saved_change_to_state?
-      case state
+  # Handle notifications based on status changes
+  def handle_status_change_notifications
+    if saved_change_to_status?
+      case status
       when "pending"
         deliver_email(UserMailer, :ride_confirmation, self)
       when "accepted"
