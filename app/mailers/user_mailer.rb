@@ -2,7 +2,7 @@ class UserMailer < ApplicationMailer
     default from: "admin@rideflow.live" # Use your Brevo verified email
 
     # Helper method to determine the correct host based on environment
-    def mailer_url
+    def self.mailer_url
       case Rails.env
       when "production"
         "https://rideflow.live"
