@@ -1,16 +1,16 @@
-# Configure Solid Queue to use fewer processes
-Rails.application.config.solid_queue.concurrency = ENV.fetch("SOLID_QUEUE_CONCURRENCY", 2).to_i
+# Configure Solid Queue with correct configuration API
+SolidQueue.configure do |config|
+  # Configure workers
+  config.dispatch_process = {
+    worker_pool_size: ENV.fetch("SOLID_QUEUE_CONCURRENCY", 2).to_i
+  }
 
-# Configure supervisor to manage fewer workers
-Rails.application.config.solid_queue.supervisor_options = {
-  max_workers: ENV.fetch("SOLID_QUEUE_MAX_WORKERS", 2).to_i,
-  polling_interval: 5, # seconds between checks
-  heartbeat_interval: 30 # seconds between heartbeats
-}
+  # Configure polling interval
+  config.polling_interval = 5.seconds
 
-# Configure dispatcher to prevent too many queued jobs
-Rails.application.config.solid_queue.dispatcher_options = {
-  batch_size: 50,
-  polling_interval: 5,
-  max_threads: 5
-}
+  # Configure maintenance processes
+  config.maintenance_interval = 30.seconds
+
+  # Configure dispatcher
+  config.dispatcher_dispatch_batch_size = 50
+end
