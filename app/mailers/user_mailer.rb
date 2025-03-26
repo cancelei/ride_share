@@ -2,7 +2,7 @@ class UserMailer < ApplicationMailer
     default from: "admin@rideflow.live" # Use your Brevo verified email
 
     # Helper method to determine the correct host based on environment
-    def self.mailer_url
+    def mailer_url
       case Rails.env
       when "production"
         "https://rideflow.live"
@@ -15,7 +15,7 @@ class UserMailer < ApplicationMailer
 
     def welcome_email(user)
       @user = user
-      @url = self.mailer_url
+      @url = UserMailer.mailer_url
       mail(to: @user.email, subject: "Welcome to RideFlow")
     end
 
@@ -23,7 +23,7 @@ class UserMailer < ApplicationMailer
       @ride = ride
       @passenger = ride.passenger.user
       @driver = ride.driver.user
-      @url = self.mailer_url
+      @url = UserMailer.mailer_url
 
       mail(
         to: @passenger.email,
@@ -36,7 +36,7 @@ class UserMailer < ApplicationMailer
       @passenger = ride.passenger.user
       @driver = ride.driver.user
       @security_code = ride.security_code
-      @url = self.mailer_url
+      @url = UserMailer.mailer_url
 
       mail(
         to: @passenger.email,
@@ -47,7 +47,7 @@ class UserMailer < ApplicationMailer
     def ride_completion_passenger(ride)
       @ride = ride
       @passenger = ride.passenger.user
-      @url = self.mailer_url
+      @url = UserMailer.mailer_url
 
       Rails.logger.info "Preparing passenger completion email for #{@passenger.email}"
 
@@ -66,7 +66,7 @@ class UserMailer < ApplicationMailer
     def ride_completion_driver(ride)
       @ride = ride
       @driver = ride.driver.user
-      @url = self.mailer_url
+      @url = UserMailer.mailer_url
 
       Rails.logger.info "Preparing driver completion email for #{@driver.email}"
 
@@ -85,7 +85,7 @@ class UserMailer < ApplicationMailer
     def ride_confirmation(ride)
       @ride = ride
       @passenger = ride.passenger.user
-      @url = self.mailer_url
+      @url = UserMailer.mailer_url
 
       mail(
         to: @passenger.email,
