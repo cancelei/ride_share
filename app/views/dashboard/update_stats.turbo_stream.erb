@@ -1,0 +1,15 @@
+<%= turbo_stream.replace "financial_summary_card" do %>
+  <%= render "dashboard/financial_summary" %>
+<% end %>
+
+<%= turbo_stream.replace "ride_statistics_card" do %>
+  <%= render "dashboard/ride_statistics" %>
+<% end %>
+
+<%= turbo_stream.replace "drivers_card" do %>
+  <%= render "dashboard/drivers_card" %>
+<% end %>
+
+<%= turbo_stream.replace "performance_card" do %>
+  <%= render "dashboard/performance_card" %>
+<% end %> 

@@ -1,0 +1,30 @@
+<% if company_driver.approved? %>
+  <%= button_to company_driver_path(company_driver), 
+              method: :delete,
+              form: { 
+                data: { turbo_confirm: "Are you sure you want to remove this driver from your company?" }
+              },
+              class: "text-red-600 hover:text-red-900 font-medium" do %>
+    Remove Driver
+  <% end %>
+<% else %>
+  <div class="flex space-x-2">
+    <%= button_to approve_company_driver_path(company_driver), 
+              method: :patch,
+              form: { data: { turbo: true } },
+              class: "text-green-600 hover:text-green-900 font-medium" do %>
+      Approve
+    <% end %>
+    
+    <%= button_to company_driver_path(company_driver), 
+              method: :delete,
+              form: { 
+                data: { 
+                  turbo_confirm: "Are you sure you want to reject this driver?"
+                }
+              },
+              class: "text-red-600 hover:text-red-900 font-medium" do %>
+      Reject
+    <% end %>
+  </div>
+<% end %> 

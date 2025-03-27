@@ -1,6 +1,14 @@
 Rails.application.routes.draw do
   resources :company_profiles
-  resources :company_drivers
+  resources :company_drivers, only: [ :index, :destroy ] do
+    collection do
+      post :add_self_as_driver
+    end
+
+    member do
+      patch :approve
+    end
+  end
   resources :rides do
     member do
       post :cancel
@@ -83,4 +91,7 @@ Rails.application.routes.draw do
   else
     mount SolidQueue::Engine, at: "/solid_queue"
   end
+
+  # For drivers to cancel their company join request
+  delete "driver/cancel_company_request", to: "driver_profiles#cancel_company_request"
 end

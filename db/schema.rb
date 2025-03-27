@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_27_011311) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_27_040604) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -47,6 +47,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_011311) do
     t.bigint "driver_profile_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "approved", default: "f"
     t.index ["company_profile_id"], name: "index_company_drivers_on_company_profile_id"
     t.index ["driver_profile_id"], name: "index_company_drivers_on_driver_profile_id"
   end

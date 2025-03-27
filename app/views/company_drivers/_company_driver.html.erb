@@ -1,0 +1,15 @@
+<% 
+  # If a driver_profile was passed instead of a company_driver
+  if company_driver.is_a?(DriverProfile)
+    driver_profile = company_driver
+    company_driver = CompanyDriver.find_by(company_profile_id: current_user.company_profile.id, driver_profile_id: driver_profile.id)
+  else
+    driver_profile = company_driver.driver_profile
+  end
+%>
+
+<% if company_driver.approved == 'true' %>
+  <%= render "company_drivers/approved_driver", company_driver: company_driver %>
+<% else %>
+  <%= render "company_drivers/unapproved_driver", company_driver: company_driver %>
+<% end %> 
