@@ -48,6 +48,10 @@ class RidesController < ApplicationController
 
   # GET /rides/new
   def new
+    if params[:user_id].present? && current_user.role_driver?
+      redirect_to dashboard_path, notice: "You cannot create a ride as a Driver."
+    end
+
     @ride = Ride.new
 
     if current_user&.role_driver? && current_user.driver_profile.nil?

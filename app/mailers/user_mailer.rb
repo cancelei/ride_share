@@ -40,7 +40,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Your Driver Will Arrive Soon - RideFlow"
+        subject: "Your Driver Arrived via RideFlow"
       )
     end
 
@@ -90,7 +90,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Your Ride Has Started - RideFlow"
+        subject: "Your Ride Has Started via RideFlow"
       )
     end
 
