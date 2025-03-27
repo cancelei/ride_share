@@ -1,16 +1,17 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <h1 class="text-3xl font-bold mb-8">Welcome, <%= @user.first_name %></h1>
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-3xl font-bold mb-6">Welcome, <%= current_user.first_name %></h1>
 
-  <%= turbo_stream_from "user_#{current_user.id}_dashboard" %>
-
-  <% if @user.role_admin? %>
-    <%= render "admin_dashboard" %>
-  <% elsif @user.role_driver? %>
-    <%= render "driver_dashboard" %>
-  <% elsif @user.role_company? %>
-    <%= render "company_dashboard" %>
+  <% case current_user.role %>
+  <% when "passenger" %>
+    <%= render "dashboard/passenger_dashboard" %>
+  <% when "driver" %>
+    <%= render "dashboard/driver_dashboard" %>
+  <% when "company" %>
+    <%= render "dashboard/company_dashboard" %>
   <% else %>
-    <%= render "passenger_dashboard" %>
+    <div class="bg-white rounded-lg shadow p-6">
+      <p>Please select a role to view the appropriate dashboard.</p>
+    </div>
   <% end %>
 </div>
 

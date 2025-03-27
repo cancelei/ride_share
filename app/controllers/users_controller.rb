@@ -80,28 +80,21 @@ class UsersController < ApplicationController
   end
 
   def toggle_role
-    # Only toggle between passenger and driver roles
-    current_role = current_user.role
+    # Get the requested role from params
+    new_role = params[:role]
 
-    new_role = User.roles.keys.include?(params[:role]) ? params[:role] : current_role
+    # Check if the role is valid using the User model's role enum
+    if User.roles.keys.include?(new_role)
+      current_user.update(role: new_role)
 
-    if current_user.update(role: new_role)
-      respond_to do |format|
-        format.html { redirect_to dashboard_path, notice: "Your role has been updated to #{new_role}." }
-        format.turbo_stream {
-          flash.now[:notice] = "Your role has been updated to #{new_role}."
-          redirect_to dashboard_path
-        }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_to dashboard_path, alert: "There was a problem changing your role." }
-        format.turbo_stream {
-          flash.now[:alert] = "There was a problem changing your role."
-          redirect_to dashboard_path
-        }
+      # If switching to company role and no company profile exists
+      if new_role == "company" && !current_user.company_profile.present?
+        flash[:notice] = "Please create a company profile to use all company features"
       end
     end
+
+    # Redirect back to dashboard
+    redirect_to dashboard_path
   end
 
   private

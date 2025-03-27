@@ -50,11 +50,54 @@ class DashboardController < ApplicationController
     when "company"
       tab_type = params[:type].to_s
 
-      # Safely get company profile or handle its absence
+      # Safely get company profile
       @company_profile = @user.company_profile
 
-      # Exit early with empty data if no company profile exists
-      if @company_profile.nil?
+      # If company profile exists, set up all necessary variables
+      if @company_profile.present?
+        # Get ONLY approved drivers associated with this company
+        approved_driver_ids = CompanyDriver.where(
+          company_profile_id: @company_profile.id,
+          approved: "true"
+        ).joins(:driver_profile).pluck("driver_profiles.id")
+
+        # Get all company drivers for the driver table display
+        @company_drivers = CompanyDriver.where(company_profile_id: @company_profile.id)
+                                      .includes(driver_profile: [ :user, :vehicles ])
+
+        # Handle case when no approved drivers exist
+        if approved_driver_ids.empty?
+          @active_rides = Ride.none
+          @completed_rides = Ride.none
+          @cancelled_rides = Ride.none
+          @filtered_rides = Ride.none
+          @last_week_rides_total = 0
+          @monthly_rides_total = 0
+        else
+          # Get rides only from approved drivers
+          all_rides = Ride.where(driver_id: approved_driver_ids).order(scheduled_time: :desc)
+
+          # Filter rides based on tab type using helper
+          @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
+
+          # Set the tab_type for the view
+          tab_type = "active" unless tab_type == "history"
+
+          # Aggregated statistics
+          @active_rides = all_rides.where(status: [ :accepted, :in_progress ])
+          @completed_rides = all_rides.where(status: :completed)
+          @cancelled_rides = all_rides.where(status: :cancelled)
+
+          # Financial statistics
+          @last_week_rides_total = all_rides.where(status: :completed)
+                                         .where("created_at >= ?", 1.week.ago)
+                                         .sum(:estimated_price)
+          @monthly_rides_total = all_rides.where(status: :completed)
+                                            .where("created_at >= ?", 30.days.ago)
+                                            .sum(:estimated_price)
+        end
+      else
+        # Set empty values for all variables to ensure the view doesn't crash
         @company_drivers = []
         @active_rides = Ride.none
         @completed_rides = Ride.none
@@ -63,54 +106,8 @@ class DashboardController < ApplicationController
         @last_week_rides_total = 0
         @monthly_rides_total = 0
 
-        # You might want to redirect to create a company profile here
-        # or show a message prompting the user to create one
-        flash.now[:notice] = "Please create a company profile to view the dashboard"
-
-        render "dashboard/show"
-        return
-      end
-
-      # Get ONLY approved drivers associated with this company
-      approved_driver_ids = CompanyDriver.where(
-        company_profile_id: @company_profile.id,
-        approved: "true"
-      ).joins(:driver_profile).pluck("driver_profiles.id")
-
-      # Get all company drivers for the driver table display
-      @company_drivers = CompanyDriver.where(company_profile_id: @company_profile.id)
-                                    .includes(driver_profile: [ :user, :vehicles ])
-
-      # Handle case when no approved drivers exist
-      if approved_driver_ids.empty?
-        @active_rides = Ride.none
-        @completed_rides = Ride.none
-        @cancelled_rides = Ride.none
-        @filtered_rides = Ride.none
-        @last_week_rides_total = 0
-        @monthly_rides_total = 0
-      else
-        # Get rides only from approved drivers
-        all_rides = Ride.where(driver_id: approved_driver_ids).order(scheduled_time: :desc)
-
-        # Filter rides based on tab type using helper
-        @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-        # Set the tab_type for the view
-        tab_type = "active" unless tab_type == "history"
-
-        # Aggregated statistics
-        @active_rides = all_rides.where(status: [ :accepted, :in_progress ])
-        @completed_rides = all_rides.where(status: :completed)
-        @cancelled_rides = all_rides.where(status: :cancelled)
-
-        # Financial statistics
-        @last_week_rides_total = all_rides.where(status: :completed)
-                                       .where("created_at >= ?", 1.week.ago)
-                                       .sum(:estimated_price)
-        @monthly_rides_total = all_rides.where(status: :completed)
-                                          .where("created_at >= ?", 30.days.ago)
-                                          .sum(:estimated_price)
+        # Optional: Add a flash message
+        flash.now[:notice] = "Please create a company profile to use the company dashboard"
       end
     else
       redirect_to root_path, alert: "Invalid user role"
