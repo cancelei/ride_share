@@ -38,7 +38,7 @@ class CompanyProfilesController < ApplicationController
   def update
     respond_to do |format|
       if @company_profile.update(company_profile_params)
-        format.html { redirect_to @company_profile, notice: "Company profile was successfully updated." }
+        format.html { redirect_to dashboard_path, notice: "Company profile was successfully updated." }
         format.json { render :show, status: :ok, location: @company_profile }
       else
         format.html { render :edit, status: :unprocessable_entity }
