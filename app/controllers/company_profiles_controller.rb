@@ -23,14 +23,10 @@ class CompanyProfilesController < ApplicationController
   def create
     @company_profile = CompanyProfile.new(company_profile_params)
 
-    respond_to do |format|
-      if @company_profile.save
-        format.html { redirect_to @company_profile, notice: "Company profile was successfully created." }
-        format.json { render :show, status: :created, location: @company_profile }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @company_profile.errors, status: :unprocessable_entity }
-      end
+    if @company_profile.save
+      redirect_to dashboard_path, notice: "Company profile was successfully created."
+    else
+      render :new, status: :unprocessable_entity
     end
   end
 
