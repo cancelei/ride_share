@@ -59,7 +59,7 @@
     <div class="info-box">
       <h3>Ride Information:</h3>
       <p><strong>Driver:</strong> <%= @driver.full_name %></p>
-      <p><strong>Vehicle:</strong> <%= @ride.vehicle.make %> <%= @ride.vehicle.model %> (<%= @ride.vehicle.color %>)</p>
+      <p><strong>Vehicle:</strong> <%= @ride.vehicle.brand %> <%= @ride.vehicle.model %> (<%= @ride.vehicle.color %>)</p>
       <p><strong>From:</strong> <%= @ride.pickup_address || @ride.pickup_location %></p>
       <p><strong>To:</strong> <%= @ride.dropoff_address || @ride.dropoff_location %></p>
       <p><strong>Estimated Price:</strong> <%= number_to_currency(@ride.estimated_price) %></p>
