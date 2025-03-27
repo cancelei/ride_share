@@ -350,10 +350,9 @@ class RidesController < ApplicationController
   # POST /rides/1/arrived_at_pickup
   def arrived_at_pickup
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      @ride.arrived_time = Time.current
-      @ride.status = :waiting_for_passenger_boarding
 
-      if @ride.save
+      if @ride.update(status: :waiting_for_passenger_boarding, arrived_time: Time.current)
+
         # Make sure both driver and passenger get updated UI
         broadcast_ride_acceptance(@ride, current_user)
 
