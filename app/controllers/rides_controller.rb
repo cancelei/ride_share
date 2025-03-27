@@ -246,8 +246,12 @@ class RidesController < ApplicationController
   end
 
   def cancel
-    if current_user&.role_passenger? && @ride.passenger == current_user.passenger_profile
+    if (current_user&.role_passenger? && @ride.passenger == current_user.passenger_profile) ||
+       (current_user&.role_driver? && @ride.driver == current_user.driver_profile && @ride.can_be_cancelled_by_driver?)
+
       @ride.status = :cancelled
+      @ride.cancellation_reason = params[:cancellation_reason]
+      @ride.cancelled_by = current_user.role
 
       if @ride.save
         set_flash(:notice, "Ride cancelled successfully.")
@@ -256,7 +260,10 @@ class RidesController < ApplicationController
           format.html { redirect_to dashboard_path }
           format.turbo_stream {
             render turbo_stream: [
-              turbo_stream.replace("ride_details_#{@ride.id}", ""),
+              turbo_stream.replace("ride_#{@ride.id}",
+                partial: "rides/ride_card",
+                locals: { ride: @ride.reload, current_user: current_user }
+              ),
               render_flash_turbo_stream
             ]
           }

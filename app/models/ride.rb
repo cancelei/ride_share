@@ -90,6 +90,10 @@ class Ride < ApplicationRecord
     in_progress?
   end
 
+  def can_be_cancelled_by_driver?
+    waiting_for_passenger_boarding?
+  end
+
   def start!
     self.start_time = Time.current
     self.status = :in_progress
