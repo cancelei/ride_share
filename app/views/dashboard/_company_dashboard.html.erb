@@ -364,7 +364,24 @@
     <div class="col-span-12 bg-white rounded-lg shadow p-6 text-center">
       <h2 class="text-2xl font-bold mb-4">Create Your Company Profile</h2>
       <p class="mb-6">You need to create a company profile to view the dashboard and manage drivers.</p>
-      <%= link_to "Create Company Profile", new_company_profile_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded" %>
+      <div class="flex justify-center space-x-4">
+        <%= link_to new_company_profile_path, 
+            class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition duration-150 ease-in-out" do %>
+          Create Company Profile
+        <% end %>
+        
+        <%= button_to toggle_role_path(role: 'passenger'), 
+            method: :patch,
+            class: "bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded border border-gray-300 transition duration-150 ease-in-out" do %>
+          Return to Passenger
+        <% end %>
+        
+        <%= button_to toggle_role_path(role: 'driver'), 
+            method: :patch,
+            class: "bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded border border-gray-300 transition duration-150 ease-in-out" do %>
+          Return to Driver
+        <% end %>
+      </div>
     </div>
   <% end %>
 </div>
