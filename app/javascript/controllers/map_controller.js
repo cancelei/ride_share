@@ -92,6 +92,32 @@ export default class extends Controller {
     }
   }
 
+  clearPickupLocation() {
+    this.clearLocationFields("pickup");
+  }
+
+  clearDropoffLocation() {
+    this.clearLocationFields("dropoff");
+  }
+
+  clearLocationFields(type) {
+    if (type === "pickup") {
+      if (this.hasPickupInputTarget) this.pickupInputTarget.value = "";
+      if (this.hasPickupAddressTarget) this.pickupAddressTarget.value = "";
+      if (this.hasPickupLatTarget) this.pickupLatTarget.value = "";
+      if (this.hasPickupLngTarget) this.pickupLngTarget.value = "";
+    } else if (type === "dropoff") {
+      if (this.hasDropoffInputTarget) this.dropoffInputTarget.value = "";
+      if (this.hasDropoffAddressTarget) this.dropoffAddressTarget.value = "";
+      if (this.hasDropoffLatTarget) this.dropoffLatTarget.value = "";
+      if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = "";
+    }
+
+    // Notify any listeners that locations have been cleared
+    this.notifyLocationChange();
+    this.clearMarker(type);
+  }
+
   addLocationListener() {
     window.addEventListener("pin-dropped", async (event) => {
       await this.pinDropped(event.detail);
@@ -632,7 +658,7 @@ export default class extends Controller {
       this.map.setZoom(15); // Zoom in enough to see the area
     }
 
-    if (pickupCoordinates && dropoffCoordinates) {
+    if (dropoffCoordinates) {
       this.createMarker(dropoffCoordinates, "D", "destination-marker");
       this.displayRoute(pickupCoordinates, dropoffCoordinates);
     }
@@ -655,6 +681,21 @@ export default class extends Controller {
       };
     }
     return null;
+  }
+
+  clearMarker(type) {
+    if (!this.currentMarkers) return;
+
+    this.currentMarkers = this.currentMarkers.filter((marker) => {
+      if (
+        (type === "pickup" && marker.type === "origin-marker") ||
+        (type === "dropoff" && marker.type === "destination-marker")
+      ) {
+        marker.setMap(null); // Remove the marker from the map
+        return false; // Exclude this marker from the list
+      }
+      return true; // Keep other markers
+    });
   }
 
   createMarker(position, label, type) {
