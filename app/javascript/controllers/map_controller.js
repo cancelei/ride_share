@@ -709,63 +709,82 @@ export default class extends Controller {
         return true;
       }) || [];
 
-    let markerColor = "#367CFF"; // Default blue
-    if (type === "origin-marker") {
-      markerColor = "#4CAF50"; // Green for pickup
-    } else if (type === "destination-marker") {
-      markerColor = "#F44336"; // Red for dropoff
-    } else if (type === "user-location-marker") {
-      markerColor = "#9C27B0"; // Purple for user's current location
-    }
-
-    // Create a marker using AdvancedMarkerElement if available
-    if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
-      const markerPin = new google.maps.marker.PinElement({
-        background: markerColor,
-        borderColor: "#FFFFFF",
-        glyphColor: "#FFFFFF",
-        glyph: label,
-        scale: 1.0,
-      });
+    if (type === "user-location-marker") {
+      // Create a blue dot with a loading effect for the user's current location
+      const markerElement = document.createElement("div");
+      markerElement.style.position = "absolute";
+      markerElement.style.width = "20px";
+      markerElement.style.height = "20px";
+      markerElement.style.backgroundColor = "#367CFF";
+      markerElement.style.borderRadius = "50%";
+      markerElement.style.boxShadow = "0 0 10px rgba(54, 124, 255, 0.5)";
+      markerElement.style.animation = "pulse 1.5s infinite";
 
       const marker = new google.maps.marker.AdvancedMarkerElement({
         position: position,
         map: this.map,
-        content: markerPin.element,
-        title:
-          type === "origin-marker"
-            ? "Pickup Location"
-            : type === "destination-marker"
-            ? "Dropoff Location"
-            : "Current Location",
+        content: markerElement,
+        title: "Current Location",
       });
 
       marker.type = type; // Store the type for later reference
       this.currentMarkers.push(marker);
     } else {
-      // Fallback to standard Marker if AdvancedMarkerElement is not available
-      const marker = new google.maps.Marker({
-        position: position,
-        label: label,
-        map: this.map,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: markerColor,
-          fillOpacity: 1,
-          strokeWeight: 1,
-          strokeColor: "#FFFFFF",
-          scale: 8,
-        },
-      });
+      let markerColor = "#367CFF"; // Default blue
+      if (type === "origin-marker") {
+        markerColor = "#4CAF50"; // Green for pickup
+      } else if (type === "destination-marker") {
+        markerColor = "#F44336"; // Red for dropoff
+      }
 
-      marker.type = type; // Store the type for later reference
-      this.currentMarkers.push(marker);
+      // Create a marker using AdvancedMarkerElement if available
+      if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+        const markerPin = new google.maps.marker.PinElement({
+          background: markerColor,
+          borderColor: "#FFFFFF",
+          glyphColor: "#FFFFFF",
+          glyph: label,
+          scale: 1.0,
+        });
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          position: position,
+          map: this.map,
+          content: markerPin.element,
+          title:
+            type === "origin-marker"
+              ? "Pickup Location"
+              : type === "destination-marker"
+              ? "Dropoff Location"
+              : "Location",
+        });
+
+        marker.type = type; // Store the type for later reference
+        this.currentMarkers.push(marker);
+      } else {
+        // Fallback to standard Marker if AdvancedMarkerElement is not available
+        const marker = new google.maps.Marker({
+          position: position,
+          label: label,
+          map: this.map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: markerColor,
+            fillOpacity: 1,
+            strokeWeight: 1,
+            strokeColor: "#FFFFFF",
+            scale: 8,
+          },
+        });
+
+        marker.type = type; // Store the type for later reference
+        this.currentMarkers.push(marker);
+      }
     }
   }
 
   async displayRoute(origin, destination) {
     try {
-      console.log("Fetching route from backend", { origin, destination });
       // Use our backend proxy to get directions
       const originStr = `${origin.lat},${origin.lng}`;
       const destinationStr = `${destination.lat},${destination.lng}`;
@@ -774,11 +793,8 @@ export default class extends Controller {
         `/maps/directions?origin=${originStr}&destination=${destinationStr}`
       );
       const routeData = await response.json();
-      console.log("Received route data", routeData);
 
       if (routeData.status === "OK") {
-        console.log("Route data OK, rendering on map");
-
         // Clear existing markers and polylines
         this.currentPolylines.forEach((polyline) => polyline.setMap(null));
         this.currentMarkers.forEach((marker) => (marker.map = null));
