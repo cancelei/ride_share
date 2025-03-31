@@ -62,27 +62,40 @@
 
       <!-- Dropoff Location -->
       <div class="mb-6">
-        <label for="dropoff_location" class="block text-sm font-medium text-gray-700 mb-1">Dropoff Location</label>
-        <div class="relative">
-          <input type="text"
-                id="dropoff_location"
-                name="ride[dropoff_address]"
-                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                placeholder="Enter dropoff location"
-                data-map-target="dropoffInput"
-                autocomplete="off" />
-          <div class="autocomplete-dropdown" data-map-target="dropoffSuggestions"></div>
-          <input type="hidden" name="ride[dropoff_address]" data-map-target="dropoffAddress">
-          <input type="hidden"
-                 id="dropoff_lat_field"
-                 name="ride[dropoff_lat]"
-                 data-map-target="dropoffLat">
-          <input type="hidden"
-                 id="dropoff_lng_field"
-                 name="ride[dropoff_lng]"
-                 data-map-target="dropoffLng">
-
-            <button type="button"
+        <div class="flex justify-between items-center mb-1">
+          <label for="dropoff_location" class="block text-sm font-medium text-gray-700">Dropoff Location</label>
+          <button type="button"
+                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  data-action="click->map#useCurrentLocation"
+                  data-type="dropoff">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Use current
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="relative flex-grow">
+            <input type="text"
+                  id="dropoff_location"
+                  name="ride[dropoff_address]"
+                  class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  placeholder="Enter dropoff location"
+                  data-map-target="dropoffInput"
+                  autocomplete="off" />
+            <div class="autocomplete-dropdown" data-map-target="dropoffSuggestions"></div>
+            <input type="hidden" name="ride[dropoff_address]" data-map-target="dropoffAddress">
+            <input type="hidden"
+                  id="dropoff_lat_field"
+                  name="ride[dropoff_lat]"
+                  data-map-target="dropoffLat">
+            <input type="hidden"
+                  id="dropoff_lng_field"
+                  name="ride[dropoff_lng]"
+                  data-map-target="dropoffLng">
+          </div>
+          <button type="button"
                 class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 data-action="click->map#clearDropoffLocation">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +103,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             Clear dropoff
-            </button>
+          </button>
         </div>
       </div>
 

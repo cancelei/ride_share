@@ -113,9 +113,22 @@ export default class extends Controller {
       if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = "";
     }
 
+    // Clear existing markers and route
+    if (this.currentMarkers) {
+      this.currentMarkers.forEach(marker => marker.setMap(null));
+      this.currentMarkers = this.currentMarkers.filter(marker => 
+        (type === "pickup" && marker.type !== "origin-marker") || 
+        (type === "dropoff" && marker.type !== "destination-marker")
+      );
+    }
+    
+    if (this.currentPolylines) {
+      this.currentPolylines.forEach(polyline => polyline.setMap(null));
+      this.currentPolylines = [];
+    }
+
     // Notify any listeners that locations have been cleared
     this.notifyLocationChange();
-    this.clearMarker(type);
   }
 
   addLocationListener() {
@@ -142,7 +155,7 @@ export default class extends Controller {
   }
 
   // Use the browser's geolocation API to get the current position
-  useCurrentLocation() {
+  useCurrentLocation(event) {
     if (!navigator.geolocation) {
       this.showLocationStatus(
         "Geolocation is not supported by your browser",
@@ -151,15 +164,16 @@ export default class extends Controller {
       return;
     }
 
+    const isDropoff = event?.target?.dataset?.type === 'dropoff';
     this.showLocationStatus("Getting your location...", "info");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        await this.reverseGeocode(latitude, longitude);
+        await this.reverseGeocode(latitude, longitude, isDropoff);
 
         // Trigger an event for the map controller to show the user's location
-        window.dispatchEvent(new CustomEvent("use-current-location"));
+        window.dispatchEvent(new CustomEvent("use-current-location", { detail: { isDropoff } }));
       },
       (error) => {
         console.error("Error getting location:", error);
@@ -189,11 +203,15 @@ export default class extends Controller {
   }
 
   // Reverse geocode coordinates to get address
-  async reverseGeocode(lat, lng) {
+  async reverseGeocode(lat, lng, isDropoff = false) {
     try {
-      if (!this.pickupAddressTarget.value) {
+      const targetInput = isDropoff ? this.dropoffInputTarget : this.pickupInputTarget;
+      const targetAddress = isDropoff ? this.dropoffAddressTarget : this.pickupAddressTarget;
+
+      if (!targetAddress.value) {
         this.showLocationStatus("Loading address information...", "info");
       }
+      
       const response = await fetch(
         `/places/reverse_geocode?lat=${lat}&lng=${lng}`
       );
@@ -208,12 +226,12 @@ export default class extends Controller {
         throw new Error(data.error);
       }
 
-      if (!this.pickupAddressTarget.value) {
-        // Update the pickup input with the address
-        this.pickupInputTarget.value = data.address;
+      if (!targetAddress.value) {
+        // Update the input with the address
+        targetInput.value = data.address;
 
         // Update the form fields with the location data
-        this.updateLocationFields(this.pickupInputTarget, data);
+        this.updateLocationFields(targetInput, data);
 
         this.showLocationStatus("Location found!", "success");
 
@@ -221,37 +239,16 @@ export default class extends Controller {
         window.dispatchEvent(
           new CustomEvent("locations:updated", {
             detail: {
-              pickupLat: parseFloat(lat),
-              pickupLng: parseFloat(lng),
-              dropoffLat: this.hasDropoffLatField()
-                ? parseFloat(this.dropoffLatTarget.value)
-                : null,
-              dropoffLng: this.hasDropoffLngField()
-                ? parseFloat(this.dropoffLngTarget.value)
-                : null,
-            },
-          })
-        );
-      } else {
-        this.dropoffInputTarget.value = data.address;
-
-        // Update the form fields with the location data
-        this.updateLocationFields(this.dropoffInputTarget, data);
-
-        this.showLocationStatus("Location found!", "success");
-
-        // Also notify the map controller to update
-        window.dispatchEvent(
-          new CustomEvent("locations:updated", {
-            detail: {
-              pickupLat: this.hasPickupLatField()
-                ? parseFloat(this.pickupLatTarget.value)
-                : null,
-              pickupLng: this.hasPickupLngField()
-                ? parseFloat(this.pickupLngTarget.value)
-                : null,
-              dropoffLat: parseFloat(lat),
-              dropoffLng: parseFloat(lng),
+              pickupLat: isDropoff ? 
+                (this.hasPickupLatField() ? parseFloat(this.pickupLatTarget.value) : null) : 
+                parseFloat(lat),
+              pickupLng: isDropoff ? 
+                (this.hasPickupLngField() ? parseFloat(this.pickupLngTarget.value) : null) : 
+                parseFloat(lng),
+              dropoffLat: isDropoff ? parseFloat(lat) : 
+                (this.hasDropoffLatField() ? parseFloat(this.dropoffLatTarget.value) : null),
+              dropoffLng: isDropoff ? parseFloat(lng) : 
+                (this.hasDropoffLngField() ? parseFloat(this.dropoffLngTarget.value) : null),
             },
           })
         );
@@ -320,6 +317,11 @@ export default class extends Controller {
     const query = event.target.value;
     if (query.length < 3) {
       this.clearSuggestions(event.target);
+      if (event.target === this.pickupInputTarget) {
+        this.clearPickupLocation();
+      } else if (event.target === this.dropoffInputTarget) {
+        this.clearDropoffLocation();
+      }
       return;
     }
 
@@ -656,10 +658,13 @@ export default class extends Controller {
       // Center the map on the pickup location
       this.map.setCenter(pickupCoordinates);
       this.map.setZoom(15); // Zoom in enough to see the area
+    } else if (dropoffCoordinates) {
+      this.createMarker(dropoffCoordinates, "D", "destination-marker");
+      this.map.setCenter(dropoffCoordinates);
+      this.map.setZoom(15); // Zoom in enough to see the area
     }
 
-    if (dropoffCoordinates) {
-      this.createMarker(dropoffCoordinates, "D", "destination-marker");
+    if (dropoffCoordinates && pickupCoordinates) {
       this.displayRoute(pickupCoordinates, dropoffCoordinates);
     }
   }
@@ -965,9 +970,10 @@ export default class extends Controller {
     });
 
     // Listen for current location usage
-    window.addEventListener("use-current-location", () => {
+    window.addEventListener("use-current-location", (event) => {
       console.log("Received use-current-location event");
-      this.showUserLocation();
+      const isDropoff = event.detail?.isDropoff;
+      this.showUserLocation(isDropoff);
     });
   }
 
@@ -1005,7 +1011,7 @@ export default class extends Controller {
     document.dispatchEvent(routeInfoEvent);
   }
 
-  showUserLocation() {
+  showUserLocation(isDropoff) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
