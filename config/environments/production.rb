@@ -60,7 +60,7 @@ Rails.application.configure do
   # config.action_mailer.smtp_settings = nil
 
   # Ignore bad email addresses and do not raise email delivery errors
-  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_caching = false
 
   # Set default URL options for your production environment

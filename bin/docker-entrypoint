@@ -13,8 +13,8 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
     # Start the Rails server in the background
     "${@}" &
     
-    # Start the solid_queue worker in the background
-    bundle exec solid_queue &
+    # Start the solid_queue worker using rails command
+    ./bin/rails solid_queue:work &
     
     # Wait for any process to exit
     wait -n
