@@ -14,7 +14,7 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
     "${@}" &
     
     # Start the solid_queue worker using rails command
-    ./bin/rails solid_queue:work &
+    ./bin/rails solid_queue:start &
     
     # Wait for any process to exit
     wait -n
