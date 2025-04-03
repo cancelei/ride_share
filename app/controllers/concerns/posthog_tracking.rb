@@ -10,31 +10,31 @@ module PosthogTracking
   private
 
   def track_to_posthog(event_name, properties = {})
-    return unless PostHogAnalytics.client && current_user
+    return unless $posthog && current_user
 
     event_properties = default_properties.merge(properties)
 
-    PostHogAnalytics.capture(
-      event_name,
-      current_user.id,
-      event_properties
-    )
+    $posthog.capture({
+      distinct_id: current_user.id,
+      event: event_name,
+      properties: event_properties
+    })
   end
 
   def track_page_view
-    return unless PostHogAnalytics.client && current_user
+    return unless $posthog && current_user
 
-    PostHogAnalytics.capture(
-      "$pageview",
-      current_user.id,
-      {
+    $posthog.capture({
+      distinct_id: current_user.id,
+      event: "$pageview",
+      properties: {
         '$current_url': request.url,
         '$pathname': request.path,
         '$host': request.host,
         'controller': controller_name,
         'action': action_name
       }.merge(default_properties)
-    )
+    })
   end
 
   def default_properties

@@ -12,7 +12,7 @@ module PosthogTrackable
   private
 
   def track_to_posthog(event_name, properties = {})
-    return unless PostHogAnalytics.client
+    return unless $posthog
 
     # Merge default properties with custom properties
     event_properties = default_properties.merge(properties)
@@ -22,11 +22,11 @@ module PosthogTrackable
     event_properties[:environment] = Rails.env
 
     # Send event to PostHog
-    PostHogAnalytics.capture(
-      event_name,
-      posthog_distinct_id,
-      event_properties
-    )
+    $posthog.capture({
+      distinct_id: posthog_distinct_id,
+      event: event_name,
+      properties: event_properties
+    })
   end
 
   def posthog_distinct_id

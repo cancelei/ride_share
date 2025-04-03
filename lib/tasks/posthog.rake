@@ -5,26 +5,26 @@ namespace :posthog do
   task test: :environment do
     puts "\n=== Testing PostHog Integration ==="
 
-    if defined?(PostHogAnalytics) && PostHogAnalytics.client
+    if defined?($posthog) && $posthog
       begin
         # Test basic event capture
-        PostHogAnalytics.capture(
-          "test_event",
-          "test_user_123",
-          { test: true, environment: Rails.env }
-        )
+        $posthog.capture({
+          distinct_id: "test_user_123",
+          event: "test_event",
+          properties: { test: true, environment: Rails.env }
+        })
         puts "✅ Successfully sent test event"
 
         # Test feature flag
-        flag_value = PostHogAnalytics.feature_enabled?("test-flag", "test_user_123")
+        flag_value = $posthog.is_feature_enabled("test-flag", "test_user_123")
         puts "✅ Successfully checked feature flag (value: #{flag_value})"
 
         # Test group analytics
-        PostHogAnalytics.group_identify(
-          "company",
-          "test_company_123",
-          { name: "Test Company", industry: "Technology" }
-        )
+        $posthog.group_identify({
+          group_type: "company",
+          group_key: "test_company_123",
+          properties: { name: "Test Company", industry: "Technology" }
+        })
         puts "✅ Successfully identified group"
 
         # Print configuration
@@ -61,7 +61,7 @@ namespace :posthog do
     end
 
     # Check PostHog client initialization
-    if defined?(PostHogAnalytics) && PostHogAnalytics.client
+    if defined?($posthog) && $posthog
       puts "✅ PostHog client is properly initialized"
     else
       puts "❌ PostHog client is not initialized"
