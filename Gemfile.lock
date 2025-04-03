@@ -249,6 +249,8 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.9)
+    posthog-ruby (2.7.2)
+      concurrent-ruby (~> 1)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
@@ -460,6 +462,7 @@ DEPENDENCIES
   letter_opener
   letter_opener_web
   pg (~> 1.1)
+  posthog-ruby
   propshaft
   pry
   puma (>= 5.0)
