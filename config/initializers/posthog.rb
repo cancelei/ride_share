@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+if ENV["POSTHOG_API_KEY"].present?
+  PostHogClient = PostHog::Client.new(api_key: ENV["POSTHOG_API_KEY"])
+else
+  Rails.logger.warn("PostHog API key missing. PostHogClient is disabled.")
+  PostHogClient = nil
+end
 # PostHog configuration
 if defined?(PostHog)
   $posthog = PostHog::Client.new({
