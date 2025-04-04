@@ -66,6 +66,10 @@
           <strong>Requested Seats:</strong> <%= @ride.requested_seats %>
         </div>
         
+        <div class="detail-row highlight">
+          <strong>Estimated Price:</strong> $<%= number_with_precision(@ride.estimated_price, precision: 2) %>
+        </div>
+        
         <% if @ride.special_instructions.present? %>
           <div class="detail-row">
             <strong>Special Instructions:</strong> <%= @ride.special_instructions %>
