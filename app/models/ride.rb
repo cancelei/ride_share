@@ -17,7 +17,7 @@ class Ride < ApplicationRecord
   before_create :set_status, :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update
   after_commit :broadcast_ride_status, if: :saved_change_to_status?
-  after_create :ensure_status_set
+  after_create :ensure_status_set, :notify_available_drivers
   before_validation :set_coordinates_from_params
   before_save :sync_locations
 
@@ -373,6 +373,13 @@ class Ride < ApplicationRecord
       self.dropoff_location = dropoff_address
     elsif dropoff_location.present? && (dropoff_address.blank? || dropoff_address != dropoff_location)
       self.dropoff_address = dropoff_location
+    end
+  end
+
+  def notify_available_drivers
+    # Only notify drivers if no specific driver is assigned yet
+    if driver_id.nil?
+      RideNotificationService.notify_drivers(self)
     end
   end
 end

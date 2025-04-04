@@ -1,0 +1,21 @@
+Hello <%= @driver.first_name %>,
+
+A new ride has been requested in your area. Here are the details:
+
+Pickup: <%= @ride.pickup_address %>
+<% if @ride.pickup_lat && @ride.pickup_lng %>(<%= @ride.pickup_lat %>, <%= @ride.pickup_lng %>)<% end %>
+
+Dropoff: <%= @ride.dropoff_address %>
+<% if @ride.dropoff_lat && @ride.dropoff_lng %>(<%= @ride.dropoff_lat %>, <%= @ride.dropoff_lng %>)<% end %>
+
+Scheduled Time: <%= @ride.scheduled_time&.strftime("%B %d, %Y at %I:%M %p") %>
+Distance: <%= @ride.distance_km %> km
+Estimated Duration: <%= @ride.estimated_duration_minutes %> minutes
+Requested Seats: <%= @ride.requested_seats %>
+
+<% if @ride.special_instructions.present? %>Special Instructions: <%= @ride.special_instructions %><% end %>
+
+Log in to your account to accept this ride.
+
+Best regards,
+RideShare Team 
