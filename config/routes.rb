@@ -73,8 +73,8 @@ Rails.application.routes.draw do
     end
   end
 
-  # Mount Letter Opener Web interface in development
-  if Rails.env.development?
+  # Mount letter_opener web interface for development and staging
+  if Rails.env.development? || Rails.env.staging?
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
   end
 

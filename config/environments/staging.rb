@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require "email_interceptor"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -9,10 +10,8 @@ Rails.application.configure do
   # Eager load code on boot for better performance and memory savings (ignored by Rake tasks).
   config.eager_load = true
 
-  # Full error reports are disabled.
+  # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local = false
-
-  # Turn on fragment caching in view templates.
   config.action_controller.perform_caching = true
 
   # Cache assets for far-future expiry since they are all digest stamped.
@@ -47,14 +46,14 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  config.cache_store = :memory_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
   # Set delivery method to API
-  config.action_mailer.delivery_method = :api
+  config.action_mailer.delivery_method = :letter_opener_web
 
   # Remove any SMTP settings
   # config.action_mailer.smtp_settings = nil
@@ -64,7 +63,7 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   # Set default URL options for your staging environment
-  config.action_mailer.default_url_options = { host: ENV["APP_HOST"] || "staging.rideflow.live", protocol: "https" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("HOST_URL", "staging.example.com") }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -92,4 +91,19 @@ Rails.application.configure do
   config.assets.compile = false
   config.action_mailer.perform_deliveries = true
   config.action_mailer.deliver_later_queue_name = :mailers
+
+  # Enable detailed email logging
+  config.action_mailer.logger = ActiveSupport::Logger.new(STDOUT)
+  config.action_mailer.logger.level = Logger::DEBUG
+
+  # Print deprecation notices to the Rails logger.
+  config.active_support.deprecation = :log
+
+  # Enable verbose query logs
+  config.active_record.verbose_query_logs = true
+
+  # Enable verbose job logs
+  config.active_job.verbose_enqueue_logs = true
+
+  ActionMailer::Base.register_interceptor(EmailInterceptor)
 end

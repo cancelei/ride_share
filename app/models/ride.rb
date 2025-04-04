@@ -377,9 +377,19 @@ class Ride < ApplicationRecord
   end
 
   def notify_available_drivers
-    # Only notify drivers if no specific driver is assigned yet
-    if driver_id.nil?
+    Rails.logger.info "Checking if drivers should be notified for ride #{id}"
+
+    # Only notify drivers if no specific driver is assigned yet and we have a passenger
+    if driver_id.nil? && passenger.present?
+      Rails.logger.info "Notifying drivers about new ride #{id} from #{pickup_address} to #{dropoff_address}"
       RideNotificationService.notify_drivers(self)
+    else
+      Rails.logger.info "Skipping driver notification for ride #{id}: " +
+        "#{driver_id.present? ? 'driver already assigned' : 'no passenger present'}"
     end
+  rescue => e
+    Rails.logger.error "Error in notify_available_drivers for ride #{id}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    # Don't raise the error to prevent ride creation from failing
   end
 end

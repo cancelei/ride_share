@@ -18,4 +18,26 @@ class EmailInterceptor
 
     @app.call(env)
   end
+
+  def self.delivering_email(message)
+    # Log email details
+    Rails.logger.debug "=" * 50
+    Rails.logger.debug "DELIVERING EMAIL"
+    Rails.logger.debug "From: #{message.from}"
+    Rails.logger.debug "To: #{message.to}"
+    Rails.logger.debug "Subject: #{message.subject}"
+    Rails.logger.debug "Body: #{message.body}"
+    Rails.logger.debug "=" * 50
+
+    # In staging, redirect all emails to a safe email address if specified
+    if Rails.env.staging? && ENV["STAGING_EMAIL_RECIPIENT"].present?
+      message.to = [ ENV["STAGING_EMAIL_RECIPIENT"] ]
+      message.subject = "[STAGING] #{message.subject}"
+    end
+
+    # Add environment tag to subject
+    unless Rails.env.production?
+      message.subject = "[#{Rails.env.upcase}] #{message.subject}"
+    end
+  end
 end
