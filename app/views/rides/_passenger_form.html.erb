@@ -10,11 +10,20 @@
     </div>
   <% end %>
 
-  <div class="w-full lg:flex">
-    <!-- Left side - Form -->
-    <div class="lg:w-1/2 p-6 rounded-2xl shadow-lg bg-white mb-6 lg:mb-0">
-      <h2 class="text-xl font-medium text-gray-700 mb-6">Book a ride</h2>
+  <div class="w-full flex flex-wrap">
+    <!-- Map (appears first on mobile) -->
+    <div class="w-full order-first mb-6 lg:order-2 lg:w-1/2 lg:pl-6 lg:mb-0">
+      <div
+        id="map-container"
+        class="w-full h-[400px] lg:h-[500px] rounded-lg overflow-hidden map-container"
+        data-map-target="mapContainer"
+        data-action="map:locationChanged@document->map#updateFromPlaces">
+      </div>
+    </div>
 
+    <!-- Form (appears second on mobile) -->
+    <div class="w-full order-2 lg:order-first lg:w-1/2 p-6 rounded-2xl shadow-lg bg-white">
+      
       <!-- Location search box with Google Maps style -->
       <div class="bg-white rounded-lg shadow-md p-4 mb-6">
         <!-- Pickup Location -->
@@ -172,16 +181,6 @@
         <%= link_to "Back to dashboard", rides_path, class: "rounded-lg px-4 py-2 bg-gray-100 hover:bg-gray-50 text-blue-600 border border-blue-600 font-medium text-center" %>
       </div>
     </div>
-
-    <!-- Right side - Map -->
-    <div class="lg:w-1/2 lg:pl-6 h-full">
-      <div
-        id="map-container"
-        class="w-full h-[400px] lg:h-full rounded-lg overflow-hidden map-container"
-        data-map-target="mapContainer"
-        data-action="map:locationChanged@document->map#updateFromPlaces">
-      </div>
-    </div>
   </div>
 <% end %>
 
@@ -285,22 +284,18 @@
   }
 
   /* Mobile optimization */
-  @media (max-width: 768px) {
-    .contents {
-      flex-direction: column;
+  @media (max-width: 1023px) {
+    .map-container {
+      min-height: 400px;
     }
-
-    .lg\:flex {
-      flex-direction: column;
+    
+    /* Override any potential default order behavior */
+    .order-first {
+      order: -1 !important;
     }
-
-    .lg\:w-1\/2 {
-      width: 100%;
-    }
-
-    .lg\:pl-6 {
-      padding-left: 0;
-      padding-top: 1.5rem;
+    
+    .order-2 {
+      order: 2 !important;
     }
   }
   
