@@ -1,4 +1,57 @@
+    const keysToRemove = [
+      'userAllowedGeolocation',
+      'lastPickupLocation',
+      'lastDropoffLocation',
+      'lastRoute',
+      'mapState',
+      'rideData',
+      'pickupAddress',
+      'dropoffAddress',
+      'pickupLat',
+      'pickupLng',
+      'dropoffLat',
+      'dropoffLng'
+    ];
+    
+    // Search for any items that might contain these keywords
+    const keywordsToMatch = ['pickup', 'dropoff', 'location', 'ride', 'map', 'route', 'geocode'];
+    
+    // Clear all localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      
+      // If the key matches any of our targeted keys or contains any keywords
+      if (keysToRemove.includes(key) || keywordsToMatch.some(keyword => key.toLowerCase().includes(keyword))) {
+        console.log(`Clearing localStorage item: ${key}`);
+        localStorage.removeItem(key);
+      }
+    }
+    
+    // Clear all sessionStorage
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      
+      // If the key matches any of our targeted keys or contains any keywords
+      if (keysToRemove.includes(key) || keywordsToMatch.some(keyword => key.toLowerCase().includes(keyword))) {
+        console.log(`Clearing sessionStorage item: ${key}`);
+        sessionStorage.removeItem(key);
+      }
+    }
+    
+    // More thorough cookie clearing - clear any cookies that might be related
+    document.cookie.split(';').forEach(cookie => {
+      const cookieName = cookie.split('=')[0].trim();
 import { Controller } from "@hotwired/stimulus";
+      
+      // If the cookie name matches any of our keywords
+      if (keysToRemove.includes(cookieName) || 
+          keywordsToMatch.some(keyword => cookieName.toLowerCase().includes(keyword))) {
+        console.log(`Clearing cookie: ${cookieName}`);
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
+    
+    // Wait for map to initialize before clearing markers and routes
 
 export default class extends Controller {
   static targets = [
@@ -32,6 +85,24 @@ export default class extends Controller {
   };
 
   connect() {
+    // Ensure we're in a truly fresh state
+    window.onbeforeunload = () => {
+      // Force-clear specific items immediately before page unload
+      localStorage.removeItem('userAllowedGeolocation');
+      localStorage.removeItem('lastPickupLocation');
+    if (this.map) {
+      console.log("Clearing map markers and routes");
+      
+      // Clear all markers
+      if (this.currentMarkers) {
+        this.currentMarkers.forEach(marker => {
+      localStorage.removeItem('lastDropoffLocation');
+      sessionStorage.clear(); // Aggressively clear all session storage
+    };
+    
+    // Clear all previous data on page load
+    this.clearPreviousRideData();
+    
     if (this.hasMapContainerTarget) {
       this.initializeMap();
       this.listenForLocationChanges();
@@ -138,6 +209,28 @@ export default class extends Controller {
     
     if (this.currentPolylines) {
       this.currentPolylines.forEach(polyline => polyline.setMap(null));
+          if (marker.setMap) marker.setMap(null);
+        });
+        this.currentMarkers = [];
+      }
+      
+      // Clear all polylines
+      if (this.currentPolylines) {
+        this.currentPolylines.forEach(polyline => {
+          if (polyline.setMap) polyline.setMap(null);
+        });
+        this.currentPolylines = [];
+      }
+      
+      // Clear alternative routes
+      if (this.alternativeRoutes) {
+        this.alternativeRoutes.forEach(route => {
+          if (route.polyline && route.polyline.setMap) route.polyline.setMap(null);
+        });
+        this.alternativeRoutes = [];
+      }
+      
+      // Reset map to default view if possible
       this.currentPolylines = [];
     }
 
@@ -170,6 +263,8 @@ export default class extends Controller {
 
   // Use the browser's geolocation API to get the current position
   useCurrentLocation(event) {
+    console.log("useCurrentLocation called with event:", event);
+    
     if (!navigator.geolocation) {
       this.showLocationStatus(
         "Geolocation is not supported by your browser",
@@ -179,28 +274,123 @@ export default class extends Controller {
     }
 
     // Get the type from the button's data attribute if event exists
-    // Default to pickup if called without an event (e.g., during initialization)
     const isDropoff = event && event.currentTarget ? event.currentTarget.dataset.type === 'dropoff' : false;
     console.log(`Using current location for ${isDropoff ? 'dropoff' : 'pickup'}`);
     
+    // First, properly clear the location (using the same function as the X button)
+    if (isDropoff) {
+      this.clearDropoffLocation(); // Use the method that the X button uses
+      console.log("Cleared dropoff location");
+    } else {
+      this.clearPickupLocation(); // Use the method that the X button uses
+      console.log("Cleared pickup location");
+    }
+    
+    // Show loading status
     this.showLocationStatus(`Getting your ${isDropoff ? 'dropoff' : 'pickup'} location...`, "info");
+    
+    // Show loading indicator in the input field
+    if (isDropoff && this.hasDropoffInputTarget) {
+      this.dropoffInputTarget.classList.add('loading');
+    } else if (!isDropoff && this.hasPickupInputTarget) {
+      this.pickupInputTarget.classList.add('loading');
+    }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        await this.reverseGeocode(latitude, longitude, isDropoff);
-
-        // Trigger an event for the map controller to show the user's location
-        window.dispatchEvent(new CustomEvent("use-current-location", { detail: { isDropoff } }));
+        console.log(`Got coordinates: ${latitude}, ${longitude} for ${isDropoff ? 'dropoff' : 'pickup'}`);
+        
+        try {
+          // Update controller values directly first
+          if (isDropoff) {
+            this.dropoffLatValue = latitude;
+            this.dropoffLngValue = longitude;
+            // Also update form fields directly to ensure they're set
+            if (this.hasDropoffLatTarget) this.dropoffLatTarget.value = latitude;
+            if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = longitude;
+            console.log("Set dropoff values directly:", this.dropoffLatTarget.value, this.dropoffLngTarget.value);
+          } else {
+            this.pickupLatValue = latitude;
+            this.pickupLngValue = longitude;
+            // Also update form fields directly to ensure they're set
+            if (this.hasPickupLatTarget) this.pickupLatTarget.value = latitude;
+            if (this.hasPickupLngTarget) this.pickupLngTarget.value = longitude;
+            console.log("Set pickup values directly:", this.pickupLatTarget.value, this.pickupLngTarget.value);
+          }
+        
+          // Get address with reverse geocoding
+          const targetInput = isDropoff ? this.dropoffInputTarget : this.pickupInputTarget;
+          const targetAddress = isDropoff ? this.dropoffAddressTarget : this.pickupAddressTarget;
+          
+          // Make a specific request for reverse geocoding
+          const response = await fetch(`/places/reverse_geocode?lat=${latitude}&lng=${longitude}`);
+          
+          if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Reverse geocode data:", data);
+          
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          
+          // Update the input fields directly
+          targetInput.value = data.address;
+          targetAddress.value = data.address;
+          console.log(`Set ${isDropoff ? 'dropoff' : 'pickup'} address to: ${data.address}`);
+          
+          // Remove loading indicator
+          if (isDropoff && this.hasDropoffInputTarget) {
+            this.dropoffInputTarget.classList.remove('loading');
+          } else if (!isDropoff && this.hasPickupInputTarget) {
+            this.pickupInputTarget.classList.remove('loading');
+          }
+          
+          // Update the map with the new location
+          console.log("Updating map after setting location");
+          this.updateMapWithCurrentLocations();
+          
+          // Store permission in localStorage for future use
+          localStorage.setItem("userAllowedGeolocation", "true");
+          
+          // Show success message
+          this.showLocationStatus(`${isDropoff ? 'Dropoff' : 'Pickup'} location set to your current location`, "success");
+          
+          // Notify other components about location update
+          const locationEvent = new CustomEvent("locations:updated", { 
+            detail: {
+              pickupLat: this.hasPickupLatTarget ? parseFloat(this.pickupLatTarget.value) : null,
+              pickupLng: this.hasPickupLngTarget ? parseFloat(this.pickupLngTarget.value) : null,
+              dropoffLat: this.hasDropoffLatTarget ? parseFloat(this.dropoffLatTarget.value) : null,
+              dropoffLng: this.hasDropoffLngTarget ? parseFloat(this.dropoffLngTarget.value) : null,
+            }
+          });
+          
+          console.log("Dispatching locations:updated event with values:", locationEvent.detail);
+          window.dispatchEvent(locationEvent);
+        } catch (error) {
+          console.error("Error in setting current location:", error);
+          this.showLocationStatus(`Error setting ${isDropoff ? 'dropoff' : 'pickup'} location: ${error.message}`, "error");
+          
+          // Remove loading indicator
+          if (isDropoff && this.hasDropoffInputTarget) {
+            this.dropoffInputTarget.classList.remove('loading');
+          } else if (!isDropoff && this.hasPickupInputTarget) {
+            this.pickupInputTarget.classList.remove('loading');
+          }
+        }
       },
       (error) => {
-        console.error("Error getting location:", error);
+        console.error("Geolocation error:", error);
         let errorMsg = "Error getting your location.";
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMsg =
-              "Location access denied. Please enable location services.";
+            errorMsg = "Location access denied. Please enable location services.";
+            localStorage.removeItem("userAllowedGeolocation");
             break;
           case error.POSITION_UNAVAILABLE:
             errorMsg = "Location information is unavailable.";
@@ -208,6 +398,13 @@ export default class extends Controller {
           case error.TIMEOUT:
             errorMsg = "Location request timed out.";
             break;
+        }
+
+        // Remove loading indicator
+        if (isDropoff && this.hasDropoffInputTarget) {
+          this.dropoffInputTarget.classList.remove('loading');
+        } else if (!isDropoff && this.hasPickupInputTarget) {
+          this.pickupInputTarget.classList.remove('loading');
         }
 
         this.showLocationStatus(errorMsg, "error");
@@ -662,6 +859,21 @@ export default class extends Controller {
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="16" x2="12" y2="12"></line>
           <line x1="12" y1="8" x2="12" y2="8"></line>
+      try {
+        this.map.setCenter({ lat: 0, lng: 0 });
+        this.map.setZoom(13);
+      } catch (error) {
+        console.log("Could not reset map view:", error);
+      }
+    }
+    
+    // Dispatch a custom event to notify any other components that we've reset
+    window.dispatchEvent(new CustomEvent('ride-data-cleared'));
+    
+    console.log("All previous ride data cleared");
+  }
+}
+
         </svg>
         <span>Traffic</span>
       </button>
@@ -1597,5 +1809,128 @@ export default class extends Controller {
 
     // Update the map with the new locations
     this.updateMapWithCurrentLocations();
+  }
+
+  // Add this new method to clear all previous ride data
+  clearPreviousRideData() {
+    console.log("Clearing all previous ride data on page load");
+    
+    // Clear form fields immediately
+    if (this.hasPickupInputTarget) this.pickupInputTarget.value = "";
+    if (this.hasPickupAddressTarget) this.pickupAddressTarget.value = "";
+    if (this.hasPickupLatTarget) this.pickupLatTarget.value = "";
+    if (this.hasPickupLngTarget) this.pickupLngTarget.value = "";
+    
+    if (this.hasDropoffInputTarget) this.dropoffInputTarget.value = "";
+    if (this.hasDropoffAddressTarget) this.dropoffAddressTarget.value = "";
+    if (this.hasDropoffLatTarget) this.dropoffLatTarget.value = "";
+    if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = "";
+    
+    // Reset controller values
+    this.pickupLatValue = null;
+    this.pickupLngValue = null;
+    this.dropoffLatValue = null;
+    this.dropoffLngValue = null;
+    
+    // Hide trip info if it exists
+    if (this.hasTripInfoTarget) {
+      this.tripInfoTarget.classList.add('hidden');
+    }
+    
+    // More aggressive clearing of ALL possible storage related to rides
+    // Clear ALL localStorage items that might be related to the map
+    const keysToRemove = [
+      'userAllowedGeolocation',
+      'lastPickupLocation',
+      'lastDropoffLocation',
+      'lastRoute',
+      'mapState',
+      'rideData',
+      'pickupAddress',
+      'dropoffAddress',
+      'pickupLat',
+      'pickupLng',
+      'dropoffLat',
+      'dropoffLng'
+    ];
+    
+    // Search for any items that might contain these keywords
+    const keywordsToMatch = ['pickup', 'dropoff', 'location', 'ride', 'map', 'route', 'geocode'];
+    
+    // Clear all localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      
+      // If the key matches any of our targeted keys or contains any keywords
+      if (keysToRemove.includes(key) || keywordsToMatch.some(keyword => key.toLowerCase().includes(keyword))) {
+        console.log(`Clearing localStorage item: ${key}`);
+        localStorage.removeItem(key);
+      }
+    }
+    
+    // Clear all sessionStorage
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      
+      // If the key matches any of our targeted keys or contains any keywords
+      if (keysToRemove.includes(key) || keywordsToMatch.some(keyword => key.toLowerCase().includes(keyword))) {
+        console.log(`Clearing sessionStorage item: ${key}`);
+        sessionStorage.removeItem(key);
+      }
+    }
+    
+    // More thorough cookie clearing - clear any cookies that might be related
+    document.cookie.split(';').forEach(cookie => {
+      const cookieName = cookie.split('=')[0].trim();
+      
+      // If the cookie name matches any of our keywords
+      if (keysToRemove.includes(cookieName) || 
+          keywordsToMatch.some(keyword => cookieName.toLowerCase().includes(keyword))) {
+        console.log(`Clearing cookie: ${cookieName}`);
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
+    
+    // Wait for map to initialize before clearing markers and routes
+    if (this.map) {
+      console.log("Clearing map markers and routes");
+      
+      // Clear all markers
+      if (this.currentMarkers) {
+        this.currentMarkers.forEach(marker => {
+          if (marker.setMap) marker.setMap(null);
+        });
+        this.currentMarkers = [];
+      }
+      
+      // Clear all polylines
+      if (this.currentPolylines) {
+        this.currentPolylines.forEach(polyline => {
+          if (polyline.setMap) polyline.setMap(null);
+        });
+        this.currentPolylines = [];
+      }
+      
+      // Clear alternative routes
+      if (this.alternativeRoutes) {
+        this.alternativeRoutes.forEach(route => {
+          if (route.polyline && route.polyline.setMap) route.polyline.setMap(null);
+        });
+        this.alternativeRoutes = [];
+      }
+      
+      // Reset map to default view if possible
+      try {
+        this.map.setCenter({ lat: 0, lng: 0 });
+        this.map.setZoom(13);
+      } catch (error) {
+        console.log("Could not reset map view:", error);
+      }
+    }
+    
+    // Dispatch a custom event to notify any other components that we've reset
+    window.dispatchEvent(new CustomEvent('ride-data-cleared'));
+    
+    console.log("All previous ride data cleared");
   }
 }
