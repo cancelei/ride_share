@@ -39,6 +39,7 @@ Rails.application.routes.draw do
   # Maps API routes that proxy Google Maps requests
   get "maps/directions"
   get "maps/map_details"
+  get "maps/traffic_info"
 
   devise_for :users, controllers: {
     registrations: "users/registrations",

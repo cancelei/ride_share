@@ -2,9 +2,14 @@ class MapsController < ApplicationController
   def directions
     return head :bad_request unless params[:origin] && params[:destination]
 
+    # Check if we should include alternative routes
+    alternatives = params[:alternatives] == "true"
+
     directions_data = GoogleMapsService.new.directions(
       params[:origin],
-      params[:destination]
+      params[:destination],
+      params[:mode] || "driving",
+      alternatives
     )
 
     render json: directions_data
@@ -28,5 +33,13 @@ class MapsController < ApplicationController
         region: "us" # Adjust as needed for your region
       }
     }
+  end
+
+  def traffic_info
+    return head :bad_request unless params[:location]
+
+    traffic_data = GoogleMapsService.new.traffic_info(params[:location])
+
+    render json: traffic_data
   end
 end

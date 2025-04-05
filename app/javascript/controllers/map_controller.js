@@ -14,6 +14,10 @@ export default class extends Controller {
     "dropoffLat",
     "dropoffLng",
     "locationStatus",
+    "tripInfo",
+    "tripDistance",
+    "tripDuration",
+    "tripPrice",
   ];
 
   static values = {
@@ -22,6 +26,9 @@ export default class extends Controller {
     dropoffLat: Number,
     dropoffLng: Number,
     debounce: { type: Number, default: 300 }, // 300ms debounce
+    mapStyle: { type: String, default: "default" },
+    showTraffic: { type: Boolean, default: true },
+    showAlternativeRoutes: { type: Boolean, default: true },
   };
 
   connect() {
@@ -64,6 +71,13 @@ export default class extends Controller {
     this.tryGetCurrentLocationOnLoad();
     this.addLocationListener();
     this.addInputListeners();
+    
+    // Initialize loading indicators
+    this.isLoadingPickup = false;
+    this.isLoadingDropoff = false;
+    
+    // Add click listener to map for location selection
+    this.mapClickListener = this.handleMapClick.bind(this);
   }
 
   addInputListeners() {
@@ -164,8 +178,12 @@ export default class extends Controller {
       return;
     }
 
-    const isDropoff = event?.target?.dataset?.type === 'dropoff';
-    this.showLocationStatus("Getting your location...", "info");
+    // Get the type from the button's data attribute if event exists
+    // Default to pickup if called without an event (e.g., during initialization)
+    const isDropoff = event && event.currentTarget ? event.currentTarget.dataset.type === 'dropoff' : false;
+    console.log(`Using current location for ${isDropoff ? 'dropoff' : 'pickup'}`);
+    
+    this.showLocationStatus(`Getting your ${isDropoff ? 'dropoff' : 'pickup'} location...`, "info");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -208,9 +226,7 @@ export default class extends Controller {
       const targetInput = isDropoff ? this.dropoffInputTarget : this.pickupInputTarget;
       const targetAddress = isDropoff ? this.dropoffAddressTarget : this.pickupAddressTarget;
 
-      if (!targetAddress.value) {
-        this.showLocationStatus("Loading address information...", "info");
-      }
+      this.showLocationStatus("Loading address information...", "info");
       
       const response = await fetch(
         `/places/reverse_geocode?lat=${lat}&lng=${lng}`
@@ -226,33 +242,31 @@ export default class extends Controller {
         throw new Error(data.error);
       }
 
-      if (!targetAddress.value) {
-        // Update the input with the address
-        targetInput.value = data.address;
+      // Update the input with the address
+      targetInput.value = data.address;
 
-        // Update the form fields with the location data
-        this.updateLocationFields(targetInput, data);
+      // Update the form fields with the location data
+      this.updateLocationFields(targetInput, data);
 
-        this.showLocationStatus("Location found!", "success");
+      this.showLocationStatus("Location found!", "success");
 
-        // Also notify the map controller to update
-        window.dispatchEvent(
-          new CustomEvent("locations:updated", {
-            detail: {
-              pickupLat: isDropoff ? 
-                (this.hasPickupLatField() ? parseFloat(this.pickupLatTarget.value) : null) : 
-                parseFloat(lat),
-              pickupLng: isDropoff ? 
-                (this.hasPickupLngField() ? parseFloat(this.pickupLngTarget.value) : null) : 
-                parseFloat(lng),
-              dropoffLat: isDropoff ? parseFloat(lat) : 
-                (this.hasDropoffLatField() ? parseFloat(this.dropoffLatTarget.value) : null),
-              dropoffLng: isDropoff ? parseFloat(lng) : 
-                (this.hasDropoffLngField() ? parseFloat(this.dropoffLngTarget.value) : null),
-            },
-          })
-        );
-      }
+      // Also notify the map controller to update
+      window.dispatchEvent(
+        new CustomEvent("locations:updated", {
+          detail: {
+            pickupLat: isDropoff ? 
+              (this.hasPickupLatField() ? parseFloat(this.pickupLatTarget.value) : null) : 
+              parseFloat(lat),
+            pickupLng: isDropoff ? 
+              (this.hasPickupLngField() ? parseFloat(this.pickupLngTarget.value) : null) : 
+              parseFloat(lng),
+            dropoffLat: isDropoff ? parseFloat(lat) : 
+              (this.hasDropoffLatField() ? parseFloat(this.dropoffLatTarget.value) : null),
+            dropoffLng: isDropoff ? parseFloat(lng) : 
+              (this.hasDropoffLngField() ? parseFloat(this.dropoffLngTarget.value) : null),
+          },
+        })
+      );
 
       return data;
     } catch (error) {
@@ -577,9 +591,23 @@ export default class extends Controller {
       const mapOptions = {
         zoom: 13,
         center: { lat: 0, lng: 0 },
-        mapTypeControl: false,
-        fullscreenControl: false,
-        streetViewControl: false,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+          position: google.maps.ControlPosition.TOP_RIGHT
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_TOP
+        },
+        streetViewControl: true,
+        streetViewControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_CENTER
+        }
       };
 
       // Use either mapId or styles, not both (mapId takes precedence)
@@ -591,7 +619,7 @@ export default class extends Controller {
         mapOptions.mapId = mapDetails.config.mapId;
       } else {
         console.log("Creating map instance with custom styles");
-        mapOptions.styles = this.getMapStyles();
+        mapOptions.styles = this.getMapStyles(this.mapStyleValue);
       }
 
       this.map = new google.maps.Map(this.mapContainerTarget, mapOptions);
@@ -600,34 +628,380 @@ export default class extends Controller {
       // Keep track of the current markers and polylines so we can clear them
       this.currentMarkers = [];
       this.currentPolylines = [];
+      this.alternativeRoutes = [];
+      
+      // Add traffic layer if enabled
+      if (this.showTrafficValue) {
+        this.trafficLayer = new google.maps.TrafficLayer();
+        this.trafficLayer.setMap(this.map);
+      }
+      
+      // Add click listener to map for location selection
+      this.map.addListener('click', this.mapClickListener);
 
       this.updateMapWithCurrentLocations();
       this.showUserLocation();
       this.enablePinDropFeature();
+      
+      // Add custom controls
+      this.addCustomControls();
+      
     } catch (error) {
       console.error("Failed to initialize map:", error);
     }
   }
+  
+  // Add custom controls to the map
+  addCustomControls() {
+    // Traffic toggle control
+    const trafficControlDiv = document.createElement('div');
+    trafficControlDiv.className = 'custom-map-control';
+    trafficControlDiv.innerHTML = `
+      <button class="map-control-button ${this.showTrafficValue ? 'active' : ''}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="8"></line>
+        </svg>
+        <span>Traffic</span>
+      </button>
+    `;
+    
+    trafficControlDiv.querySelector('button').addEventListener('click', () => {
+      this.toggleTraffic();
+      trafficControlDiv.querySelector('button').classList.toggle('active');
+    });
+    
+    this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(trafficControlDiv);
+    
+    // My location control
+    const myLocationDiv = document.createElement('div');
+    myLocationDiv.className = 'custom-map-control';
+    myLocationDiv.innerHTML = `
+      <button class="map-control-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <point cx="12" cy="12" r="3"></point>
+        </svg>
+        <span>My Location</span>
+      </button>
+    `;
+    
+    myLocationDiv.querySelector('button').addEventListener('click', () => {
+      this.showUserLocation();
+    });
+    
+    this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(myLocationDiv);
+  }
+  
+  // Toggle traffic layer
+  toggleTraffic() {
+    if (this.trafficLayer) {
+      if (this.trafficLayer.getMap()) {
+        this.trafficLayer.setMap(null);
+      } else {
+        this.trafficLayer.setMap(this.map);
+      }
+    } else {
+      this.trafficLayer = new google.maps.TrafficLayer();
+      this.trafficLayer.setMap(this.map);
+    }
+  }
+  
+  // Handle map click for location selection
+  handleMapClick(event) {
+    // Only handle clicks if we're in location selection mode
+    if (this.locationSelectionMode) {
+      const clickedLocation = {
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng()
+      };
+      
+      // Reverse geocode the clicked location
+      this.reverseGeocodeMapClick(clickedLocation);
+    }
+  }
+  
+  // Enable location selection mode
+  enableLocationSelection(event) {
+    // Get the type from the button's data attribute
+    const type = event.currentTarget.dataset.type || 'pickup';
+    
+    this.locationSelectionMode = type; // 'pickup' or 'dropoff'
+    
+    // Change cursor to indicate selection mode
+    this.mapContainerTarget.style.cursor = 'crosshair';
+    
+    // Show instruction toast
+    this.showLocationStatus(`Click on the map to select ${type} location`, "info");
+    
+    console.log(`Location selection mode enabled for ${type}`);
+  }
+  
+  // Disable location selection mode
+  disableLocationSelection() {
+    this.locationSelectionMode = null;
+    this.mapContainerTarget.style.cursor = '';
+  }
+  
+  // Reverse geocode a clicked location
+  async reverseGeocodeMapClick(location) {
+    try {
+      const { lat, lng } = location;
+      
+      // Show loading indicator
+      if (this.locationSelectionMode === 'pickup') {
+        this.isLoadingPickup = true;
+        this.pickupInputTarget.classList.add('loading');
+      } else {
+        this.isLoadingDropoff = true;
+        this.dropoffInputTarget.classList.add('loading');
+      }
+      
+      const response = await fetch(`/places/reverse_geocode?lat=${lat}&lng=${lng}`);
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Update the appropriate input field
+      if (this.locationSelectionMode === 'pickup') {
+        this.pickupInputTarget.value = data.address;
+        this.pickupAddressTarget.value = data.address;
+        this.pickupLatTarget.value = lat;
+        this.pickupLngTarget.value = lng;
+        this.isLoadingPickup = false;
+        this.pickupInputTarget.classList.remove('loading');
+      } else {
+        this.dropoffInputTarget.value = data.address;
+        this.dropoffAddressTarget.value = data.address;
+        this.dropoffLatTarget.value = lat;
+        this.dropoffLngTarget.value = lng;
+        this.isLoadingDropoff = false;
+        this.dropoffInputTarget.classList.remove('loading');
+      }
+      
+      // Notify about location change
+      this.notifyLocationChange();
+      
+      // Disable selection mode
+      this.disableLocationSelection();
+      
+    } catch (error) {
+      console.error("Error in reverse geocoding map click:", error);
+      this.showLocationStatus("Could not find address for this location. Please try again.", "error");
+      
+      // Reset loading state
+      if (this.locationSelectionMode === 'pickup') {
+        this.isLoadingPickup = false;
+        this.pickupInputTarget.classList.remove('loading');
+      } else {
+        this.isLoadingDropoff = false;
+        this.dropoffInputTarget.classList.remove('loading');
+      }
+      
+      // Disable selection mode
+      this.disableLocationSelection();
+    }
+  }
 
   // Method to customize map appearance
-  getMapStyles() {
-    return [
-      {
-        featureType: "poi",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }], // Hide points of interest labels for cleaner map
-      },
-      {
-        featureType: "transit",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }], // Hide transit labels
-      },
-      {
-        featureType: "road",
-        elementType: "geometry",
-        stylers: [{ color: "#f8f9fa" }], // Lighter road color
-      },
-    ];
+  getMapStyles(style = 'default') {
+    const styles = {
+      default: [
+        {
+          featureType: "poi",
+          elementType: "labels",
+          stylers: [{ visibility: "off" }], // Hide points of interest labels for cleaner map
+        },
+        {
+          featureType: "transit",
+          elementType: "labels",
+          stylers: [{ visibility: "off" }], // Hide transit labels
+        },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#f8f9fa" }], // Lighter road color
+        },
+      ],
+      night: [
+        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+        {
+          featureType: "administrative.locality",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "geometry",
+          stylers: [{ color: "#263c3f" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#6b9a76" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#38414e" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#212a37" }],
+        },
+        {
+          featureType: "road",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9ca5b3" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry",
+          stylers: [{ color: "#746855" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#1f2835" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#f3d19c" }],
+        },
+        {
+          featureType: "transit",
+          elementType: "geometry",
+          stylers: [{ color: "#2f3948" }],
+        },
+        {
+          featureType: "transit.station",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#17263c" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#515c6d" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.stroke",
+          stylers: [{ color: "#17263c" }],
+        },
+      ],
+      silver: [
+        {
+          elementType: "geometry",
+          stylers: [{ color: "#f5f5f5" }],
+        },
+        {
+          elementType: "labels.icon",
+          stylers: [{ visibility: "off" }],
+        },
+        {
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#616161" }],
+        },
+        {
+          elementType: "labels.text.stroke",
+          stylers: [{ color: "#f5f5f5" }],
+        },
+        {
+          featureType: "administrative.land_parcel",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#bdbdbd" }],
+        },
+        {
+          featureType: "poi",
+          elementType: "geometry",
+          stylers: [{ color: "#eeeeee" }],
+        },
+        {
+          featureType: "poi",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#757575" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "geometry",
+          stylers: [{ color: "#e5e5e5" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9e9e9e" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#ffffff" }],
+        },
+        {
+          featureType: "road.arterial",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#757575" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry",
+          stylers: [{ color: "#dadada" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#616161" }],
+        },
+        {
+          featureType: "road.local",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9e9e9e" }],
+        },
+        {
+          featureType: "transit.line",
+          elementType: "geometry",
+          stylers: [{ color: "#e5e5e5" }],
+        },
+        {
+          featureType: "transit.station",
+          elementType: "geometry",
+          stylers: [{ color: "#eeeeee" }],
+        },
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#c9c9c9" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9e9e9e" }],
+        },
+      ],
+    };
+    
+    return styles[style] || styles.default;
   }
 
   async loadGoogleMapsScript(scriptUrl) {
@@ -790,21 +1164,21 @@ export default class extends Controller {
 
   async displayRoute(origin, destination) {
     try {
+      // Show loading indicator
+      this.showLocationStatus("Calculating route...", "info");
+      
       // Use our backend proxy to get directions
       const originStr = `${origin.lat},${origin.lng}`;
       const destinationStr = `${destination.lat},${destination.lng}`;
 
       const response = await fetch(
-        `/maps/directions?origin=${originStr}&destination=${destinationStr}`
+        `/maps/directions?origin=${originStr}&destination=${destinationStr}&alternatives=${this.showAlternativeRoutesValue}`
       );
       const routeData = await response.json();
 
       if (routeData.status === "OK") {
         // Clear existing markers and polylines
-        this.currentPolylines.forEach((polyline) => polyline.setMap(null));
-        this.currentMarkers.forEach((marker) => (marker.map = null));
-        this.currentPolylines = [];
-        this.currentMarkers = [];
+        this.clearAllRoutes();
 
         // Create a path from the encoded polyline
         const decodedPath = google.maps.geometry.encoding.decodePath(
@@ -820,9 +1194,38 @@ export default class extends Controller {
           map: this.map,
         });
         this.currentPolylines.push(routePolyline);
+        
+        // Add alternative routes if available
+        if (routeData.alternative_routes && routeData.alternative_routes.length > 0) {
+          routeData.alternative_routes.forEach((route, index) => {
+            const altPath = google.maps.geometry.encoding.decodePath(
+              route.overview_polyline.points
+            );
+            
+            const altPolyline = new google.maps.Polyline({
+              path: altPath,
+              strokeColor: "#777777",
+              strokeOpacity: 0.7,
+              strokeWeight: 4,
+              map: this.map,
+            });
+            
+            // Add click handler to select this route
+            altPolyline.addListener('click', () => {
+              this.selectAlternativeRoute(index, route, altPath);
+            });
+            
+            this.alternativeRoutes.push({
+              polyline: altPolyline,
+              data: route,
+              index: index
+            });
+          });
+        }
 
         // Add markers for the start and end points using AdvancedMarkerElement
-
+        // Make the markers draggable for location adjustment
+        
         // Pickup marker (green)
         const pickupMarkerPin = new google.maps.marker.PinElement({
           background: "#4CAF50",
@@ -836,7 +1239,20 @@ export default class extends Controller {
           map: this.map,
           content: pickupMarkerPin.element,
           title: "Pickup Location",
+          draggable: true,
         });
+        
+        // Add drag end listener to update pickup location
+        startMarker.addListener('dragend', async (event) => {
+          const newPosition = startMarker.position;
+          this.locationSelectionMode = 'pickup';
+          await this.reverseGeocodeMapClick({
+            lat: newPosition.lat,
+            lng: newPosition.lng
+          });
+          this.locationSelectionMode = null; // Reset selection mode
+        });
+        
         this.currentMarkers.push(startMarker);
 
         // Dropoff marker (red)
@@ -852,7 +1268,20 @@ export default class extends Controller {
           map: this.map,
           content: dropoffMarkerPin.element,
           title: "Dropoff Location",
+          draggable: true,
         });
+        
+        // Add drag end listener to update dropoff location
+        endMarker.addListener('dragend', async (event) => {
+          const newPosition = endMarker.position;
+          this.locationSelectionMode = 'dropoff';
+          await this.reverseGeocodeMapClick({
+            lat: newPosition.lat,
+            lng: newPosition.lng
+          });
+          this.locationSelectionMode = null; // Reset selection mode
+        });
+        
         this.currentMarkers.push(endMarker);
 
         // Fit the map to show the entire route
@@ -879,17 +1308,110 @@ export default class extends Controller {
           },
           bubbles: true,
         });
-        console.log(
-          "Dispatching route:calculated event",
-          routeInfoEvent.detail
-        );
+        
+        console.log("Dispatching route:calculated event", routeInfoEvent.detail);
         this.element.dispatchEvent(routeInfoEvent);
+        
+        // Update trip info display if available
+        if (this.hasTripInfoTarget) {
+          this.tripInfoTarget.classList.remove('hidden');
+          if (this.hasTripDistanceTarget) {
+            this.tripDistanceTarget.textContent = routeData.distance.text;
+          }
+          if (this.hasTripDurationTarget) {
+            this.tripDurationTarget.textContent = routeData.duration.text;
+          }
+          if (this.hasTripPriceTarget) {
+            // Calculate estimated price (base fare + per km rate)
+            const distanceKm = routeData.distance.value / 1000;
+            const baseFare = 5.00;
+            const perKmRate = 1.50;
+            const estimatedPrice = baseFare + (distanceKm * perKmRate);
+            this.tripPriceTarget.textContent = `$${estimatedPrice.toFixed(2)}`;
+          }
+        }
+        
+        // Hide loading indicator
+        this.showLocationStatus("Route calculated successfully!", "success");
       } else {
         console.error("Directions request failed due to " + routeData.status);
+        this.showLocationStatus(`Could not calculate route: ${routeData.status}`, "error");
       }
     } catch (error) {
       console.error("Error fetching directions:", error);
+      this.showLocationStatus("Error calculating route. Please try again.", "error");
     }
+  }
+  
+  // Clear all routes and markers
+  clearAllRoutes() {
+    // Clear existing polylines
+    if (this.currentPolylines) {
+      this.currentPolylines.forEach(polyline => polyline.setMap(null));
+      this.currentPolylines = [];
+    }
+    
+    // Clear alternative routes
+    if (this.alternativeRoutes) {
+      this.alternativeRoutes.forEach(route => route.polyline.setMap(null));
+      this.alternativeRoutes = [];
+    }
+    
+    // Clear markers
+    if (this.currentMarkers) {
+      this.currentMarkers.forEach(marker => {
+        if (marker.map) marker.setMap(null);
+      });
+      this.currentMarkers = [];
+    }
+  }
+  
+  // Select an alternative route
+  selectAlternativeRoute(index, routeData, path) {
+    // Clear existing polylines but keep markers
+    this.currentPolylines.forEach(polyline => polyline.setMap(null));
+    this.currentPolylines = [];
+    
+    // Update styling of all routes
+    this.alternativeRoutes.forEach(route => {
+      if (route.index === index) {
+        // Make the selected route primary
+        route.polyline.setOptions({
+          strokeColor: "#367CFF",
+          strokeOpacity: 1.0,
+          strokeWeight: 5
+        });
+        
+        // Add to current polylines
+        this.currentPolylines.push(route.polyline);
+        
+        // Trigger route info update
+        const routeInfoEvent = new CustomEvent("route:calculated", {
+          detail: {
+            distance: routeData.legs[0].distance.text,
+            duration: routeData.legs[0].duration.text,
+            distance_value: routeData.legs[0].distance.value,
+            duration_value: routeData.legs[0].duration.value,
+            origin: routeData.legs[0].start_location,
+            destination: routeData.legs[0].end_location,
+            route_data: {
+              distance: routeData.legs[0].distance,
+              duration: routeData.legs[0].duration,
+            },
+          },
+          bubbles: true,
+        });
+        
+        this.element.dispatchEvent(routeInfoEvent);
+      } else {
+        // Make other routes secondary
+        route.polyline.setOptions({
+          strokeColor: "#777777",
+          strokeOpacity: 0.7,
+          strokeWeight: 4
+        });
+      }
+    });
   }
 
   // Add a route animation

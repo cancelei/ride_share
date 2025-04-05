@@ -1,4 +1,4 @@
-<%= form_with(model: ride, class: "contents", data: { controller: "map" }) do |form| %>
+<%= form_with(model: ride, class: "contents", data: { controller: "map", map_show_traffic_value: true, map_show_alternative_routes_value: true, map_style_value: "default" }) do |form| %>
   <% if ride.errors.any? %>
     <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
@@ -15,96 +15,142 @@
     <div class="lg:w-1/2 p-6 rounded-2xl shadow-lg bg-white mb-6 lg:mb-0">
       <h2 class="text-xl font-medium text-gray-700 mb-6">Book a ride</h2>
 
-      <!-- Pickup Location -->
-      <div class="mb-6">
-        <label for="pickup_location" class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
-        <div class="flex items-center gap-2">
-          <div class="relative flex-grow">
-            <input type="text"
-                  id="pickup_location"
-                  name="ride[pickup_address]"
-                  class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                  placeholder="Enter pickup location"
-                  data-map-target="pickupInput"
-                  autocomplete="off" />
-            <div class="autocomplete-dropdown" data-map-target="pickupSuggestions"></div>
-            <input type="hidden" name="ride[pickup_address]" data-map-target="pickupAddress">
-            <input type="hidden"
-                  id="pickup_lat_field"
-                  name="ride[pickup_lat]"
-                  data-map-target="pickupLat">
-            <input type="hidden"
-                  id="pickup_lng_field"
-                  name="ride[pickup_lng]"
-                  data-map-target="pickupLng">
+      <!-- Location search box with Google Maps style -->
+      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <!-- Pickup Location -->
+        <div class="mb-4 relative">
+          <div class="flex items-center mb-2">
+            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mr-2 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="12" cy="12" r="2" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="relative flex-grow">
+              <input type="text"
+                    id="pickup_location"
+                    name="ride[pickup_address]"
+                    class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                    placeholder="Enter pickup location"
+                    data-map-target="pickupInput"
+                    autocomplete="off" />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <button type="button" class="text-gray-400 hover:text-gray-600" data-action="click->map#clearPickupLocation">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="autocomplete-dropdown" data-map-target="pickupSuggestions"></div>
+              <input type="hidden" name="ride[pickup_address]" data-map-target="pickupAddress">
+              <input type="hidden" id="pickup_lat_field" name="ride[pickup_lat]" data-map-target="pickupLat">
+              <input type="hidden" id="pickup_lng_field" name="ride[pickup_lng]" data-map-target="pickupLng">
+            </div>
           </div>
+          <div class="flex ml-10 space-x-2">
             <button type="button"
-                class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                data-action="click->map#clearPickupLocation">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Clear pickup
+                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    data-action="click->map#useCurrentLocation"
+                    data-type="pickup">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Use current location
             </button>
-          <button type="button"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  data-action="click->map#useCurrentLocation">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Use current
-          </button>
+            <button type="button"
+                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    data-action="click->map#enableLocationSelection"
+                    data-type="pickup">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+              Select on map
+            </button>
+          </div>
         </div>
-        <div data-map-target="locationStatus" class="mt-1 transition-opacity duration-500"></div>
+
+        <!-- Vertical connector line -->
+        <div class="flex items-center mb-4 ml-4">
+          <div class="w-0 border-l-2 border-dashed border-gray-300 h-6"></div>
+        </div>
+
+        <!-- Dropoff Location -->
+        <div class="relative">
+          <div class="flex items-center mb-2">
+            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center mr-2 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+              </svg>
+            </div>
+            <div class="relative flex-grow">
+              <input type="text"
+                    id="dropoff_location"
+                    name="ride[dropoff_address]"
+                    class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                    placeholder="Enter dropoff location"
+                    data-map-target="dropoffInput"
+                    autocomplete="off" />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <button type="button" class="text-gray-400 hover:text-gray-600" data-action="click->map#clearDropoffLocation">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="autocomplete-dropdown" data-map-target="dropoffSuggestions"></div>
+              <input type="hidden" name="ride[dropoff_address]" data-map-target="dropoffAddress">
+              <input type="hidden" id="dropoff_lat_field" name="ride[dropoff_lat]" data-map-target="dropoffLat">
+              <input type="hidden" id="dropoff_lng_field" name="ride[dropoff_lng]" data-map-target="dropoffLng">
+            </div>
+          </div>
+          <div class="flex ml-10 space-x-2">
+            <button type="button"
+                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    data-action="click->map#useCurrentLocation"
+                    data-type="dropoff">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Use current location
+            </button>
+            <button type="button"
+                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    data-action="click->map#enableLocationSelection"
+                    data-type="dropoff">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+              Select on map
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- Dropoff Location -->
-      <div class="mb-6">
-        <label for="dropoff_location" class="block text-sm font-medium text-gray-700 mb-1">Dropoff Location</label>
-        <div class="flex items-center gap-2">
-          <div class="relative flex-grow">
-            <input type="text"
-                  id="dropoff_location"
-                  name="ride[dropoff_address]"
-                  class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                  placeholder="Enter dropoff location"
-                  data-map-target="dropoffInput"
-                  autocomplete="off" />
-            <div class="autocomplete-dropdown" data-map-target="dropoffSuggestions"></div>
-            <input type="hidden" name="ride[dropoff_address]" data-map-target="dropoffAddress">
-            <input type="hidden"
-                  id="dropoff_lat_field"
-                  name="ride[dropoff_lat]"
-                  data-map-target="dropoffLat">
-            <input type="hidden"
-                  id="dropoff_lng_field"
-                  name="ride[dropoff_lng]"
-                  data-map-target="dropoffLng">
+      <div data-map-target="locationStatus" class="mb-4 transition-opacity duration-500"></div>
+
+      <!-- Trip Information (shows when route is calculated) -->
+      <div data-map-target="tripInfo" class="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden">
+        <h3 class="text-base font-semibold text-gray-700 mb-2">Trip Information</h3>
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p class="text-xs uppercase text-gray-400 font-semibold">Distance</p>
+            <p data-map-target="tripDistance" class="font-bold text-gray-800">--</p>
           </div>
-          <button type="button"
-                class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                data-action="click->map#clearDropoffLocation">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Clear dropoff
-          </button>
-          <button type="button"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  data-action="click->map#useCurrentLocation"
-                  data-type="dropoff">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Use current
-          </button>
+          <div>
+            <p class="text-xs uppercase text-gray-400 font-semibold">Time</p>
+            <p data-map-target="tripDuration" class="font-bold text-gray-800">--</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase text-gray-400 font-semibold">Est. Price</p>
+            <p data-map-target="tripPrice" class="font-bold text-gray-800">--</p>
+          </div>
         </div>
-        <div data-map-target="locationStatus" class="mt-1 transition-opacity duration-500"></div>
       </div>
+
+      <!-- Hidden fields for estimated price and distance -->
+      <input type="hidden" name="ride[estimated_price]" id="estimated_price_field" value="0.00">
+      <input type="hidden" name="ride[distance_km]" id="distance_km_field" value="0.00">
 
       <div class="my-5">
         <%= form.label :scheduled_time, "Schedule time", class: "block font-medium text-gray-500" %>
@@ -119,29 +165,6 @@
       <div class="my-5">
         <%= form.label :special_instructions, "Special Instructions", class: "block font-medium text-gray-500" %>
         <%= form.text_area :special_instructions, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
-      </div>
-
-      <!-- Hidden fields for estimated price and distance -->
-      <input type="hidden" name="ride[estimated_price]" id="estimated_price_field" value="0.00">
-      <input type="hidden" name="ride[distance_km]" id="distance_km_field" value="0.00">
-
-      <!-- Trip Information (shows when route is calculated) -->
-      <div id="trip-info" class="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden">
-        <h3 class="text-base font-semibold text-gray-700 mb-2">Trip Information</h3>
-        <div class="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p class="text-xs uppercase text-gray-400 font-semibold">Distance</p>
-            <p id="trip-distance" class="font-bold text-gray-800">--</p>
-          </div>
-          <div>
-            <p class="text-xs uppercase text-gray-400 font-semibold">Time</p>
-            <p id="trip-duration" class="font-bold text-gray-800">--</p>
-          </div>
-          <div>
-            <p class="text-xs uppercase text-gray-400 font-semibold">Est. Price</p>
-            <p id="trip-price" class="font-bold text-gray-800">--</p>
-          </div>
-        </div>
       </div>
 
       <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-6">
@@ -212,6 +235,55 @@
     }
   }
 
+  /* Custom map controls */
+  .custom-map-control {
+    margin: 10px;
+    padding: 5px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .map-control-button {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #5f6368;
+  }
+
+  .map-control-button.active {
+    color: #1a73e8;
+    font-weight: 500;
+  }
+
+  .map-control-button:hover {
+    background-color: rgba(60, 64, 67, 0.04);
+  }
+
+  /* Loading indicator for inputs */
+  .loading::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ddd;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+  }
+
   /* Mobile optimization */
   @media (max-width: 768px) {
     .contents {
@@ -231,6 +303,7 @@
       padding-top: 1.5rem;
     }
   }
+  
   @keyframes pulse {
     0% {
       box-shadow: 0 0 0 0 rgba(54, 124, 255, 0.5);
@@ -259,11 +332,11 @@
       const distanceKmField = document.getElementById('distance_km_field');
 
       // Show trip info section
-      tripInfo.classList.remove('hidden');
+      if (tripInfo) tripInfo.classList.remove('hidden');
 
       // Update the visible elements
-      tripDistance.textContent = event.detail.distance;
-      tripDuration.textContent = event.detail.duration;
+      if (tripDistance) tripDistance.textContent = event.detail.distance;
+      if (tripDuration) tripDuration.textContent = event.detail.duration;
 
       // Extract distance value in kilometers
       let distanceKm = 0;
@@ -290,7 +363,7 @@
 
       // Format the price for display
       const formattedPrice = '$' + estimatedPrice.toFixed(2);
-      tripPrice.textContent = formattedPrice;
+      if (tripPrice) tripPrice.textContent = formattedPrice;
 
       // Log values for debugging
       console.log("Distance (km):", distanceKm);
