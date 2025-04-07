@@ -85,88 +85,70 @@ export default class extends Controller {
   };
 
   connect() {
-    // Add error handling for map initialization
-    try {
-      // Ensure we're in a truly fresh state
-      window.onbeforeunload = () => {
-        // Force-clear specific items immediately before page unload
-        localStorage.removeItem('userAllowedGeolocation');
-        localStorage.removeItem('lastPickupLocation');
-      if (this.map) {
-        console.log("Clearing map markers and routes");
-        
-        // Clear all markers
-        if (this.currentMarkers) {
-          this.currentMarkers.forEach(marker => {
-        localStorage.removeItem('lastDropoffLocation');
-        sessionStorage.clear(); // Aggressively clear all session storage
-      };
+    // Ensure we're in a truly fresh state
+    window.onbeforeunload = () => {
+      // Force-clear specific items immediately before page unload
+      localStorage.removeItem('userAllowedGeolocation');
+      localStorage.removeItem('lastPickupLocation');
+    if (this.map) {
+      console.log("Clearing map markers and routes");
       
-      // Clear all previous data on page load
-      this.clearPreviousRideData();
-      
-      if (this.hasMapContainerTarget) {
-        this.initializeMap();
-        this.listenForLocationChanges();
-      } else {
-        console.log("Map container target not found");
-      }
-
-      this.debouncedFetch = this.debounce(
-        this.performFetch.bind(this),
-        this.debounceValue
-      );
-
-      // Apply initial styling to the suggestions dropdowns
-      this.applySuggestionsStyle(this.pickupSuggestionsTarget);
-      this.applySuggestionsStyle(this.dropoffSuggestionsTarget);
-
-      // Add input event listeners
-      if (this.hasPickupInputTarget) {
-        this.pickupInputTarget.addEventListener(
-          "input",
-          this.debounce(() => {
-            this.fetchSuggestions({ target: this.pickupInputTarget });
-          }, 300)
-        );
-      }
-
-      if (this.hasDropoffInputTarget) {
-        this.dropoffInputTarget.addEventListener(
-          "input",
-          this.debounce(() => {
-            this.fetchSuggestions({ target: this.dropoffInputTarget });
-          }, 300)
-        );
-      }
-
-      // Try to get user's location on page load if permitted
-      this.tryGetCurrentLocationOnLoad();
-      this.addLocationListener();
-      this.addInputListeners();
-      
-      // Initialize loading indicators
-      this.isLoadingPickup = false;
-      this.isLoadingDropoff = false;
-      
-      // Add click listener to map for location selection
-      this.mapClickListener = this.handleMapClick.bind(this);
-
-      console.log("Map initialization started");
-      
-      // Add a loading state
-      this.mapContainerTarget.classList.add('loading');
-      
-      // Check if Google Maps is available
-      if (!window.google || !window.google.maps) {
-        console.error("Google Maps API not loaded");
-        return;
-      }
-    } catch (error) {
-      console.error("Error initializing map:", error);
-    } finally {
-      this.mapContainerTarget.classList.remove('loading');
+      // Clear all markers
+      if (this.currentMarkers) {
+        this.currentMarkers.forEach(marker => {
+      localStorage.removeItem('lastDropoffLocation');
+      sessionStorage.clear(); // Aggressively clear all session storage
+    };
+    
+    // Clear all previous data on page load
+    this.clearPreviousRideData();
+    
+    if (this.hasMapContainerTarget) {
+      this.initializeMap();
+      this.listenForLocationChanges();
+    } else {
+      console.log("Map container target not found");
     }
+
+    this.debouncedFetch = this.debounce(
+      this.performFetch.bind(this),
+      this.debounceValue
+    );
+
+    // Apply initial styling to the suggestions dropdowns
+    this.applySuggestionsStyle(this.pickupSuggestionsTarget);
+    this.applySuggestionsStyle(this.dropoffSuggestionsTarget);
+
+    // Add input event listeners
+    if (this.hasPickupInputTarget) {
+      this.pickupInputTarget.addEventListener(
+        "input",
+        this.debounce(() => {
+          this.fetchSuggestions({ target: this.pickupInputTarget });
+        }, 300)
+      );
+    }
+
+    if (this.hasDropoffInputTarget) {
+      this.dropoffInputTarget.addEventListener(
+        "input",
+        this.debounce(() => {
+          this.fetchSuggestions({ target: this.dropoffInputTarget });
+        }, 300)
+      );
+    }
+
+    // Try to get user's location on page load if permitted
+    this.tryGetCurrentLocationOnLoad();
+    this.addLocationListener();
+    this.addInputListeners();
+    
+    // Initialize loading indicators
+    this.isLoadingPickup = false;
+    this.isLoadingDropoff = false;
+    
+    // Add click listener to map for location selection
+    this.mapClickListener = this.handleMapClick.bind(this);
   }
 
   addInputListeners() {
@@ -219,6 +201,14 @@ export default class extends Controller {
     // Clear existing markers and route
     if (this.currentMarkers) {
       this.currentMarkers.forEach(marker => marker.setMap(null));
+      this.currentMarkers = this.currentMarkers.filter(marker => 
+        (type === "pickup" && marker.type !== "origin-marker") || 
+        (type === "dropoff" && marker.type !== "destination-marker")
+      );
+    }
+    
+    if (this.currentPolylines) {
+      this.currentPolylines.forEach(polyline => polyline.setMap(null));
           if (marker.setMap) marker.setMap(null);
         });
         this.currentMarkers = [];
@@ -226,10 +216,10 @@ export default class extends Controller {
       
       // Clear all polylines
       if (this.currentPolylines) {
-        this.currentPolylines.forEach(polyline => polyline.setMap(null));
-          if (marker.setMap) marker.setMap(null);
+        this.currentPolylines.forEach(polyline => {
+          if (polyline.setMap) polyline.setMap(null);
         });
-        this.currentMarkers = [];
+        this.currentPolylines = [];
       }
       
       // Clear alternative routes
