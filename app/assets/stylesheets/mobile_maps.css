@@ -1,0 +1,82 @@
+/* Mobile Maps CSS - Ensures proper rendering on mobile devices */
+
+/* Ensure map containers have proper height on mobile */
+@media (max-width: 768px) {
+  .map-container {
+    width: 100% !important;
+    height: 300px !important;
+    max-width: 100vw !important;
+    position: relative !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+  }
+  
+  /* Make sure map markers and controls are properly sized for touch */
+  .gm-style button {
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+  
+  /* Ensure info windows are readable */
+  .gm-style .gm-style-iw-c {
+    padding: 12px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Make sure that any custom map controls are properly sized */
+  .custom-map-control {
+    margin: 8px !important;
+  }
+  
+  .map-control-button {
+    padding: 10px !important;
+  }
+  
+  /* Fix for proper SVG rendering in markers */
+  .gm-style svg {
+    width: auto !important;
+    height: auto !important;
+  }
+  
+  /* Enhanced visibility for map elements on mobile */
+  .gm-style {
+    font-size: 16px !important;
+  }
+}
+
+/* Add the following meta tag for mobile devices via JavaScript instead of HTML */
+/* This ensures proper touch behavior and prevents unwanted zooming */
+/* 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+*/
+
+/* Fix for touch events */
+.map-container {
+  touch-action: pan-x pan-y !important;
+}
+
+/* Fix for mobile marker scaling */
+.gm-style img {
+  max-width: none !important;
+}
+
+/* Enhanced mobile markers and pins */
+.mobile-marker {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* Ensure the map container remains visible on page load */
+.map-container:empty::before {
+  content: "Loading map...";
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-style: italic;
+  color: #666;
+  background-color: #f8f8f8;
+}
