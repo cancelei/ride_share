@@ -41,7 +41,6 @@
     // More thorough cookie clearing - clear any cookies that might be related
     document.cookie.split(';').forEach(cookie => {
       const cookieName = cookie.split('=')[0].trim();
-import { Controller } from "@hotwired/stimulus";
       
       // If the cookie name matches any of our keywords
       if (keysToRemove.includes(cookieName) || 

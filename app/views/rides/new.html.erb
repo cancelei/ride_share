@@ -5,8 +5,6 @@
 
   <div id="new_ride">
     <% if current_user&.role_passenger? %>
-      <%= render "passenger_form", ride: @ride %>
-    <% elsif current_user&.role_driver? %>
       <%= render "form", ride: @ride %>
     <% else %>
       <p class="text-red-500">You must be logged in as a passenger or driver to create a ride.</p>
