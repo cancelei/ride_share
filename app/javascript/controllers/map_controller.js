@@ -697,7 +697,7 @@ export default class extends Controller {
       // Create a script tag to load Google Maps without exposing API key
       if (!window.google) {
         console.log("Google Maps not loaded yet, loading script");
-        await this.loadGoogleMapsScript(mapDetails.script_url);
+        // await this.loadGoogleMapsScript(mapDetails.script_url);
         console.log("Google Maps script loaded successfully");
       } else {
         console.log("Google Maps already loaded");
