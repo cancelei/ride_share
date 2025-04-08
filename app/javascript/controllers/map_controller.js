@@ -46,7 +46,7 @@ export default class extends Controller {
     
     if (this.hasMapContainerTarget) {
       this.initializeMap();
-      this.listenForLocationChanges();
+      // this.listenForLocationChanges();
     } else {
       console.log("Map container target not found");
     }

@@ -6,6 +6,7 @@ class GoogleMapsService
 
   def initialize
     @api_key = ENV["GOOGLE_MAPS_API_KEY"]
+    puts "API Key: #{@api_key}"
   end
 
   def directions(origin, destination, mode = "driving", alternatives = false)
