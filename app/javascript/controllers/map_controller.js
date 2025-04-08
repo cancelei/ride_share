@@ -148,28 +148,6 @@ export default class extends Controller {
     
     if (this.currentPolylines) {
       this.currentPolylines.forEach(polyline => polyline.setMap(null));
-          if (marker.setMap) marker.setMap(null);
-        });
-        this.currentMarkers = [];
-      }
-      
-      // Clear all polylines
-      if (this.currentPolylines) {
-        this.currentPolylines.forEach(polyline => {
-          if (polyline.setMap) polyline.setMap(null);
-        });
-        this.currentPolylines = [];
-      }
-      
-      // Clear alternative routes
-      if (this.alternativeRoutes) {
-        this.alternativeRoutes.forEach(route => {
-          if (route.polyline && route.polyline.setMap) route.polyline.setMap(null);
-        });
-        this.alternativeRoutes = [];
-      }
-      
-      // Reset map to default view if possible
       this.currentPolylines = [];
     }
 
@@ -798,16 +776,110 @@ export default class extends Controller {
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="16" x2="12" y2="12"></line>
           <line x1="12" y1="8" x2="12" y2="8"></line>
-      try {
-        this.map.setCenter({ lat: 0, lng: 0 });
-        this.map.setZoom(13);
-      } catch (error) {
-        console.log("Could not reset map view:", error);
+        </svg>
+        <span>Traffic</span>
+      </button>
+    `;
+    
+    trafficControlDiv.querySelector('button').addEventListener('click', () => {
+      this.toggleTraffic();
+      trafficControlDiv.querySelector('button').classList.toggle('active');
+    });
+    
+    this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(trafficControlDiv);
+    
+    // My location control
+    const myLocationDiv = document.createElement('div');
+    myLocationDiv.className = 'custom-map-control';
+    myLocationDiv.innerHTML = `
+      <button class="map-control-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <point cx="12" cy="12" r="3"></point>
+        </svg>
+        <span>My Location</span>
+      </button>
+    `;
+    
+    myLocationDiv.querySelector('button').addEventListener('click', () => {
+      this.showUserLocation();
+    });
+    
+    this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(myLocationDiv);
+  }
+  
+  // Add a method to clear all previous ride data
+  clearPreviousRideData() {
+    console.log("Clearing all previous ride data on page load");
+    
+    // Clear form fields immediately
+    if (this.hasPickupInputTarget) this.pickupInputTarget.value = "";
+    if (this.hasPickupAddressTarget) this.pickupAddressTarget.value = "";
+    if (this.hasPickupLatTarget) this.pickupLatTarget.value = "";
+    if (this.hasPickupLngTarget) this.pickupLngTarget.value = "";
+    
+    if (this.hasDropoffInputTarget) this.dropoffInputTarget.value = "";
+    if (this.hasDropoffAddressTarget) this.dropoffAddressTarget.value = "";
+    if (this.hasDropoffLatTarget) this.dropoffLatTarget.value = "";
+    if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = "";
+    
+    // Reset controller values
+    this.pickupLatValue = null;
+    this.pickupLngValue = null;
+    this.dropoffLatValue = null;
+    this.dropoffLngValue = null;
+    
+    // Hide trip info if it exists
+    if (this.hasTripInfoTarget) {
+      this.tripInfoTarget.classList.add('hidden');
+    }
+    
+    // Clear local storage items
+    const keysToRemove = [
+      'userAllowedGeolocation',
+      'lastPickupLocation',
+      'lastDropoffLocation',
+      'lastRoute',
+      'mapState',
+      'rideData',
+      'pickupAddress',
+      'dropoffAddress',
+      'pickupLat',
+      'pickupLng',
+      'dropoffLat',
+      'dropoffLng'
+    ];
+    
+    // Search for any items that might contain these keywords
+    const keywordsToMatch = ['pickup', 'dropoff', 'location', 'ride', 'map', 'route', 'geocode'];
+    
+    // Clear localStorage items
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (keysToRemove.includes(key) || keywordsToMatch.some(keyword => key.toLowerCase().includes(keyword))) {
+        console.log(`Clearing localStorage item: ${key}`);
+        localStorage.removeItem(key);
       }
     }
     
-    // Dispatch a custom event to notify any other components that we've reset
-    window.dispatchEvent(new CustomEvent('ride-data-cleared'));
+    // Clear sessionStorage items
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (keysToRemove.includes(key) || keywordsToMatch.some(keyword => key.toLowerCase().includes(keyword))) {
+        console.log(`Clearing sessionStorage item: ${key}`);
+        sessionStorage.removeItem(key);
+      }
+    }
+    
+    // Clear related cookies
+    document.cookie.split(';').forEach(cookie => {
+      const cookieName = cookie.split('=')[0].trim();
+      if (keysToRemove.includes(cookieName) || 
+          keywordsToMatch.some(keyword => cookieName.toLowerCase().includes(keyword))) {
+        console.log(`Clearing cookie: ${cookieName}`);
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
     
     console.log("All previous ride data cleared");
   }
