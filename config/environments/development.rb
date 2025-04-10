@@ -19,6 +19,12 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # Disable JavaScript caching to ensure fresh assets on each page refresh
+  config.assets.debug = true
+  config.assets.digest = false
+  config.assets.compile = true
+  config.assets.check_precompiled_asset = false
+
   # Enable/disable caching. By default caching is disabled.
   if Rails.root.join("tmp/caching-dev.txt").exist?
     config.action_controller.perform_caching = true
@@ -29,6 +35,13 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
     config.cache_store = :null_store
   end
+
+  # Disable browser caching for all JavaScript assets
+  config.public_file_server.headers = {
+    "Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0, private",
+    "Pragma" => "no-cache",
+    "Expires" => "Fri, 01 Jan 1990 00:00:00 GMT"
+  }
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
