@@ -72,6 +72,8 @@ static targets = [
 "tripDistance",
 "tripDuration",
 "tripPrice",
+"estimatedPrice",
+"distanceKm"
 ];
 
 static values = {
@@ -105,7 +107,9 @@ const keysToRemove = [
   'pickupLat',
   'pickupLng',
   'dropoffLat',
-  'dropoffLng'
+  'dropoffLng',
+  'estimatedPrice',
+  'distanceKm'
 ];
 
 // Clear targeted keys from localStorage
@@ -1486,6 +1490,7 @@ try {
       this.tripInfoTarget.classList.remove('hidden');
       if (this.hasTripDistanceTarget) {
         this.tripDistanceTarget.textContent = routeData.distance.text;
+        this.distanceKmTarget.value = routeData.distance.value / 1000;
       }
       if (this.hasTripDurationTarget) {
         this.tripDurationTarget.textContent = routeData.duration.text;
@@ -1497,6 +1502,7 @@ try {
         const perKmRate = 1.50;
         const estimatedPrice = baseFare + (distanceKm * perKmRate);
         this.tripPriceTarget.textContent = `$${estimatedPrice.toFixed(2)}`;
+        this.estimatedPriceTarget.value = estimatedPrice;
       }
     }
     

@@ -19,7 +19,6 @@ Rails.application.routes.draw do
       patch :mark_as_paid
       patch :accept
       patch :complete
-      get :driver_location
     end
   end
 

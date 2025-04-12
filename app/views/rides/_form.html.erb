@@ -162,8 +162,8 @@
       </div>
 
       <!-- Hidden fields for estimated price and distance -->
-      <input type="hidden" name="ride[estimated_price]" id="estimated_price_field" value="0.00">
-      <input type="hidden" name="ride[distance_km]" id="distance_km_field" value="0.00">
+      <input type="hidden" name="ride[estimated_price]" id="estimated_price_field" data-map-target="estimatedPrice">
+      <input type="hidden" name="ride[distance_km]" id="distance_km_field" data-map-target="distanceKm">
 
       <div class="my-5">
         <%= form.label :scheduled_time, "Schedule time", class: "block font-medium text-gray-500" %>

@@ -1,6 +1,6 @@
 class RidesController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid complete cancel verify_security_code driver_location arrived_at_pickup ]
+  before_action :set_ride, only: %i[ show edit update destroy start finish accept mark_as_paid complete cancel verify_security_code arrived_at_pickup ]
   before_action :check_driver_requirements, only: %i[ new create ], if: -> { current_user&.role_driver? }
   before_action :ensure_passenger_profile, only: %i[ new create ], if: -> { current_user&.role_passenger? }
 
@@ -87,8 +87,6 @@ class RidesController < ApplicationController
     @ride.pickup_lng = params[:ride][:pickup_lng]
     @ride.dropoff_lat = params[:ride][:dropoff_lat]
     @ride.dropoff_lng = params[:ride][:dropoff_lng]
-    @ride.distance_km = params[:ride][:distance_km]
-    @ride.estimated_price = params[:ride][:estimated_price]
 
     Rails.logger.debug "RIDE DEBUG: Initial ride params: #{ride_params.inspect}"
     Rails.logger.debug "RIDE DEBUG: Coordinates: pickup=(#{@ride.pickup_lat},#{@ride.pickup_lng}), dropoff=(#{@ride.dropoff_lat},#{@ride.dropoff_lng})"
@@ -312,35 +310,6 @@ class RidesController < ApplicationController
         format.html { redirect_to @ride }
         format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
       end
-    end
-  end
-
-  # GET /rides/1/driver_location
-  def driver_location
-    # Get the driver's current location
-    driver_user = @ride.driver&.user
-
-    if driver_user&.current_location.present?
-      location_data = {
-        location: {
-          address: driver_user.current_location[:address],
-          coordinates: driver_user.current_location[:coordinates]
-        }
-      }
-
-      # Calculate distance and ETA if we have both driver and pickup/dropoff coordinates
-      if driver_user.current_location[:coordinates].present? &&
-         @ride.pickup_lat.present? && @ride.pickup_lng.present?
-
-        # In a real app, you would use a service like Google Maps Distance Matrix API
-        # For now, we'll just provide placeholder values
-        location_data[:distance_to_pickup] = "2.5"
-        location_data[:eta_minutes] = "10"
-      end
-
-      render json: location_data
-    else
-      render json: { error: "Driver location not available" }, status: :not_found
     end
   end
 
