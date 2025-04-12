@@ -30,7 +30,7 @@ class MapsController < ApplicationController
       config: {
         libraries: "places,geometry,marker",
         mapId: map_id,
-        region: "us" # Adjust as needed for your region
+        region: "hn" # Adjust as needed for your region
       }
     }
   end

@@ -1,7 +1,19 @@
 # app/controllers/places_controller.rb
 class PlacesController < ApplicationController
   def autocomplete
-    locations = GooglePlacesService.new.autocomplete(params[:query])
+    options = {}
+
+    # For dropoff suggestions, prioritize pickup location if available
+    if params[:for_dropoff].present? && params[:pickup_lat].present? && params[:pickup_lng].present?
+      options[:lat] = params[:pickup_lat]
+      options[:lng] = params[:pickup_lng]
+    # If no pickup but user location is available, use that
+    elsif params[:user_lat].present? && params[:user_lng].present?
+      options[:lat] = params[:user_lat]
+      options[:lng] = params[:user_lng]
+    end
+
+    locations = GooglePlacesService.new.autocomplete(params[:query], options)
 
     render json: locations
   end

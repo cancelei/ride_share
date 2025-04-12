@@ -175,7 +175,10 @@ class Ride < ApplicationRecord
     price_per_km = 1.5
 
     # Calculate price based on distance
-    self.estimated_price = base_fare + (distance_km.to_f * price_per_km)
+    calculated_price = base_fare + (distance_km.to_f * price_per_km)
+
+    # Round to 2 decimal places and store
+    self.estimated_price = calculated_price.round(2)
   end
 
   def calculate_distance_and_duration
@@ -361,19 +364,35 @@ class Ride < ApplicationRecord
   end
 
   def sync_locations
-    # Synchronize pickup_location and pickup_address
-    if pickup_address.present? && (pickup_location.blank? || pickup_location != pickup_address)
+    # Only set location from address if location is blank and we have an address
+    if pickup_location.blank? && pickup_address.present?
       self.pickup_location = pickup_address
-    elsif pickup_location.present? && (pickup_address.blank? || pickup_address != pickup_location)
+    end
+
+    if dropoff_location.blank? && dropoff_address.present?
+      self.dropoff_location = dropoff_address
+    end
+
+    # Only set address from location if address is blank and we have a location
+    if pickup_address.blank? && pickup_location.present?
       self.pickup_address = pickup_location
     end
 
-    # Synchronize dropoff_location and dropoff_address
-    if dropoff_address.present? && (dropoff_location.blank? || dropoff_location != dropoff_address)
-      self.dropoff_location = dropoff_address
-    elsif dropoff_location.present? && (dropoff_address.blank? || dropoff_address != dropoff_location)
+    if dropoff_address.blank? && dropoff_location.present?
       self.dropoff_address = dropoff_location
     end
+
+    # Calculate distance and price if we have coordinates
+    if pickup_lat.present? && pickup_lng.present? &&
+       dropoff_lat.present? && dropoff_lng.present?
+      calculate_distance_and_duration
+    end
+  end
+
+  def should_calculate_price?
+    pickup_lat.present? && pickup_lng.present? &&
+    dropoff_lat.present? && dropoff_lng.present? &&
+    estimated_price.nil?
   end
 
   def notify_available_drivers

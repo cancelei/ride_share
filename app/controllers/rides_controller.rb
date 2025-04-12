@@ -68,51 +68,39 @@ class RidesController < ApplicationController
   # POST /rides or /rides.json
   def create
     @ride = Ride.new(ride_params)
-    Rails.logger.debug "RIDE DEBUG: Initial ride params: #{ride_params.inspect}"
-    Rails.logger.debug "RIDE DEBUG: Initial ride status: #{@ride.status.inspect}"
+    @ride.passenger = current_user.passenger_profile
+    @ride.status = "pending"
 
-    if current_user&.role_passenger?
-      # Set passenger to current user's passenger profile
-      @ride.passenger = current_user.passenger_profile
-      @ride.status = "pending"
-      Rails.logger.debug "RIDE DEBUG: After setting passenger status: #{@ride.status.inspect}"
-
-      # If distance_km and estimated_price are blank but we have coordinates, calculate them
-      if @ride.distance_km.blank? && @ride.estimated_price.blank? &&
-         @ride.pickup_lat.present? && @ride.pickup_lng.present? &&
-         @ride.dropoff_lat.present? && @ride.dropoff_lng.present?
-        Rails.logger.debug "RIDE DEBUG: Calculating distance and price from coordinates"
-        @ride.calculate_distance_and_duration
-      end
-    elsif current_user&.role_driver?
-      # Set driver to current user's driver profile
-      @ride.driver = current_user.driver_profile
-      Rails.logger.debug "RIDE DEBUG: After setting driver: #{@ride.status.inspect}"
-
-      # Set vehicle from params
-      if params[:vehicle_id].present?
-        @vehicle = current_user.driver_profile.vehicles.find(params[:vehicle_id])
-        @ride.vehicle = @vehicle
-        Rails.logger.debug "RIDE DEBUG: After setting vehicle: #{@ride.status.inspect}"
-      end
+    # Handle pickup location from Google Places API V1 response
+    if params[:ride][:pickup_location].present?
+      @ride.pickup_location = params[:ride][:pickup_location]
+      @ride.pickup_address = params[:ride][:pickup_address]
     end
 
-    Rails.logger.debug "RIDE DEBUG: Before save, status: #{@ride.status.inspect}"
+    if params[:ride][:dropoff_location].present?
+      @ride.dropoff_location = params[:ride][:dropoff_location]
+      @ride.dropoff_address = params[:ride][:dropoff_address]
+    end
+
+    # Set coordinates and calculate price
+    @ride.pickup_lat = params[:ride][:pickup_lat]
+    @ride.pickup_lng = params[:ride][:pickup_lng]
+    @ride.dropoff_lat = params[:ride][:dropoff_lat]
+    @ride.dropoff_lng = params[:ride][:dropoff_lng]
+    @ride.distance_km = params[:ride][:distance_km]
+    @ride.estimated_price = params[:ride][:estimated_price]
+
+    Rails.logger.debug "RIDE DEBUG: Initial ride params: #{ride_params.inspect}"
+    Rails.logger.debug "RIDE DEBUG: Coordinates: pickup=(#{@ride.pickup_lat},#{@ride.pickup_lng}), dropoff=(#{@ride.dropoff_lat},#{@ride.dropoff_lng})"
+    Rails.logger.debug "RIDE DEBUG: Distance and Price: distance=#{@ride.distance_km}km, price=$#{@ride.estimated_price}"
 
     respond_to do |format|
       if @ride.save
-        Rails.logger.debug "RIDE DEBUG: After save, status: #{@ride.status.inspect}"
-        Rails.logger.debug "RIDE DEBUG: Ride attributes: #{@ride.attributes.inspect}"
-
-        format.html { redirect_to dashboard_path, notice: "Ride was successfully requested." }
+        format.html { redirect_to dashboard_path, notice: "Ride was successfully created." }
         format.json { render :show, status: :created, location: @ride }
-        format.turbo_stream { redirect_to dashboard_path, notice: "Ride was successfully requested." }
       else
-        Rails.logger.debug "RIDE DEBUG: Save failed, errors: #{@ride.errors.full_messages.inspect}"
-
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @ride.errors, status: :unprocessable_entity }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("new_ride", partial: "rides/passenger_form", locals: { ride: @ride }) }
       end
     end
   end
@@ -120,7 +108,12 @@ class RidesController < ApplicationController
   # PATCH/PUT /rides/1 or /rides/1.json
   def update
     respond_to do |format|
-      if @ride.update(ride_params)
+      # Update display names if provided
+      ride_update_params = ride_params
+      ride_update_params[:pickup_location] = params[:ride][:pickup_location] if params[:ride][:pickup_location].present?
+      ride_update_params[:dropoff_location] = params[:ride][:dropoff_location] if params[:ride][:dropoff_location].present?
+
+      if @ride.update(ride_update_params)
         format.html { redirect_to ride_url(@ride), notice: "Ride was successfully updated." }
         format.json { render :show, status: :ok, location: @ride }
       else
@@ -401,13 +394,10 @@ class RidesController < ApplicationController
     # Only allow a list of trusted parameters through.
     def ride_params
       params.require(:ride).permit(
-        :pickup_location, :dropoff_location, :scheduled_time,
-        :status, :start_time, :end_time, :driver_id, :vehicle_id,
-        :passenger_id, :requested_seats, :special_instructions,
-        :pickup_lat, :pickup_lng, :dropoff_lat, :dropoff_lng,
-        :pickup_address, :dropoff_address,
-        :distance_km, :estimated_duration_minutes, :total_travel_duration_minutes,
-        :estimated_price
+        :pickup_location, :pickup_address, :pickup_lat, :pickup_lng,
+        :dropoff_location, :dropoff_address, :dropoff_lat, :dropoff_lng,
+        :scheduled_time, :requested_seats, :special_instructions,
+        :distance_km, :estimated_price
       )
     end
 

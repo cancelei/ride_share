@@ -88,6 +88,10 @@ showAlternativeRoutes: { type: Boolean, default: true },
 connect() {
 console.log("Map controller connected - performing JavaScript clobber");
 
+// Initialize user location variables
+this.userLat = null;
+this.userLng = null;
+
 // Immediately clear all storage to ensure a fresh state on every page load
 const keysToRemove = [
   'userAllowedGeolocation',
@@ -246,168 +250,50 @@ console.log(addressDetail);
 
 // Try to get the user's location on page load
 tryGetCurrentLocationOnLoad() {
-// Check if geolocation is supported by the browser
-if (
-  navigator.geolocation &&
-  localStorage.getItem("userAllowedGeolocation") === "true"
-) {
-  this.useCurrentLocation();
-}
+  // Check if the user has previously allowed geolocation
+  const userAllowedGeo = localStorage.getItem("userAllowedGeolocation");
+  
+  if (userAllowedGeo === "true") {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        // Store user location for autocomplete
+        this.userLat = latitude;
+        this.userLng = longitude;
+        console.log("User location stored for autocomplete:", latitude, longitude);
+      },
+      (error) => {
+        console.warn("Could not get location on page load:", error);
+      },
+      { timeout: 5000, maximumAge: 60000 }
+    );
+  }
 }
 
 // Use the browser's geolocation API to get the current position
 useCurrentLocation(event) {
-console.log("useCurrentLocation called with event:", event);
-
-if (!navigator.geolocation) {
-  this.showLocationStatus(
-    "Geolocation is not supported by your browser",
-    "error"
-  );
-  return;
-}
-
-// Get the type from the button's data attribute if event exists
-const isDropoff = event && event.currentTarget ? event.currentTarget.dataset.type === 'dropoff' : false;
-console.log(`Using current location for ${isDropoff ? 'dropoff' : 'pickup'}`);
-
-// First, properly clear the location (using the same function as the X button)
-if (isDropoff) {
-  this.clearDropoffLocation(); // Use the method that the X button uses
-  console.log("Cleared dropoff location");
-} else {
-  this.clearPickupLocation(); // Use the method that the X button uses
-  console.log("Cleared pickup location");
-}
-
-// Show loading status
-this.showLocationStatus(`Getting your ${isDropoff ? 'dropoff' : 'pickup'} location...`, "info");
-
-// Show loading indicator in the input field
-if (isDropoff && this.hasDropoffInputTarget) {
-  this.dropoffInputTarget.classList.add('loading');
-} else if (!isDropoff && this.hasPickupInputTarget) {
-  this.pickupInputTarget.classList.add('loading');
-}
+const locationType = event.currentTarget.dataset.type || "pickup";
+this.showLocationStatus("Getting your current location...", "info");
 
 navigator.geolocation.getCurrentPosition(
   async (position) => {
     const { latitude, longitude } = position.coords;
-    console.log(`Got coordinates: ${latitude}, ${longitude} for ${isDropoff ? 'dropoff' : 'pickup'}`);
     
-    try {
-      // Update controller values directly first
-      if (isDropoff) {
-        this.dropoffLatValue = latitude;
-        this.dropoffLngValue = longitude;
-        // Also update form fields directly to ensure they're set
-        if (this.hasDropoffLatTarget) this.dropoffLatTarget.value = latitude;
-        if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = longitude;
-        console.log("Set dropoff values directly:", this.dropoffLatTarget.value, this.dropoffLngTarget.value);
-      } else {
-        this.pickupLatValue = latitude;
-        this.pickupLngValue = longitude;
-        // Also update form fields directly to ensure they're set
-        if (this.hasPickupLatTarget) this.pickupLatTarget.value = latitude;
-        if (this.hasPickupLngTarget) this.pickupLngTarget.value = longitude;
-        console.log("Set pickup values directly:", this.pickupLatTarget.value, this.pickupLngTarget.value);
-      }
+    // Store user's current location for future autocomplete requests
+    this.userLat = latitude;
+    this.userLng = longitude;
     
-      // Get address with reverse geocoding
-      const targetInput = isDropoff ? this.dropoffInputTarget : this.pickupInputTarget;
-      const targetAddress = isDropoff ? this.dropoffAddressTarget : this.pickupAddressTarget;
-      
-      // Make a specific request for reverse geocoding
-      const response = await fetch(`/places/reverse_geocode?lat=${latitude}&lng=${longitude}`);
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log("Reverse geocode data:", data);
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      // Update the input fields directly
-      targetInput.value = data.address;
-      targetAddress.value = data.address;
-      console.log(`Set ${isDropoff ? 'dropoff' : 'pickup'} address to: ${data.address}`);
-      
-      // Remove loading indicator
-      if (isDropoff && this.hasDropoffInputTarget) {
-        this.dropoffInputTarget.classList.remove('loading');
-      } else if (!isDropoff && this.hasPickupInputTarget) {
-        this.pickupInputTarget.classList.remove('loading');
-      }
-      
-      // Update the map with the new location
-      console.log("Updating map after setting location");
-      this.updateMapWithCurrentLocations();
-      
-      // Store permission in localStorage for future use
-      localStorage.setItem("userAllowedGeolocation", "true");
-      
-      // Show success message
-      this.showLocationStatus(`${isDropoff ? 'Dropoff' : 'Pickup'} location set to your current location`, "success");
-      
-      // Notify other components about location update
-      const locationEvent = new CustomEvent("locations:updated", { 
-        detail: {
-          pickupLat: this.hasPickupLatTarget ? parseFloat(this.pickupLatTarget.value) : null,
-          pickupLng: this.hasPickupLngTarget ? parseFloat(this.pickupLngTarget.value) : null,
-          dropoffLat: this.hasDropoffLatTarget ? parseFloat(this.dropoffLatTarget.value) : null,
-          dropoffLng: this.hasDropoffLngTarget ? parseFloat(this.dropoffLngTarget.value) : null,
-        }
-      });
-      
-      console.log("Dispatching locations:updated event with values:", locationEvent.detail);
-      window.dispatchEvent(locationEvent);
-    } catch (error) {
-      console.error("Error in setting current location:", error);
-      this.showLocationStatus(`Error setting ${isDropoff ? 'dropoff' : 'pickup'} location: ${error.message}`, "error");
-      
-      // Remove loading indicator
-      if (isDropoff && this.hasDropoffInputTarget) {
-        this.dropoffInputTarget.classList.remove('loading');
-      } else if (!isDropoff && this.hasPickupInputTarget) {
-        this.pickupInputTarget.classList.remove('loading');
-      }
-    }
+    const isDropoff = locationType === "dropoff";
+    await this.reverseGeocode(latitude, longitude, isDropoff);
   },
   (error) => {
     console.error("Geolocation error:", error);
-    let errorMsg = "Error getting your location.";
-
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        errorMsg = "Location access denied. Please enable location services.";
-        localStorage.removeItem("userAllowedGeolocation");
-        break;
-      case error.POSITION_UNAVAILABLE:
-        errorMsg = "Location information is unavailable.";
-        break;
-      case error.TIMEOUT:
-        errorMsg = "Location request timed out.";
-        break;
-    }
-
-    // Remove loading indicator
-    if (isDropoff && this.hasDropoffInputTarget) {
-      this.dropoffInputTarget.classList.remove('loading');
-    } else if (!isDropoff && this.hasPickupInputTarget) {
-      this.pickupInputTarget.classList.remove('loading');
-    }
-
-    this.showLocationStatus(errorMsg, "error");
+    this.showLocationStatus(
+      "Could not get your location. Please check your browser settings and try again.",
+      "error"
+    );
   },
-  {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0,
-  }
+  { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
 );
 }
 
@@ -534,7 +420,23 @@ this.debouncedFetch(event.target, query);
 }
 
 performFetch(inputElement, query) {
-fetch(`/places/autocomplete?query=${query}`)
+// Determine if this is for a dropoff location
+const isDropoff = inputElement === this.dropoffInputTarget;
+
+// Build the URL with query parameters
+let url = `/places/autocomplete?query=${encodeURIComponent(query)}`;
+
+// Add user's current location if available
+if (this.userLat && this.userLng) {
+  url += `&user_lat=${this.userLat}&user_lng=${this.userLng}`;
+}
+
+// If this is a dropoff search and we have pickup coordinates, add them too
+if (isDropoff && this.pickupLatValue && this.pickupLngValue) {
+  url += `&for_dropoff=true&pickup_lat=${this.pickupLatValue}&pickup_lng=${this.pickupLngValue}`;
+}
+
+fetch(url)
   .then((response) => response.json())
   .then((data) => this.updateSuggestions(inputElement, data, query))
   .catch((error) => console.error("Error fetching places:", error));
@@ -573,7 +475,6 @@ if (locations.length === 0) {
 
 locations.forEach((location) => {
   const div = document.createElement("div");
-  div.textContent = location.address;
   div.classList.add(
     "autocomplete-item",
     "px-4",
@@ -587,9 +488,25 @@ locations.forEach((location) => {
     "last:border-none"
   );
 
-  div.dataset.latitude = location.latitude;
-  div.dataset.longitude = location.longitude;
+  // Create and style the name element
+  const nameDiv = document.createElement("div");
+  nameDiv.textContent = location.name;
+  nameDiv.classList.add("font-medium", "text-gray-900");
+  
+  // Create and style the address element
+  const addressDiv = document.createElement("div");
+  addressDiv.textContent = location.address;
+  addressDiv.classList.add("text-sm", "text-gray-500");
+
+  // Append both elements to the main div
+  div.appendChild(nameDiv);
+  div.appendChild(addressDiv);
+
+  // Store all necessary data
+  div.dataset.latitude = location.location?.latitude;
+  div.dataset.longitude = location.location?.longitude;
   div.dataset.address = location.address;
+  div.dataset.name = location.name;
 
   div.addEventListener("click", (event) =>
     this.selectLocation(event, inputElement, location)
@@ -600,47 +517,108 @@ locations.forEach((location) => {
 }
 
 selectLocation(event, inputElement, location) {
-inputElement.value = location.address;
+  // Use the name as the display value in the input
+  inputElement.value = location.name;
 
-this.clearSuggestions(inputElement);
+  this.clearSuggestions(inputElement);
 
-fetch(`/places/details?place_id=${location.id}`)
-  .then((response) => response.json())
-  .then((data) =>
-    this.updateFormFields(inputElement, { ...location, ...data })
-  )
-  .catch((error) => console.error("Error fetching place location:", error));
+  // Update form fields with both name and address
+  this.updateFormFields(inputElement, {
+    ...location,
+    display_value: location.name,
+    full_address: location.address
+  });
+}
+
+updateFormFields(inputElement, locationData) {
+  const isDropoff = inputElement === this.dropoffInputTarget;
+  const addressTarget = isDropoff ? this.dropoffAddressTarget : this.pickupAddressTarget;
+  const latTarget = isDropoff ? this.dropoffLatTarget : this.pickupLatTarget;
+  const lngTarget = isDropoff ? this.dropoffLngTarget : this.pickupLngTarget;
+
+  // Update the hidden address field with the full address
+  addressTarget.value = locationData.full_address;
+  
+  // Update coordinates if available
+  if (locationData.location) {
+    const lat = parseFloat(locationData.location.latitude);
+    const lng = parseFloat(locationData.location.longitude);
+
+    latTarget.value = lat;
+    lngTarget.value = lng;
+
+    // Update the controller values
+    if (isDropoff) {
+      this.dropoffLatValue = lat;
+      this.dropoffLngValue = lng;
+    } else {
+      this.pickupLatValue = lat;
+      this.pickupLngValue = lng;
+    }
+
+    // Clear existing marker of the same type
+    this.clearMarker(isDropoff ? "dropoff" : "pickup");
+
+    // Create a new marker
+    const markerPosition = { lat, lng };
+    const markerLabel = isDropoff ? "D" : "P";
+    const markerType = isDropoff ? "destination-marker" : "origin-marker";
+    this.createMarker(markerPosition, markerLabel, markerType);
+
+    // Center map on the new location
+    if (this.map) {
+      const newCenter = { lat, lng };
+      this.map.setCenter(newCenter);
+      this.map.setZoom(16); // Zoom in to show the area clearly
+
+      // If we have both locations, adjust bounds to show both
+      if (this.pickupLatValue && this.pickupLngValue && this.dropoffLatValue && this.dropoffLngValue) {
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend({ lat: parseFloat(this.pickupLatValue), lng: parseFloat(this.pickupLngValue) });
+        bounds.extend({ lat: parseFloat(this.dropoffLatValue), lng: parseFloat(this.dropoffLngValue) });
+        this.map.fitBounds(bounds);
+        // Add some padding to the bounds
+        this.map.setZoom(this.map.getZoom() - 1);
+      }
+    }
+  }
+
+  // Check if we have both pickup and dropoff locations
+  const hasPickup = this.pickupLatValue && this.pickupLngValue;
+  const hasDropoff = this.dropoffLatValue && this.dropoffLngValue;
+
+  // If we have both locations, calculate the route
+  if (hasPickup && hasDropoff) {
+    const origin = {
+      lat: parseFloat(this.pickupLatValue),
+      lng: parseFloat(this.pickupLngValue)
+    };
+    const destination = {
+      lat: parseFloat(this.dropoffLatValue),
+      lng: parseFloat(this.dropoffLngValue)
+    };
+    
+    // Calculate route
+    this.displayRoute(origin, destination);
+  }
+
+  // Dispatch the locations:updated event
+  window.dispatchEvent(
+    new CustomEvent("locations:updated", {
+      detail: {
+        pickupLat: !isDropoff ? parseFloat(latTarget.value) : parseFloat(this.pickupLatTarget.value),
+        pickupLng: !isDropoff ? parseFloat(lngTarget.value) : parseFloat(this.pickupLngTarget.value),
+        dropoffLat: isDropoff ? parseFloat(latTarget.value) : parseFloat(this.dropoffLatTarget.value),
+        dropoffLng: isDropoff ? parseFloat(lngTarget.value) : parseFloat(this.dropoffLngTarget.value),
+      },
+    })
+  );
 }
 
 getSuggestionsTarget(inputElement) {
 return inputElement === this.pickupInputTarget
   ? this.pickupSuggestionsTarget
   : this.dropoffSuggestionsTarget;
-}
-
-updateFormFields(inputElement, location) {
-if (inputElement === this.pickupInputTarget) {
-  if (this.hasPickupAddressTarget) {
-    this.pickupAddressTarget.value = location.address;
-  }
-  this.pickupLatTarget.value = location.latitude;
-  this.pickupLngTarget.value = location.longitude;
-} else if (inputElement === this.dropoffInputTarget) {
-  if (this.hasDropoffAddressTarget) {
-    this.dropoffAddressTarget.value = location.address;
-  }
-  this.dropoffLatTarget.value = location.latitude;
-  this.dropoffLngTarget.value = location.longitude;
-}
-
-// Add a subtle highlighting effect to show the selected location
-inputElement.classList.add("bg-green-50");
-setTimeout(() => {
-  inputElement.classList.remove("bg-green-50");
-}, 500);
-
-// Notify the map controller about updated locations
-this.notifyLocationChange();
 }
 
 notifyLocationChange() {
@@ -853,21 +831,6 @@ trafficControlDiv.innerHTML = `
       <circle cx="12" cy="12" r="10"></circle>
       <line x1="12" y1="16" x2="12" y2="12"></line>
       <line x1="12" y1="8" x2="12" y2="8"></line>
-  try {
-    this.map.setCenter({ lat: 0, lng: 0 });
-    this.map.setZoom(13);
-  } catch (error) {
-    console.log("Could not reset map view:", error);
-  }
-}
-
-// Dispatch a custom event to notify any other components that we've reset
-window.dispatchEvent(new CustomEvent('ride-data-cleared'));
-
-console.log("All previous ride data cleared");
-}
-}
-
     </svg>
     <span>Traffic</span>
   </button>

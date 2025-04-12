@@ -9,11 +9,19 @@
   </p>
   <p class="my-5">
     <strong class="block font-medium mb-1">Pickup:</strong>
-    <%= ride.pickup_location %>
+    <span class="font-medium text-gray-900"><%= ride.pickup_location %></span>
+    <% if ride.pickup_address.present? && ride.pickup_address != ride.pickup_location %>
+      <br>
+      <span class="text-sm text-gray-500"><%= ride.pickup_address %></span>
+    <% end %>
   </p>
   <p class="my-5">
     <strong class="block font-medium mb-1">Dropoff:</strong>
-    <%= ride.dropoff_location %>
+    <span class="font-medium text-gray-900"><%= ride.dropoff_location %></span>
+    <% if ride.dropoff_address.present? && ride.dropoff_address != ride.dropoff_location %>
+      <br>
+      <span class="text-sm text-gray-500"><%= ride.dropoff_address %></span>
+    <% end %>
   </p>
   <p class="my-5">
     <strong class="block font-medium mb-1">Scheduled Time:</strong>

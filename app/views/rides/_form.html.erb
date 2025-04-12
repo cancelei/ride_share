@@ -1,4 +1,9 @@
-<%= form_with(model: ride, class: "contents", data: { controller: "map", map_show_traffic_value: true, map_show_alternative_routes_value: true, map_style_value: "default" }) do |form| %>
+<%= form_with(model: ride, class: "contents", data: { 
+  controller: "map", 
+  map_show_traffic_value: true, 
+  map_show_alternative_routes_value: true, 
+  map_style_value: "default" 
+}) do |form| %>
   <% if ride.errors.any? %>
     <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(ride.errors.count, "error") %> prohibited this ride from being saved:</h2>
@@ -36,7 +41,7 @@
             </div>
             <div class="relative flex-grow">
               <input type="text"
-                    name="ride[pickup_address]"
+                    name="ride[pickup_location]"
                     class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
                     placeholder="Enter pickup location"
                     data-map-target="pickupInput"
@@ -93,7 +98,7 @@
             <div class="relative flex-grow">
               <input type="text"
                     id="dropoff_location"
-                    name="ride[dropoff_address]"
+                    name="ride[dropoff_location]"
                     class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
                     placeholder="Enter dropoff location"
                     data-map-target="dropoffInput"
@@ -327,33 +332,32 @@
     // Listen for route:calculated event to show trip info
     document.addEventListener('route:calculated', function(event) {
       console.log("Received route:calculated event:", event.detail);
-      const tripInfo = document.getElementById('trip-info');
-      const tripDistance = document.getElementById('trip-distance');
-      const tripDuration = document.getElementById('trip-duration');
-      const tripPrice = document.getElementById('trip-price');
-      const estimatedPriceField = document.getElementById('estimated_price_field');
-      const distanceKmField = document.getElementById('distance_km_field');
+      
+      // Get the trip info elements
+      const tripInfoSection = document.querySelector('[data-map-target="tripInfo"]');
+      const tripDistanceElement = document.querySelector('[data-map-target="tripDistance"]');
+      const tripDurationElement = document.querySelector('[data-map-target="tripDuration"]');
+      const tripPriceElement = document.querySelector('[data-map-target="tripPrice"]');
+      
+      // Get the hidden form fields
+      const estimatedPriceField = document.querySelector('input[name="ride[estimated_price]"]');
+      const distanceKmField = document.querySelector('input[name="ride[distance_km]"]');
 
       // Show trip info section
-      if (tripInfo) tripInfo.classList.remove('hidden');
-
-      // Update the visible elements
-      if (tripDistance) tripDistance.textContent = event.detail.distance;
-      if (tripDuration) tripDuration.textContent = event.detail.duration;
+      if (tripInfoSection) {
+        tripInfoSection.classList.remove('hidden');
+      }
 
       // Extract distance value in kilometers
       let distanceKm = 0;
-
       if (event.detail.distance_value) {
         // If we have the raw value in meters, convert to km
         distanceKm = event.detail.distance_value / 1000;
       } else {
-        // Fallback to parsing the text if raw value isn't available
+        // Fallback to parsing the text
         const distanceText = event.detail.distance;
         const distanceValue = parseFloat(distanceText.replace(/[^0-9.]/g, ''));
         distanceKm = distanceValue;
-
-        // Check if the distance is in miles and convert to km if needed
         if (distanceText.toLowerCase().includes('mi')) {
           distanceKm = distanceValue * 1.60934;
         }
@@ -364,28 +368,28 @@
       const perKmRate = 1.50;
       const estimatedPrice = baseFare + (distanceKm * perKmRate);
 
-      // Format the price for display
-      const formattedPrice = '$' + estimatedPrice.toFixed(2);
-      if (tripPrice) tripPrice.textContent = formattedPrice;
+      // Update visible elements
+      if (tripDistanceElement) tripDistanceElement.textContent = event.detail.distance;
+      if (tripDurationElement) tripDurationElement.textContent = event.detail.duration;
+      if (tripPriceElement) tripPriceElement.textContent = `$${estimatedPrice.toFixed(2)}`;
 
-      // Log values for debugging
-      console.log("Distance (km):", distanceKm);
-      console.log("Estimated price:", estimatedPrice);
-
-      // Update hidden fields - make sure they exist before updating
+      // Update hidden fields
       if (estimatedPriceField) {
         estimatedPriceField.value = estimatedPrice.toFixed(2);
-        console.log("Set estimated_price_field to:", estimatedPriceField.value);
-      } else {
-        console.warn("Could not find estimated_price_field element");
+        console.log("Updated estimated_price:", estimatedPriceField.value);
       }
-
       if (distanceKmField) {
         distanceKmField.value = distanceKm.toFixed(2);
-        console.log("Set distance_km_field to:", distanceKmField.value);
-      } else {
-        console.warn("Could not find distance_km_field element");
+        console.log("Updated distance_km:", distanceKmField.value);
       }
+
+      // Log all values for debugging
+      console.log({
+        distanceKm,
+        estimatedPrice,
+        estimatedPriceFieldValue: estimatedPriceField?.value,
+        distanceKmFieldValue: distanceKmField?.value
+      });
     });
   });
 
