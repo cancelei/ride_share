@@ -12,7 +12,7 @@ class DashboardController < ApplicationController
       @driver_profile = @user.driver_profile
       @current_vehicle = @driver_profile&.selected_vehicle
       @pending_rides = Ride.where(status: :pending)
-      @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :in_progress ])
+      @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :waiting_for_passenger_boarding, :in_progress ])
       @past_rides = Ride.where(driver: @driver_profile, status: [ :completed, :cancelled ]).order(created_at: :desc).limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
       @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
@@ -139,7 +139,7 @@ class DashboardController < ApplicationController
 
       # Additional data needed for driver dashboard
       @pending_rides = Ride.where(status: :pending)
-      @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :in_progress ])
+      @active_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :waiting_for_passenger_boarding, :in_progress ])
       @past_rides = all_rides.where(status: :completed).order(created_at: :desc).limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
       @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days

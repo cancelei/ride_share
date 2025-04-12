@@ -98,15 +98,12 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-gray-900">
-          <span class="hidden sm:block">
-            <span class="font-semibold text-base"><%= ride.pickup_location %></span>
+          <span class="">
+            <span class="font-semibold text-base break-words"><%= ride.pickup_location %></span>
             <% if ride.pickup_address.present? && ride.pickup_address != ride.pickup_location %>
               <br>
-              <span class="text-xs text-gray-500"><%= ride.pickup_address %></span>
+              <span class="text-xs text-gray-500 break-words"><%= ride.pickup_address %></span>
             <% end %>
-          </span>
-          <span class="sm:hidden truncate">
-            <span class="font-semibold"><%= ride.pickup_location %></span>
           </span>
         </p>
       </div>
@@ -122,15 +119,12 @@
       
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-gray-900">
-          <span class="hidden sm:block">
-            <span class="font-semibold text-base"><%= ride.dropoff_location %></span>
+          <span class="">
+            <span class="font-semibold text-base break-words"><%= ride.dropoff_location %></span>
             <% if ride.dropoff_address.present? && ride.dropoff_address != ride.dropoff_location %>
               <br>
-              <span class="text-xs text-gray-500"><%= ride.dropoff_address %></span>
+              <span class="text-xs text-gray-500 break-words"><%= ride.dropoff_address %></span>
             <% end %>
-          </span>
-          <span class="sm:hidden truncate">
-            <span class="font-semibold"><%= ride.dropoff_location %></span>
           </span>
         </p>
       </div>
