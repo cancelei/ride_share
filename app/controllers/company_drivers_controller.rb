@@ -41,6 +41,7 @@ class CompanyDriversController < ApplicationController
         @monthly_rides_total = dashboard_controller.instance_variable_get(:@monthly_rides_total)
         @company_drivers = dashboard_controller.instance_variable_get(:@company_drivers)
 
+        flash.now[:notice] = "Driver was successfully approved."
         render turbo_stream: [
           turbo_stream.replace(dom_id(@company_driver), partial: "company_drivers/company_driver", locals: { company_driver: @company_driver }),
           turbo_stream.replace("financial_summary_card", partial: "dashboard/financial_summary", locals: {
@@ -61,7 +62,7 @@ class CompanyDriversController < ApplicationController
             cancelled_rides: @cancelled_rides,
             active_rides: @active_rides
           }),
-          turbo_stream.update("flash", partial: "shared/flash_notice", locals: { message: "Driver was successfully approved." })
+          turbo_stream.update("flash", partial: "shared/flash")
         ]
       end
     end
@@ -76,6 +77,7 @@ class CompanyDriversController < ApplicationController
     respond_to do |format|
       format.html { redirect_to dashboard_path, notice: "#{driver_name} was removed from your company." }
       format.turbo_stream do
+        flash.now[:notice] = "#{driver_name} was removed from your company."
         streams = [ turbo_stream.remove(company_driver_dom_id) ]
 
         if was_approved
@@ -117,7 +119,7 @@ class CompanyDriversController < ApplicationController
           ])
         end
 
-        streams << turbo_stream.update("flash", partial: "shared/flash_notice", locals: { message: "#{driver_name} was removed from your company." })
+        streams << turbo_stream.update("flash", partial: "shared/flash")
 
         render turbo_stream: streams
       end
@@ -152,6 +154,8 @@ class CompanyDriversController < ApplicationController
       respond_to do |format|
         format.html { redirect_to dashboard_path, notice: "You have been added as a driver to your company." }
         format.turbo_stream do
+          flash.now[:notice] = "You have been added as a driver to your company."
+          
           # Create a new controller instance to get fresh stats
           dashboard_controller = DashboardController.new
           dashboard_controller.instance_variable_set(:@_request, request)
@@ -189,12 +193,13 @@ class CompanyDriversController < ApplicationController
               active_rides: @active_rides
             }),
             turbo_stream.replace("add_self_button_container", ""),
-            turbo_stream.update("flash", partial: "shared/flash_notice", locals: { message: "You have been added as a driver to your company." })
+            turbo_stream.update("flash", partial: "shared/flash")
           ]
         end
       end
     else
-      redirect_to dashboard_path, alert: "There was a problem adding you as a driver."
+      flash.now[:alert] = "There was a problem adding you as a driver."
+      redirect_to dashboard_path
     end
   end
 
@@ -203,13 +208,15 @@ class CompanyDriversController < ApplicationController
   def set_company_driver
     @company_driver = CompanyDriver.includes(driver_profile: [ :user, :vehicles ]).find(params[:id])
     unless @company_driver.company_profile == current_user.company_profile
-      redirect_to dashboard_path, alert: "You can only manage drivers in your own company."
+      flash[:alert] = "You can only manage drivers in your own company."
+      redirect_to dashboard_path
     end
   end
 
   def ensure_company_profile
     unless current_user.company_profile.present?
-      redirect_to dashboard_path, alert: "You need a company profile to perform this action."
+      flash[:alert] = "You need a company profile to perform this action."
+      redirect_to dashboard_path
     end
   end
 end

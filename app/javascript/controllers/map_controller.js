@@ -1879,6 +1879,7 @@ export default class extends Controller {
         },
         (error) => {
           console.error("Error getting current location:", error);
+          alert("Location permission denied, please enable location permission in your browser settings");
         },
         {
           enableHighAccuracy: true,
