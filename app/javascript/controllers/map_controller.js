@@ -817,59 +817,111 @@ try {
 
 // Add custom controls to the map
 addCustomControls() {
-// Traffic toggle control
-const trafficControlDiv = document.createElement('div');
-trafficControlDiv.className = 'custom-map-control';
-trafficControlDiv.innerHTML = `
-  <button class="map-control-button ${this.showTrafficValue ? 'active' : ''}">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="16" x2="12" y2="12"></line>
-      <line x1="12" y1="8" x2="12" y2="8"></line>
-    </svg>
-    <span>Traffic</span>
-  </button>
-`;
+  // Traffic toggle control
+  const trafficControlDiv = document.createElement('div');
+  trafficControlDiv.className = 'custom-map-control';
+  trafficControlDiv.innerHTML = `
+    <button type="button" class="map-control-button ${this.showTrafficValue ? 'active' : ''}" data-action="click->map#toggleTraffic">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12" y2="8"></line>
+      </svg>
+      <span>Traffic</span>
+    </button>
+  `;
 
-trafficControlDiv.querySelector('button').addEventListener('click', () => {
-  this.toggleTraffic();
-  trafficControlDiv.querySelector('button').classList.toggle('active');
-});
+  this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(trafficControlDiv);
 
-this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(trafficControlDiv);
+  // My location control (icon only)
+  const myLocationDiv = document.createElement('div');
+  myLocationDiv.className = 'custom-map-control';
+  myLocationDiv.innerHTML = `
+    <button type="button" class="map-control-button map-control-button-icon-only" data-action="click->map#showUserLocation" title="Show My Location">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8"></circle>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    </button>
+  `;
 
-// My location control
-const myLocationDiv = document.createElement('div');
-myLocationDiv.className = 'custom-map-control';
-myLocationDiv.innerHTML = `
-  <button class="map-control-button">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <point cx="12" cy="12" r="3"></point>
-    </svg>
-    <span>My Location</span>
-  </button>
-`;
-
-myLocationDiv.querySelector('button').addEventListener('click', () => {
-  this.showUserLocation();
-});
-
-this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(myLocationDiv);
+  this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(myLocationDiv);
 }
 
 // Toggle traffic layer
-toggleTraffic() {
-if (this.trafficLayer) {
-  if (this.trafficLayer.getMap()) {
-    this.trafficLayer.setMap(null);
+toggleTraffic(event) {
+  event.preventDefault(); // Prevent form submission
+  if (this.trafficLayer) {
+    if (this.trafficLayer.getMap()) {
+      this.trafficLayer.setMap(null);
+      event.currentTarget.classList.remove('active');
+    } else {
+      this.trafficLayer.setMap(this.map);
+      event.currentTarget.classList.add('active');
+    }
   } else {
+    this.trafficLayer = new google.maps.TrafficLayer();
     this.trafficLayer.setMap(this.map);
+    event.currentTarget.classList.add('active');
   }
-} else {
-  this.trafficLayer = new google.maps.TrafficLayer();
-  this.trafficLayer.setMap(this.map);
 }
+
+// Show user location with error handling
+async showUserLocation(event) {
+  if (event) {
+    event.preventDefault(); // Prevent form submission
+  }
+  
+  try {
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      });
+    });
+
+    const { latitude, longitude } = position.coords;
+    
+    // Store user location
+    this.userLat = latitude;
+    this.userLng = longitude;
+    
+    // Center map on user location
+    const userLocation = { lat: latitude, lng: longitude };
+    this.map.setCenter(userLocation);
+    this.map.setZoom(15);
+
+    // Show a marker at user's location
+    const userMarkerPin = new google.maps.marker.PinElement({
+      background: "#4285F4",
+      borderColor: "#FFFFFF",
+      glyphColor: "#FFFFFF",
+      scale: 1.2,
+    });
+
+    // Remove previous user location marker if it exists
+    if (this.userLocationMarker) {
+      this.userLocationMarker.setMap(null);
+    }
+
+    this.userLocationMarker = new google.maps.marker.AdvancedMarkerElement({
+      position: userLocation,
+      map: this.map,
+      content: userMarkerPin.element,
+      title: "Your Location",
+    });
+
+    // Show success message
+    this.showLocationStatus("Location found!", "success");
+    
+  } catch (error) {
+    console.error("Error getting user location:", error);
+    this.showLocationStatus(
+      "Could not get your location. Please check your browser settings and try again.",
+      "error"
+    );
+  }
 }
 
 // Handle map click for location selection
