@@ -23,7 +23,10 @@ class CompanyDriversController < ApplicationController
     ).find(@company_driver.id)
 
     respond_to do |format|
-      format.html { redirect_to dashboard_path, notice: "Driver was successfully approved." }
+      format.html {
+        flash[:notice] = "Driver was successfully approved."
+        redirect_to dashboard_path
+      }
       format.turbo_stream do
         # Create a new controller instance to get fresh stats
         dashboard_controller = DashboardController.new
@@ -75,7 +78,10 @@ class CompanyDriversController < ApplicationController
     @company_driver.destroy
 
     respond_to do |format|
-      format.html { redirect_to dashboard_path, notice: "#{driver_name} was removed from your company." }
+      format.html {
+        flash[:notice] = "#{driver_name} was removed from your company."
+        redirect_to dashboard_path
+      }
       format.turbo_stream do
         flash.now[:notice] = "#{driver_name} was removed from your company."
         streams = [ turbo_stream.remove(company_driver_dom_id) ]
@@ -120,7 +126,6 @@ class CompanyDriversController < ApplicationController
         end
 
         streams << turbo_stream.update("flash", partial: "shared/flash")
-
         render turbo_stream: streams
       end
     end
@@ -129,14 +134,16 @@ class CompanyDriversController < ApplicationController
   def add_self_as_driver
     # Check if the user has a driver profile
     unless current_user.driver_profile
-      redirect_to new_driver_profile_path, alert: "You need to create a driver profile first."
+      flash[:alert] = "You need to create a driver profile first."
+      redirect_to new_driver_profile_path
       return
     end
 
     # Check if they're already a driver in their company
     if CompanyDriver.exists?(company_profile_id: current_user.company_profile.id,
                             driver_profile_id: current_user.driver_profile.id)
-      redirect_to dashboard_path, alert: "You are already a driver in your company."
+      flash[:alert] = "You are already a driver in your company."
+      redirect_to dashboard_path
       return
     end
 
@@ -152,10 +159,13 @@ class CompanyDriversController < ApplicationController
       current_user.driver_profile.update_column(:company_profile_id, current_user.company_profile.id)
 
       respond_to do |format|
-        format.html { redirect_to dashboard_path, notice: "You have been added as a driver to your company." }
+        format.html {
+          flash[:notice] = "You have been added as a driver to your company."
+          redirect_to dashboard_path
+        }
         format.turbo_stream do
           flash.now[:notice] = "You have been added as a driver to your company."
-          
+
           # Create a new controller instance to get fresh stats
           dashboard_controller = DashboardController.new
           dashboard_controller.instance_variable_set(:@_request, request)
@@ -198,7 +208,7 @@ class CompanyDriversController < ApplicationController
         end
       end
     else
-      flash.now[:alert] = "There was a problem adding you as a driver."
+      flash[:alert] = "There was a problem adding you as a driver."
       redirect_to dashboard_path
     end
   end
