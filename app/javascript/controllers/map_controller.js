@@ -209,29 +209,52 @@ if (type === "pickup") {
   if (this.hasPickupAddressTarget) this.pickupAddressTarget.value = "";
   if (this.hasPickupLatTarget) this.pickupLatTarget.value = "";
   if (this.hasPickupLngTarget) this.pickupLngTarget.value = "";
+  this.pickupLatValue = null;
+  this.pickupLngValue = null;
 } else if (type === "dropoff") {
   if (this.hasDropoffInputTarget) this.dropoffInputTarget.value = "";
   if (this.hasDropoffAddressTarget) this.dropoffAddressTarget.value = "";
   if (this.hasDropoffLatTarget) this.dropoffLatTarget.value = "";
   if (this.hasDropoffLngTarget) this.dropoffLngTarget.value = "";
+  this.dropoffLatValue = null;
+  this.dropoffLngValue = null;
 }
 
-// Clear existing markers and route
+// Remove markers based on type
 if (this.currentMarkers) {
-  this.currentMarkers.forEach(marker => marker.setMap(null));
-  this.currentMarkers = this.currentMarkers.filter(marker => 
-    (type === "pickup" && marker.type !== "origin-marker") || 
-    (type === "dropoff" && marker.type !== "destination-marker")
-  );
+  const remainingMarkers = [];
+  this.currentMarkers.forEach(marker => {
+    if ((type === "pickup" && marker.type === "origin-marker") || 
+        (type === "dropoff" && marker.type === "destination-marker")) {
+      marker.setMap(null); // Remove the marker from the map
+    } else {
+      remainingMarkers.push(marker); // Keep other markers
+    }
+  });
+  this.currentMarkers = remainingMarkers;
 }
 
+// Clear route if either pickup or dropoff is cleared
 if (this.currentPolylines) {
   this.currentPolylines.forEach(polyline => polyline.setMap(null));
   this.currentPolylines = [];
 }
 
+// Clear alternative routes
+if (this.alternativeRoutes) {
+  this.alternativeRoutes.forEach(route => {
+    if (route.polyline) {
+      route.polyline.setMap(null);
+    }
+  });
+  this.alternativeRoutes = [];
+}
+
 // Notify any listeners that locations have been cleared
 this.notifyLocationChange();
+
+// Update map with remaining location if any
+this.updateMapWithCurrentLocations();
 }
 
 addLocationListener() {
