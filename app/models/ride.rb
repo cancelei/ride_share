@@ -52,22 +52,14 @@ class Ride < ApplicationRecord
     .sum(:estimated_price)
   }
 
-  validates :pickup_location, :dropoff_location, presence: true, if: -> {
-    (accepted? || in_progress? || completed?) &&
-    pickup_address.blank? && dropoff_address.blank?
-  }
-
-  validates :pickup_address, :dropoff_address, presence: true, if: -> {
-    (accepted? || in_progress? || completed?) &&
-    pickup_location.blank? && dropoff_location.blank?
-  }
+  validates :pickup_address, presence: true
+  validates :dropoff_address, presence: true
 
   validates :driver, presence: true, if: -> { accepted? || in_progress? || completed? }
   validates :vehicle, presence: true, if: -> { accepted? || in_progress? || completed? }
   validates :scheduled_time, presence: true, if: -> { passenger.present? }
   validates :requested_seats, presence: true, numericality: { greater_than: 0 }, if: -> { passenger.present? }
 
-  attribute :participants_count, :integer, default: 0
   attribute :paid, :boolean, default: false
 
   # Configure email notifications for different ride statuses
@@ -141,10 +133,6 @@ class Ride < ApplicationRecord
     url += "&travelmode=driving"
 
     url
-  end
-
-  def participants_count
-    requested_seats || 0
   end
 
   def verify_security_code(code)

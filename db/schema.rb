@@ -97,13 +97,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_040604) do
   create_table "rides", force: :cascade do |t|
     t.datetime "start_time"
     t.datetime "end_time"
-    t.string "invitation_code"
     t.string "status"
     t.float "rating"
-    t.integer "available_seats"
-    t.string "title"
-    t.string "location"
-    t.integer "participants_count", default: 0
+    t.integer "available_seats", default: 0
     t.float "estimated_price"
     t.float "effective_price"
     t.datetime "scheduled_time"
