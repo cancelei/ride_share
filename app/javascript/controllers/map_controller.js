@@ -143,23 +143,17 @@ this.debouncedFetch = this.debounce(
 this.applySuggestionsStyle(this.pickupSuggestionsTarget);
 this.applySuggestionsStyle(this.dropoffSuggestionsTarget);
 
-// Add input event listeners
+// Add input event listeners with direct fetchSuggestions call (no debounce here)
 if (this.hasPickupInputTarget) {
-  this.pickupInputTarget.addEventListener(
-    "input",
-    this.debounce(() => {
-      this.fetchSuggestions({ target: this.pickupInputTarget });
-    }, 300)
-  );
+  this.pickupInputTarget.addEventListener("input", (event) => {
+    this.fetchSuggestions(event);
+  });
 }
 
 if (this.hasDropoffInputTarget) {
-  this.dropoffInputTarget.addEventListener(
-    "input",
-    this.debounce(() => {
-      this.fetchSuggestions({ target: this.dropoffInputTarget });
-    }, 300)
-  );
+  this.dropoffInputTarget.addEventListener("input", (event) => {
+    this.fetchSuggestions(event);
+  });
 }
 
 // Try to get user's location on page load if permitted
@@ -409,18 +403,15 @@ element.addEventListener("mouseenter", () => {
 }
 
 fetchSuggestions(event) {
-const query = event.target.value;
-if (query.length < 3) {
-  this.clearSuggestions(event.target);
-  if (event.target === this.pickupInputTarget) {
-    this.clearPickupLocation();
-  } else if (event.target === this.dropoffInputTarget) {
-    this.clearDropoffLocation();
+  const query = event.target.value;
+  
+  // Don't clear the input value, only clear suggestions if query is too short
+  if (query.length < 3) {
+    this.clearSuggestions(event.target);
+    return;
   }
-  return;
-}
 
-this.debouncedFetch(event.target, query);
+  this.debouncedFetch(event.target, query);
 }
 
 performFetch(inputElement, query) {
