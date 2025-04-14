@@ -9,9 +9,11 @@ class RidesController < ApplicationController
     if current_user&.role_driver?
       @active_rides = Ride.includes(:driver, :passenger)
                          .where(driver: current_user.driver_profile)
-                         .where(status: [ :pending, :accepted, :in_progress ])
+                         .where(status: [ :pending, :accepted, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
                          .order(created_at: :desc)
                          .distinct
+      puts "Active Rides: #{@active_rides.inspect}"
+      binding.pry
 
       @past_rides = Ride.includes(:driver, :passenger)
                        .where(driver: current_user.driver_profile)
@@ -20,8 +22,9 @@ class RidesController < ApplicationController
                        .distinct
     elsif current_user&.role_passenger?
       @active_rides = Ride.where(passenger: current_user.passenger_profile)
-                         .where(status: [ :pending, :accepted, :in_progress ])
+                         .where(status: [ :pending, :accepted, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
                          .order(created_at: :desc)
+      puts "Active Rides: #{@active_rides.inspect}"
 
       @past_rides = Ride.where(passenger: current_user.passenger_profile)
                        .where(status: [ :completed, :cancelled ])
@@ -198,9 +201,32 @@ class RidesController < ApplicationController
   def finish
     if @ride.can_complete? && @ride.driver == current_user.driver_profile
       if @ride.finish!
-        redirect_to ride_path(@ride), notice: "Ride completed successfully."
+        # Use turbo_stream to render both the updated ride card and the flash message
+        respond_to do |format|
+          format.html { redirect_to ride_path(@ride), notice: "Please rate your passenger to complete the ride." }
+          format.turbo_stream {
+            render turbo_stream: [
+              turbo_stream.replace("ride_#{@ride.id}",
+                partial: "rides/ride_card",
+                locals: { ride: @ride.reload, current_user: current_user }
+              ),
+              turbo_stream.update("flash",
+                partial: "shared/flash",
+                locals: { flash: { notice: "Please rate your passenger to complete the ride." } }
+              )
+            ]
+          }
+        end
       else
-        redirect_to ride_path(@ride), alert: "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}"
+        respond_to do |format|
+          format.html { redirect_to ride_path(@ride), alert: "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}" }
+          format.turbo_stream {
+            render turbo_stream: turbo_stream.update("flash",
+              partial: "shared/flash",
+              locals: { flash: { alert: "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}" } }
+            )
+          }
+        end
       end
     else
       redirect_to dashboard_path, alert: "You cannot finish this ride."
@@ -211,13 +237,35 @@ class RidesController < ApplicationController
   def mark_as_paid
     if @ride.mark_paid!
       respond_to do |format|
-        format.html { redirect_to dashboard_path, notice: "Payment status updated." }
-        format.turbo_stream
+        format.html {
+          flash[:notice] = t("rides.payment.success")
+          redirect_to dashboard_path
+        }
+        format.turbo_stream {
+          render turbo_stream: [
+            turbo_stream.replace("ride_#{@ride.id}",
+              partial: "rides/ride_card",
+              locals: { ride: @ride.reload, current_user: current_user }
+            ),
+            turbo_stream.update("flash",
+              partial: "shared/flash",
+              locals: { flash: { notice: t("rides.payment.success") } }
+            )
+          ]
+        }
       end
     else
       respond_to do |format|
-        format.html { redirect_to dashboard_path, alert: "Failed to update payment status." }
-        format.turbo_stream
+        format.html {
+          flash[:alert] = t("rides.payment.error")
+          redirect_to dashboard_path
+        }
+        format.turbo_stream {
+          render turbo_stream: turbo_stream.update("flash",
+            partial: "shared/flash",
+            locals: { flash: { alert: t("rides.payment.error") } }
+          )
+        }
       end
     end
   end
@@ -228,14 +276,14 @@ class RidesController < ApplicationController
       @ride.status = :completed
 
       if @ride.save
-        set_flash(:notice, "Ride completed successfully.")
+        flash[:notice] = "Ride completed successfully."
         redirect_to ride_path(@ride)
       else
-        set_flash(:alert, "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}")
+        flash[:alert] = "Failed to complete ride: #{@ride.errors.full_messages.join(', ')}"
         redirect_to ride_path(@ride)
       end
     else
-      set_flash(:alert, "You don't have permission to complete this ride.")
+      flash[:alert] = "You don't have permission to complete this ride."
       redirect_to dashboard_path
     end
   end
@@ -249,35 +297,51 @@ class RidesController < ApplicationController
       @ride.cancelled_by = current_user.role
 
       if @ride.save
-        set_flash(:notice, "Ride cancelled successfully.")
-
         respond_to do |format|
-          format.html { redirect_to dashboard_path }
+          format.html {
+            flash[:notice] = t("rides.cancel.success")
+            redirect_to dashboard_path
+          }
           format.turbo_stream {
             render turbo_stream: [
               turbo_stream.replace("ride_#{@ride.id}",
                 partial: "rides/ride_card",
                 locals: { ride: @ride.reload, current_user: current_user }
               ),
-              render_flash_turbo_stream
+              turbo_stream.update("flash",
+                partial: "shared/flash",
+                locals: { flash: { notice: t("rides.cancel.success") } }
+              )
             ]
           }
         end
       else
-        error_message = "Failed to cancel ride: #{@ride.errors.full_messages.join(', ')}"
-        set_flash(:alert, error_message)
-
+        error_message = t("rides.cancel.error", message: @ride.errors.full_messages.join(", "))
         respond_to do |format|
-          format.html { redirect_to ride_path(@ride) }
-          format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+          format.html {
+            flash[:alert] = error_message
+            redirect_to ride_path(@ride)
+          }
+          format.turbo_stream {
+            render turbo_stream: turbo_stream.update("flash",
+              partial: "shared/flash",
+              locals: { flash: { alert: error_message } }
+            )
+          }
         end
       end
     else
-      set_flash(:alert, "You don't have permission to cancel this ride.")
-
       respond_to do |format|
-        format.html { redirect_to dashboard_path }
-        format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+        format.html {
+          flash[:alert] = t("rides.cancel.unauthorized")
+          redirect_to dashboard_path
+        }
+        format.turbo_stream {
+          render turbo_stream: turbo_stream.update("flash",
+            partial: "shared/flash",
+            locals: { flash: { alert: t("rides.cancel.unauthorized") } }
+          )
+        }
       end
     end
   end
@@ -287,10 +351,11 @@ class RidesController < ApplicationController
     if @ride.security_code == params[:security_code]
       @ride.update(status: "in_progress", start_time: Time.current)
 
-      set_flash(:notice, "Ride started successfully!")
-
       respond_to do |format|
-        format.html { redirect_to @ride }
+        format.html {
+          flash[:notice] = t("rides.security_code.success")
+          redirect_to @ride
+        }
         format.turbo_stream {
           # Broadcast the status change
           broadcast_ride_acceptance(@ride, current_user)
@@ -299,16 +364,25 @@ class RidesController < ApplicationController
             turbo_stream.replace("ride_#{@ride.id}",
                             partial: "rides/ride_card",
                             locals: { ride: @ride.reload, current_user: current_user }),
-            render_flash_turbo_stream
+            turbo_stream.update("flash",
+              partial: "shared/flash",
+              locals: { flash: { notice: t("rides.security_code.success") } }
+            )
           ]
         }
       end
     else
-      set_flash(:alert, "Invalid security code. Please try again.")
-
       respond_to do |format|
-        format.html { redirect_to @ride }
-        format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+        format.html {
+          flash[:alert] = t("rides.security_code.invalid")
+          redirect_to @ride
+        }
+        format.turbo_stream {
+          render turbo_stream: turbo_stream.update("flash",
+            partial: "shared/flash",
+            locals: { flash: { alert: t("rides.security_code.invalid") } }
+          )
+        }
       end
     end
   end
@@ -316,40 +390,55 @@ class RidesController < ApplicationController
   # POST /rides/1/arrived_at_pickup
   def arrived_at_pickup
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-
       if @ride.update(status: :waiting_for_passenger_boarding, arrived_time: Time.current)
-
         # Make sure both driver and passenger get updated UI
         broadcast_ride_acceptance(@ride, current_user)
 
-        set_flash(:notice, "You've marked yourself as arrived. The passenger has been notified.")
-
         respond_to do |format|
-          format.html { redirect_to @ride }
+          format.html {
+            flash[:notice] = t("rides.arrived.success")
+            redirect_to @ride
+          }
           format.turbo_stream {
             render turbo_stream: [
               turbo_stream.replace("ride_#{@ride.id}",
                 partial: "rides/ride_card",
                 locals: { ride: @ride.reload, current_user: current_user }
               ),
-              render_flash_turbo_stream
+              turbo_stream.update("flash",
+                partial: "shared/flash",
+                locals: { flash: { notice: t("rides.arrived.success") } }
+              )
             ]
           }
         end
       else
-        set_flash(:alert, "Failed to update ride status: #{@ride.errors.full_messages.join(', ')}")
-
+        error_message = t("rides.arrived.error", message: @ride.errors.full_messages.join(", "))
         respond_to do |format|
-          format.html { redirect_to @ride }
-          format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+          format.html {
+            flash[:alert] = error_message
+            redirect_to @ride
+          }
+          format.turbo_stream {
+            render turbo_stream: turbo_stream.update("flash",
+              partial: "shared/flash",
+              locals: { flash: { alert: error_message } }
+            )
+          }
         end
       end
     else
-      set_flash(:alert, "You don't have permission to perform this action.")
-
       respond_to do |format|
-        format.html { redirect_to dashboard_path }
-        format.turbo_stream { render turbo_stream: render_flash_turbo_stream }
+        format.html {
+          flash[:alert] = t("rides.arrived.unauthorized")
+          redirect_to dashboard_path
+        }
+        format.turbo_stream {
+          render turbo_stream: turbo_stream.update("flash",
+            partial: "shared/flash",
+            locals: { flash: { alert: t("rides.arrived.unauthorized") } }
+          )
+        }
       end
     end
   end

@@ -227,7 +227,11 @@
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
                           <div class="flex items-center">
-                            <% rating = ride.rating || 0 %>
+                            <% 
+                              # Find the driver ratings
+                              driver_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: ride.driver_id)
+                              rating = driver_ratings.any? ? driver_ratings.average(:score).to_f.round(1) : 0
+                            %>
                             <% 5.times do |i| %>
                               <svg xmlns="http://www.w3.org/2000/svg"
                                   class="h-4 w-4 <%= i < rating ? 'text-yellow-400' : 'text-gray-300' %>"

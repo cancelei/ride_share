@@ -1,0 +1,37 @@
+<%= form_with(model: rating, url: ride_ratings_path(ride), local: false, id: "rating_form", class: "space-y-4") do |form| %>
+  <% if rating.errors.any? %>
+    <div class="bg-red-50 text-red-600 p-3 rounded mb-4">
+      <h2 class="font-medium"><%= pluralize(rating.errors.count, "error") %> prohibited this rating from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% rating.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  
+  <div class="mb-4">
+    <%= form.label :score, "How was your experience?", class: "block font-medium mb-2" %>
+    <div class="flex space-x-4">
+      <% (1..5).each do |score| %>
+        <div class="flex flex-col items-center">
+          <label class="cursor-pointer">
+            <%= form.radio_button :score, score, class: "sr-only peer" %>
+            <div class="text-2xl peer-checked:text-yellow-500 text-gray-300">★</div>
+            <div class="text-xs mt-1"><%= score %></div>
+          </label>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="mb-4">
+    <%= form.label :comment, "Additional comments (optional)", class: "block font-medium mb-2" %>
+    <%= form.text_area :comment, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50", rows: 3 %>
+  </div>
+  
+  <div class="flex justify-end">
+    <%= link_to "Cancel", root_path, class: "mr-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+    <%= form.submit "Submit Rating", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+  </div>
+<% end %> 

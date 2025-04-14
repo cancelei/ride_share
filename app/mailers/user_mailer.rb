@@ -104,4 +104,41 @@ class UserMailer < ApplicationMailer
         subject: "Confirmed Ride Request via RideFlow"
       )
     end
+
+    def ride_rating_required(ride)
+      @ride = ride
+      @url = UserMailer.mailer_url
+
+      # Send email to passenger
+      passenger_email = send_rating_email_to_passenger(ride)
+
+      # Send email to driver
+      driver_email = send_rating_email_to_driver(ride)
+
+      [ passenger_email, driver_email ]
+    end
+
+    def send_rating_email_to_passenger(ride)
+      @ride = ride
+      @url = UserMailer.mailer_url
+      @recipient = ride.passenger.user
+      @recipient_type = "passenger"
+
+      mail(
+        to: @recipient.email,
+        subject: "Please Rate Your Driver - RideFlow"
+      )
+    end
+
+    def send_rating_email_to_driver(ride)
+      @ride = ride
+      @url = UserMailer.mailer_url
+      @recipient = ride.driver.user
+      @recipient_type = "driver"
+
+      mail(
+        to: @recipient.email,
+        subject: "Please Rate Your Passenger - RideFlow"
+      )
+    end
 end

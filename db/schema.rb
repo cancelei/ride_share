@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_27_040604) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_14_183201) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -94,11 +94,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_040604) do
     t.index ["user_id"], name: "index_passenger_profiles_on_user_id"
   end
 
+  create_table "ratings", force: :cascade do |t|
+    t.float "score"
+    t.text "comment"
+    t.string "rateable_type", null: false
+    t.bigint "rateable_id", null: false
+    t.string "rater_type", null: false
+    t.bigint "rater_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["rateable_type", "rateable_id"], name: "index_ratings_on_rateable"
+    t.index ["rater_type", "rater_id"], name: "index_ratings_on_rater"
+  end
+
   create_table "rides", force: :cascade do |t|
     t.datetime "start_time"
     t.datetime "end_time"
     t.string "status"
-    t.float "rating"
     t.integer "available_seats", default: 0
     t.float "estimated_price"
     t.float "effective_price"

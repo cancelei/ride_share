@@ -44,8 +44,8 @@
       cancelled_rides = Ride.where(driver_id: driver_profile_id, status: 'cancelled').count
       
       # Safety check for ratings
-      rides_with_ratings = Ride.where(driver_id: driver_profile_id).where.not(rating: nil)
-      avg_rating = rides_with_ratings.any? ? rides_with_ratings.average(:rating)&.to_f&.round(1) : 0
+      driver_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: driver_profile_id)
+      avg_rating = driver_ratings.any? ? driver_ratings.average(:score)&.to_f&.round(1) : 0
     %>
     <div class="text-sm text-gray-500">
       <% if completed_rides == 0 && active_rides == 0 && cancelled_rides == 0 %>

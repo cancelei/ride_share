@@ -13,6 +13,7 @@ class Ride < ApplicationRecord
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
+  has_many :ratings, as: :rateable, dependent: :destroy
 
   before_create :set_status, :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update
@@ -26,11 +27,12 @@ class Ride < ApplicationRecord
     accepted: "accepted",
     waiting_for_passenger_boarding: "waiting_for_passenger_boarding",
     in_progress: "in_progress",
+    rating_required: "rating_required",
     completed: "completed",
     cancelled: "cancelled"
   }
 
-  scope :active_rides, -> { where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress ]) }
+  scope :active_rides, -> { where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
   scope :historical_rides, -> { where(status: [ :completed, :cancelled ]) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
   scope :past, -> { where(status: [ :completed ]) }
@@ -95,7 +97,7 @@ class Ride < ApplicationRecord
 
   def finish!
     self.end_time = Time.current
-    self.status = :completed
+    self.status = :rating_required
 
     save!
   end
@@ -195,6 +197,9 @@ class Ride < ApplicationRecord
         deliver_email(UserMailer, :driver_arrived, self)
       when "in_progress"
         deliver_email(UserMailer, :ride_in_progress, self)
+      when "rating_required"
+        deliver_email(UserMailer, :send_rating_email_to_passenger, self)
+        deliver_email(UserMailer, :send_rating_email_to_driver, self)
       when "completed"
         deliver_email(UserMailer, :ride_completion_passenger, self)
         deliver_email(UserMailer, :ride_completion_driver, self)

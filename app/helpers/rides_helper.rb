@@ -9,6 +9,8 @@ module RidesHelper
       "purple"
     when "in_progress"
       "indigo"
+    when "rating_required"
+      "amber"
     when "completed"
       "green"
     when "cancelled"
@@ -28,6 +30,8 @@ module RidesHelper
       "bg-purple-100 text-purple-800"
     when "in_progress"
       "bg-indigo-100 text-indigo-800"
+    when "rating_required"
+      "bg-amber-100 text-amber-800"
     when "completed"
       "bg-green-100 text-green-800"
     when "cancelled"
@@ -42,7 +46,7 @@ module RidesHelper
     when "history"
       rides.where(status: [ :completed, :cancelled ])
     else # 'active' or any other value
-      rides.where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress ])
+      rides.where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
     end
   end
 

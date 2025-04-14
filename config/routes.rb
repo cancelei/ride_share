@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "ratings/create"
   resources :company_profiles
   resources :company_drivers, only: [ :index, :destroy ] do
     collection do
@@ -10,6 +11,7 @@ Rails.application.routes.draw do
     end
   end
   resources :rides do
+    resources :ratings, only: [ :new, :create ]
     member do
       post :cancel
       post :start

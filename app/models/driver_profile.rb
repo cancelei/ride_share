@@ -7,6 +7,8 @@ class DriverProfile < ApplicationRecord
   has_many :vehicles, -> { with_discarded }, dependent: :destroy
   has_many :rides, -> { with_discarded }, foreign_key: "driver_id", dependent: :destroy
   has_many :company_drivers, dependent: :destroy
+  has_many :ratings, as: :rateable, dependent: :destroy
+  has_many :given_ratings, as: :rater, class_name: "Rating", dependent: :destroy
   belongs_to :selected_vehicle, class_name: "Vehicle", foreign_key: "selected_vehicle_id", optional: true
 
   validates :license, :license_issuer, presence: true

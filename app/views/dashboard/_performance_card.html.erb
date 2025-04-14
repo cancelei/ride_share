@@ -18,9 +18,10 @@
       <span class="text-sm text-gray-500">Average Rating</span>
       <% 
         avg_rating = 0
-        if @completed_rides.present?
-          rated_rides = @completed_rides.where.not(rating: nil)
-          avg_rating = rated_rides.any? ? rated_rides.average(:rating).to_f.round(1) : 0
+        rides_with_ratings = driver.rides.past.joins("LEFT JOIN ratings ON ratings.rateable_id = rides.id AND ratings.rateable_type = 'Ride'")
+        if rides_with_ratings.any?
+          all_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: driver.id)
+          avg_rating = all_ratings.any? ? all_ratings.average(:score).to_f.round(1) : 0
         end
       %>
       <p class="text-xl font-semibold text-gray-800"><%= avg_rating %> / 5</p>
