@@ -9,7 +9,8 @@ class RatingsController < ApplicationController
     # Determine available roles for current user
     # Skip rating if self-ride
     if @ride.driver.user == @ride.passenger.user
-      redirect_to dashboard_path, notice: "No rating required for self-rides."
+      @ride.update(status: :completed)
+      redirect_to dashboard_path, notice: "Ride Completed! No rating required for self-rides."
       return
     end
     @roles << :passenger if @ride.passenger.user == current_user
@@ -60,11 +61,6 @@ class RatingsController < ApplicationController
     @rating = Rating.new(rating_params)
     @roles = []
     @role = params[:role]
-    # Skip rating if self-ride
-    if @ride.driver.user == @ride.passenger.user
-      redirect_to dashboard_path, notice: "No rating required for self-rides."
-      return
-    end
     @roles << :passenger if @ride.passenger.user == current_user
     @roles << :driver if @ride.driver.user == current_user
 
