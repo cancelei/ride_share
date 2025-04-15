@@ -65,7 +65,7 @@ class Ride < ApplicationRecord
   attribute :paid, :boolean, default: false
 
   # Configure email notifications for different ride statuses
-  notify_by_email after_update: true, on: :handle_status_change_notifications
+  notify_by_email after_update: true, on: -> { saved_change_to_status? ? :handle_status_change_notifications : nil }
   notify_by_email after_create: true, on: :send_creation_notification
 
   def titleize

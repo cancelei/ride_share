@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  get "ratings/create"
   resources :company_profiles
   resources :company_drivers, only: [ :index, :destroy ] do
     collection do

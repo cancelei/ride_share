@@ -1,19 +1,18 @@
 <%= form_with(model: rating, url: ride_ratings_path(ride), local: false, id: "rating_form", class: "space-y-4") do |form| %>
-  <%= form.hidden_field :role, value: role %>
   <div class="mb-4">
     <div class="flex items-center space-x-4 mb-2">
       <div class="flex-shrink-0">
-        <% if rateable.user.avatar.attached? %>
-          <%= image_tag rateable.user.avatar, class: "h-12 w-12 rounded-full" %>
+        <% if @rateable.user.avatar.attached? %>
+          <%= image_tag @rateable.user.avatar, class: "h-12 w-12 rounded-full" %>
         <% else %>
           <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-            <%= rateable.user.initials %>
+            <%= @rateable.user.initials %>
           </div>
         <% end %>
       </div>
       <div>
-        <p class="font-medium"><%= rateable.user.full_name %></p>
-        <% if rateable.is_a?(DriverProfile) %>
+        <p class="font-medium"><%= @rateable.user.full_name %></p>
+        <% if @rateable.is_a?(DriverProfile) %>
           <p class="text-sm text-gray-500">Driver</p>
         <% else %>
           <p class="text-sm text-gray-500">Passenger</p>
@@ -31,7 +30,7 @@
       </ul>
     </div>
   <% end %>
-  
+
   <div class="mb-4">
   <%= form.label :score, "How was your experience?", class: "block font-medium mb-2" %>
   <div class="flex space-x-2" id="star-rating" data-selected="<%= rating.score || 0 %>">
@@ -43,9 +42,10 @@
     <%= form.hidden_field :score, value: rating.score, id: "rating_score_field" %>
   </div>
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("turbo:load", function() {
       var container = document.getElementById("star-rating");
       if (!container) return;
+
       var stars = container.querySelectorAll(".star-btn");
       var hidden = document.getElementById("rating_score_field");
       var selected = parseInt(container.dataset.selected) || 0;
@@ -73,14 +73,20 @@
     });
   </script>
 </div>
-  
+
   <div class="mb-4">
     <%= form.label :comment, "Additional comments (optional)", class: "block font-medium mb-2" %>
     <%= form.text_area :comment, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50", rows: 3 %>
   </div>
-  
+
+  <%= form.hidden_field :rateable_type, value: @rateable.class.to_s %>
+  <%= form.hidden_field :rateable_id, value: @rateable.id %>
+  <%= form.hidden_field :rater_type, value: @rater.class.to_s %>
+  <%= form.hidden_field :rater_id, value: @rater.id %>
+  <%= form.hidden_field :ride_id, value: @ride.id %>
+
   <div class="flex justify-end">
     <%= link_to "Cancel", root_path, class: "mr-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
     <%= form.submit "Submit Rating", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
   </div>
-<% end %> 
+<% end %>

@@ -4,144 +4,27 @@ class RatingsController < ApplicationController
 
   def new
     @rating = Rating.new
-    @roles = []
-    @role = params[:role]
-    # Determine available roles for current user
-    # Skip rating if self-ride
+
     if @ride.driver.user == @ride.passenger.user
       @ride.update(status: :completed)
       redirect_to dashboard_path, notice: "Ride Completed! No rating required for self-rides."
       return
     end
-    @roles << :passenger if @ride.passenger.user == current_user
-    @roles << :driver if @ride.driver.user == current_user
 
-    if @roles.empty?
-      redirect_to root_path, alert: "You're not authorized to rate this ride."
-      return
-    end
-
-    # If user has both roles and no role param, show a selector or both forms
-    if @roles.size > 1 && @role.blank?
-      # Let the view handle showing both forms
-      return
-    end
-
-    # Pick the correct rater/rateable based on role
-    # Accept and trust the role param if user owns both profiles
-    if @roles.include?(:passenger) && @role == "passenger"
-      @rater = @ride.passenger
-      @rateable = @ride.driver
-      @current_role = :passenger
-    elsif @roles.include?(:driver) && @role == "driver"
-      @rater = @ride.driver
-      @rateable = @ride.passenger
-      @current_role = :driver
-    elsif @roles.size == 1 && @roles.include?(:passenger)
-      @rater = @ride.passenger
-      @rateable = @ride.driver
-      @current_role = :passenger
-    elsif @roles.size == 1 && @roles.include?(:driver)
-      @rater = @ride.driver
-      @rateable = @ride.passenger
-      @current_role = :driver
-    else
-      redirect_to root_path, alert: "Invalid rating role."
-      return
-    end
-
-    # Only block if a rating exists for this rater/rateable for THIS ride
-    if Rating.exists?(rater: @rater, rateable: @rateable, rateable_id: @rateable.id, rateable_type: @rateable.class.name, ride_id: @ride.id)
-      redirect_to dashboard_path, notice: "You've already rated this participant for this ride."
-      nil
-    end
+    assign_rater_and_rateable
+    nil if check_existing_rating
   end
 
   def create
     @rating = Rating.new(rating_params)
-    @roles = []
-    @role = params[:role]
-    @roles << :passenger if @ride.passenger.user == current_user
-    @roles << :driver if @ride.driver.user == current_user
-
-    if @roles.empty?
-      redirect_to root_path, alert: "You're not authorized to rate this ride."
-      return
-    end
-
-    # Accept and trust the role param if user owns both profiles
-    if @roles.include?(:passenger) && @role == "passenger"
-      @rater = @ride.passenger
-      @rateable = @ride.driver
-      @current_role = :passenger
-    elsif @roles.include?(:driver) && @role == "driver"
-      @rater = @ride.driver
-      @rateable = @ride.passenger
-      @current_role = :driver
-    elsif @roles.size == 1 && @roles.include?(:passenger)
-      @rater = @ride.passenger
-      @rateable = @ride.driver
-      @current_role = :passenger
-    elsif @roles.size == 1 && @roles.include?(:driver)
-      @rater = @ride.driver
-      @rateable = @ride.passenger
-      @current_role = :driver
-    else
-      redirect_to root_path, alert: "Invalid rating role."
-      return
-    end
-
-    # Only block if a rating exists for this rater/rateable for THIS ride
-    if Rating.exists?(rater: @rater, rateable: @rateable, rateable_id: @rateable.id, rateable_type: @rateable.class.name, ride_id: @ride.id)
-      redirect_to dashboard_path, notice: "You've already rated this participant for this ride."
-      return
-    end
-
-    @rating.rater = @rater
-    @rating.rateable = @rateable
 
     respond_to do |format|
       if @rating.save
-        ride_rating = Rating.new(
-          score: @rating.score,
-          comment: @rating.comment,
-          rater: @rater,
-          rateable: @ride
-        )
-        unless ride_rating.save
-          Rails.logger.error "Failed to save ride rating: #{ride_rating.errors.full_messages.join(', ')}"
-        end
+        complete_ride_if_both_rated
 
-        driver_rated = Rating.exists?(rater_type: "DriverProfile", rater_id: @ride.driver.id, rateable: @ride.passenger)
-        passenger_rated = Rating.exists?(rater_type: "PassengerProfile", rater_id: @ride.passenger.id, rateable: @ride.driver)
-        if driver_rated && passenger_rated
-          @ride.update(status: :completed)
-        end
-
-        format.html { redirect_to dashboard_path, notice: "Thank you for your rating!" }
-        format.turbo_stream {
-          flash.now[:notice] = "Thank you for your rating!"
-          render turbo_stream: [
-            turbo_stream.replace("flash", partial: "shared/flash"),
-            turbo_stream.replace("ride_#{@ride.id}", partial: "rides/ride_card", locals: { ride: @ride, current_user: current_user })
-          ]
-        }
+        redirect_to dashboard_path, notice: "Thank you for your rating!", format: :html
       else
-        # Ensure @rateable and @current_role are set for the form partial
-        if @roles.include?(:passenger) && @role == "passenger"
-          @rateable = @ride.driver
-          @current_role = :passenger
-        elsif @roles.include?(:driver) && @role == "driver"
-          @rateable = @ride.passenger
-          @current_role = :driver
-        elsif @roles.size == 1 && @roles.include?(:passenger)
-          @rateable = @ride.driver
-          @current_role = :passenger
-        elsif @roles.size == 1 && @roles.include?(:driver)
-          @rateable = @ride.passenger
-          @current_role = :driver
-        end
-        format.html { render :new, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_entity, notice: "Cannot post rting" }
         format.turbo_stream {
           render turbo_stream: turbo_stream.replace(
             "rating_form",
@@ -155,16 +38,34 @@ class RatingsController < ApplicationController
 
   private
 
-  def set_ride
-    @ride = Ride.find(params[:ride_id])
-
-    # Verify if the ride is in the rating_required status
-    unless @ride.rating_required?
-      redirect_to root_path, alert: "This ride is not ready for rating."
+  def assign_rater_and_rateable
+    if @ride.passenger.user == current_user
+      @rater, @rateable = @ride.passenger, @ride.driver
+    elsif @ride.driver.user == current_user
+      @rater, @rateable = @ride.driver, @ride.passenger
+    else
+      redirect_to root_path, alert: "Invalid rating role."
     end
   end
 
+  def check_existing_rating
+    return false unless Rating.exists?(rater: @rater, rateable: @rateable, ride_id: @ride.id)
+
+    redirect_to dashboard_path, notice: "You've already rated this participant for this ride."
+    true
+  end
+
+  def complete_ride_if_both_rated
+    driver_rated = Rating.exists?(rater_type: "DriverProfile", rater_id: @ride.driver.id, rateable: @ride.passenger)
+    passenger_rated = Rating.exists?(rater_type: "PassengerProfile", rater_id: @ride.passenger.id, rateable: @ride.driver)
+    @ride.update(status: :completed) if driver_rated && passenger_rated
+  end
+
+  def set_ride
+    @ride = Ride.find(params[:ride_id] || ride_params[:ride_id])
+  end
+
   def rating_params
-    params.require(:rating).permit(:score, :comment)
+    params.require(:rating).permit(:score, :comment, :rateable_type, :rateable_id, :rater_type, :rater_id, :ride_id)
   end
 end
