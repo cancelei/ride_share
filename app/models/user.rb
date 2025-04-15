@@ -1,4 +1,12 @@
 class User < ApplicationRecord
+  # Returns the average rating across both driver and passenger profiles (if present)
+  def average_rating
+    ratings = []
+    ratings += driver_profile.ratings.pluck(:score) if driver_profile&.persisted?
+    ratings += passenger_profile.ratings.pluck(:score) if passenger_profile&.persisted?
+    return nil if ratings.empty?
+    (ratings.sum.to_f / ratings.size).round(2)
+  end
   include DriverLocationBroadcaster
   include Discard::Model
   include EmailNotification

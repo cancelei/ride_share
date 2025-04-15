@@ -4,7 +4,7 @@ class Rating < ApplicationRecord
 
   validates :score, presence: true, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 5 }
   # Allow a rater to rate multiple entities, but only rate the same entity once
-  validates :rateable_id, uniqueness: { scope: [ :rateable_type, :rater_id, :rater_type ] }
+  validates :rateable_id, uniqueness: { scope: [ :rateable_type, :rater_id, :rater_type, :ride_id ] }
 
   after_create :update_ride_status, if: -> { rateable_type == "Ride" }
 

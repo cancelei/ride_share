@@ -1,4 +1,26 @@
 <%= form_with(model: rating, url: ride_ratings_path(ride), local: false, id: "rating_form", class: "space-y-4") do |form| %>
+  <%= form.hidden_field :role, value: role %>
+  <div class="mb-4">
+    <div class="flex items-center space-x-4 mb-2">
+      <div class="flex-shrink-0">
+        <% if rateable.user.avatar.attached? %>
+          <%= image_tag rateable.user.avatar, class: "h-12 w-12 rounded-full" %>
+        <% else %>
+          <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+            <%= rateable.user.initials %>
+          </div>
+        <% end %>
+      </div>
+      <div>
+        <p class="font-medium"><%= rateable.user.full_name %></p>
+        <% if rateable.is_a?(DriverProfile) %>
+          <p class="text-sm text-gray-500">Driver</p>
+        <% else %>
+          <p class="text-sm text-gray-500">Passenger</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
   <% if rating.errors.any? %>
     <div class="bg-red-50 text-red-600 p-3 rounded mb-4">
       <h2 class="font-medium"><%= pluralize(rating.errors.count, "error") %> prohibited this rating from being saved:</h2>
@@ -11,19 +33,46 @@
   <% end %>
   
   <div class="mb-4">
-    <%= form.label :score, "How was your experience?", class: "block font-medium mb-2" %>
-    <div class="flex space-x-4">
-      <% (1..5).each do |score| %>
-        <div class="flex flex-col items-center">
-          <label class="cursor-pointer">
-            <%= form.radio_button :score, score, class: "sr-only peer" %>
-            <div class="text-2xl peer-checked:text-yellow-500 text-gray-300">★</div>
-            <div class="text-xs mt-1"><%= score %></div>
-          </label>
-        </div>
-      <% end %>
-    </div>
+  <%= form.label :score, "How was your experience?", class: "block font-medium mb-2" %>
+  <div class="flex space-x-2" id="star-rating" data-selected="<%= rating.score || 0 %>">
+    <% (1..5).each do |score| %>
+      <button type="button" class="star-btn group focus:outline-none" data-score="<%= score %>">
+        <span class="text-2xl star <%= (rating.score && score <= rating.score) ? 'text-yellow-400' : 'text-gray-300' %>">★</span>
+      </button>
+    <% end %>
+    <%= form.hidden_field :score, value: rating.score, id: "rating_score_field" %>
   </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var container = document.getElementById("star-rating");
+      if (!container) return;
+      var stars = container.querySelectorAll(".star-btn");
+      var hidden = document.getElementById("rating_score_field");
+      var selected = parseInt(container.dataset.selected) || 0;
+      function updateStars(val) {
+        stars.forEach(function(btn, idx) {
+          var star = btn.querySelector('.star');
+          if (idx < val) {
+            star.classList.add('text-yellow-400');
+            star.classList.remove('text-gray-300');
+          } else {
+            star.classList.remove('text-yellow-400');
+            star.classList.add('text-gray-300');
+          }
+        });
+      }
+      updateStars(selected);
+      stars.forEach(function(btn, idx) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var val = idx + 1;
+          hidden.value = val;
+          updateStars(val);
+        });
+      });
+    });
+  </script>
+</div>
   
   <div class="mb-4">
     <%= form.label :comment, "Additional comments (optional)", class: "block font-medium mb-2" %>

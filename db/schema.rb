@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_14_183201) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -103,8 +103,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_183201) do
     t.bigint "rater_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "ride_id"
     t.index ["rateable_type", "rateable_id"], name: "index_ratings_on_rateable"
     t.index ["rater_type", "rater_id"], name: "index_ratings_on_rater"
+    t.index ["ride_id"], name: "index_ratings_on_ride_id"
   end
 
   create_table "rides", force: :cascade do |t|
@@ -326,6 +328,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_183201) do
   add_foreign_key "driver_profiles", "users"
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id", on_delete: :nullify
   add_foreign_key "passenger_profiles", "users"
+  add_foreign_key "ratings", "rides"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
   add_foreign_key "rides", "passenger_profiles", column: "passenger_id"
   add_foreign_key "rides", "vehicles"
