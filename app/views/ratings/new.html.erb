@@ -1,0 +1,23 @@
+<% content_for :title, "Rate your ride" %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-lg mx-auto">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h1 class="text-2xl font-bold mb-6">Rate your ride</h1>
+      
+      <% if defined?(@roles) && @roles&.size.to_i > 1 && @role.blank? %>
+        <div class="mb-8">
+          <h2 class="text-lg font-semibold mb-2">You participated as both driver and passenger. Please rate both perspectives:</h2>
+          <% [[:passenger, @ride.driver], [:driver, @ride.passenger]].each do |role, rateable| %>
+            <% next unless @roles.include?(role) %>
+            <div class="mb-8 border-t pt-4">
+              <%= render partial: 'ratings/form', locals: { rating: Rating.new, ride: @ride, rateable: rateable, role: role } %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <%= render partial: 'ratings/form', locals: { rating: @rating, ride: @ride, rateable: @rateable, role: @current_role || @role } %>
+      <% end %>
+    </div>
+  </div>
+</div>

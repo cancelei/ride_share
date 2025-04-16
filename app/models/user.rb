@@ -1,27 +1,65 @@
 class User < ApplicationRecord
+  # Returns the average rating across both driver and passenger profiles (if present)
+  def average_rating
+    ratings = []
+    ratings += driver_profile.ratings.pluck(:score) if driver_profile&.persisted?
+    ratings += passenger_profile.ratings.pluck(:score) if passenger_profile&.persisted?
+    return nil if ratings.empty?
+    (ratings.sum.to_f / ratings.size).round(2)
+  end
+
+  # Returns the average rating as a driver
+  def average_driver_rating
+    return nil unless driver_profile&.persisted?
+    scores = driver_profile.ratings.pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
+
+  # Returns the average rating as a passenger
+  def average_passenger_rating
+    return nil unless passenger_profile&.persisted?
+    scores = passenger_profile.ratings.pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
   include DriverLocationBroadcaster
   include Discard::Model
+  include EmailNotification
   default_scope -> { kept }
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  enum :role, { admin: 0, driver: 1, passenger: 2 }, prefix: true
+  has_one_attached :avatar
+
+  validates :avatar,
+  content_type: {
+    in: %w[image/png image/jpeg],
+    message: "must be a PNG, JPEG, or JPG"
+  },
+  size: {
+    less_than: 5.megabytes,
+    message: "must be less than 5MB"
+  },
+  allow_nil: true
+
+  enum :role, { admin: 0, driver: 1, passenger: 2, company: 3 }, prefix: true
 
   has_one :driver_profile, -> { with_discarded }, dependent: :destroy
   has_one :passenger_profile, -> { with_discarded }, dependent: :destroy
+  has_one :company_profile, -> { with_discarded }, dependent: :destroy
 
-  after_create :send_welcome_email
   before_discard :discard_profiles
   before_undiscard :undiscard_profiles
 
-  def send_welcome_email
-    if Rails.env.production?
-      UserMailer.welcome_email(self).deliver_now
-    else
-      puts "Welcome email not sent in development environment"
-    end
+  # Configure email notifications
+  notify_by_email after_create: true
+
+  # Email notification methods
+  def send_creation_email
+    deliver_email(UserMailer, :welcome_email, self)
   end
 
   def full_name
@@ -49,15 +87,21 @@ class User < ApplicationRecord
     }
   end
 
+  def initials
+    full_name.split.map(&:first).join.upcase
+  end
+
   private
 
   def discard_profiles
     driver_profile&.discard
     passenger_profile&.discard
+    company_profile&.discard
   end
 
   def undiscard_profiles
     driver_profile&.undiscard
     passenger_profile&.undiscard
+    company_profile&.undiscard
   end
 end

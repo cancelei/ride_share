@@ -1,0 +1,30 @@
+<div id="performance_card" class="bg-white rounded-lg shadow p-4">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-gray-700 font-medium">Performance</h3>
+    <span class="p-2 bg-yellow-50 rounded-md">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+      </svg>
+    </span>
+  </div>
+  <div class="flex flex-col">
+    <div class="mb-2">
+      <span class="text-sm text-gray-500">Completion Rate</span>
+      <% total_rides = (@completed_rides&.count || 0) + (@cancelled_rides&.count || 0) + (@active_rides&.count || 0) %>
+      <% completion_rate = total_rides > 0 ? ((@completed_rides&.count || 0).to_f / total_rides * 100).round : 0 %>
+      <p class="text-xl font-semibold text-gray-800"><%= completion_rate %>%</p>
+    </div>
+    <div>
+      <span class="text-sm text-gray-500">Average Rating</span>
+      <% 
+        avg_rating = 0
+        rides_with_ratings = driver.rides.past.joins("LEFT JOIN ratings ON ratings.rateable_id = rides.id AND ratings.rateable_type = 'Ride'")
+        if rides_with_ratings.any?
+          all_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: driver.id)
+          avg_rating = all_ratings.any? ? all_ratings.average(:score).to_f.round(1) : 0
+        end
+      %>
+      <p class="text-xl font-semibold text-gray-800"><%= avg_rating %> / 5</p>
+    </div>
+  </div>
+</div> 

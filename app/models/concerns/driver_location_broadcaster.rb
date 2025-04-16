@@ -4,12 +4,12 @@ module DriverLocationBroadcaster
   def broadcast_location
     return unless driver_profile.present?
 
-    Booking.pending.each do |booking|
+    Ride.pending.each do |ride|
       Turbo::StreamsChannel.broadcast_update_to(
-        "booking_#{booking.id}",
-        target: "booking-#{booking.id}-distance",
-        partial: "dashboard/booking_distance",
-        locals: { booking: booking, current_user: self }
+        "ride_#{ride.id}",
+        target: "ride-#{ride.id}-distance",
+        partial: "dashboard/ride_distance",
+        locals: { ride: ride, current_user: self }
       )
     end
   rescue => e

@@ -8,3 +8,12 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+.blur-text {
+  filter: blur(4px);
+  transition: filter 0.3s;
+}
+
+.unapproved-driver:hover .blur-text {
+  filter: blur(0);
+}

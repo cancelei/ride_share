@@ -1,0 +1,66 @@
+<%= turbo_frame_tag dom_id(vehicle) do %>
+  <div class="bg-white border border-gray-200 rounded-lg p-4 relative">
+    <div class="mb-4">
+      <h3 class="text-lg font-medium text-[#001D3D]">Edit Vehicle</h3>
+    </div>
+    
+    <%= form_with(model: [driver_profile, vehicle], class: "contents", data: { turbo: true }) do |form| %>
+      <% if vehicle.errors.any? %>
+        <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3 mb-4">
+          <h2><%= pluralize(vehicle.errors.count, "error") %> prohibited this vehicle from being saved:</h2>
+
+          <ul class="list-disc ml-6">
+            <% vehicle.errors.each do |error| %>
+              <li><%= error.full_message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <%= form.label :registration_number, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :registration_number, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :seating_capacity, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :seating_capacity, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :brand, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :brand, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :model, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :model, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :color, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :color, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :built_year, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :built_year, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center">
+        <%= form.label :has_private_insurance, class: "ml-2 text-sm font-medium text-gray-700" do %>
+          <%= form.check_box :has_private_insurance, class: "h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" %>
+          Has private insurance
+        <% end %>
+      </div>
+
+      <div class="mt-4 flex justify-between">
+        <%= form.submit "Update Vehicle", class: "inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+        
+        <%= link_to "Cancel", dashboard_path, class: "inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2", data: { turbo_frame: "_top" } %>
+      </div>
+    <% end %>
+  </div>
+<% end %> 

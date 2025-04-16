@@ -1,16 +1,16 @@
 <div id="past_rides">
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-white rounded-lg shadow p-6 mt-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Past Rides</h2>
-      <div class="text-sm text-gray-600">
-        <p>Last 7 days: $<%= number_with_precision(last_week_rides_total, precision: 2) %></p>
-        <p>Last 30 days: $<%= number_with_precision(monthly_rides_total, precision: 2) %></p>
+      <div class="text-sm text-gray-500">
+        <p>Last 7 days: <%= number_to_currency(last_week_rides_total) %></p>
+        <p>Last 30 days: <%= number_to_currency(monthly_rides_total) %></p>
       </div>
     </div>
 
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
-        <thead>
+        <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
@@ -45,11 +45,11 @@
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <%= ride.bookings.first.pickup.truncate(20) %> → <%= ride.bookings.first.dropoff.truncate(20) %>
+                <%= ride.pickup_location.truncate(20) %> → <%= ride.dropoff_location.truncate(20) %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap"><%= ride.bookings.sum(:requested_seats) %></td>
+              <td class="px-6 py-4 whitespace-nowrap"><%= ride.requested_seats %></td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 text-sm rounded-full <%= ride.status_color %>">
+                <span class="px-2 py-1 text-sm rounded-full <%= ride_status_color(ride.status) %>">
                   <%= ride.status.titleize %>
                 </span>
               </td>

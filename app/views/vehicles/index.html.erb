@@ -13,7 +13,7 @@
   <div id="vehicles" class="min-w-full">
     <% if @vehicles.any? %>
       <% @vehicles.each do |vehicle| %>
-        <%= render vehicle %>
+        <%= render vehicle, driver_profile: @driver_profile %>
         <p>
           <%= link_to "Show this vehicle", [@driver_profile, vehicle], class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
         </p>

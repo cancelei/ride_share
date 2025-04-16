@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .container {
+      padding: 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+    }
+    .header {
+      background-color: #4f46e5;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+      margin: -20px -20px 20px;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+    .button {
+      display: inline-block;
+      background-color: #4f46e5;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+    .info-box {
+      background-color: #f3f4f6;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Your Ride Has Started!</h1>
+    </div>
+    
+    <p>Hello <%= @passenger.first_name %>,</p>
+    
+    <p>Great news! Your RideFlow ride with <%= @driver.full_name %> has started and you're on your way to your destination.</p>
+    
+    <div class="info-box">
+      <h3>Ride Information:</h3>
+      <p><strong>Driver:</strong> <%= @driver.full_name %></p>
+      <p><strong>Vehicle:</strong> <%= @ride.vehicle.brand %> <%= @ride.vehicle.model %> (<%= @ride.vehicle.color %>)</p>
+      <p><strong>From:</strong> <%= @ride.pickup_address || @ride.pickup_location %></p>
+      <p><strong>To:</strong> <%= @ride.dropoff_address || @ride.dropoff_location %></p>
+      <p><strong>Estimated Price:</strong> <%= number_to_currency(@ride.estimated_price) %></p>
+    </div>
+    
+    <p>You can track your ride and see additional details by clicking the button below.</p>
+    
+    <div style="text-align: center;">
+      <a href="<%= @url %>/rides/<%= @ride.id %>" class="button">View Ride Details</a>
+    </div>
+    
+    <div class="footer">
+      <p>Thank you for choosing RideFlow for your transportation needs.</p>
+      <p>© <%= Date.today.year %> RideFlow. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html> 

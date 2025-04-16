@@ -21,6 +21,8 @@ gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
+
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
@@ -63,6 +65,7 @@ group :development do
   gem "web-console"
   gem "letter_opener"
   gem "letter_opener_web"  # Use web interface instead of GTK
+  gem "pry"
 end
 
 group :test do
@@ -78,3 +81,10 @@ gem "discard", "~> 1.4"
 
 # Add Brevo (formerly Sendinblue) API client
 gem "sib-api-v3-sdk"
+
+gem "image_processing", "~> 1.12"
+
+gem "active_storage_validations"
+
+# Analytics
+gem "posthog-ruby"

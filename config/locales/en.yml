@@ -29,3 +29,18 @@
 
 en:
   hello: "Hello world"
+  rides:
+    security_code:
+      success: "Ride started successfully!"
+      invalid: "Invalid security code. Please try again."
+    cancel:
+      success: "Ride cancelled successfully."
+      error: "Failed to cancel ride: %{message}"
+      unauthorized: "You don't have permission to cancel this ride."
+    payment:
+      success: "Payment status updated."
+      error: "Failed to update payment status."
+    arrived:
+      success: "You've marked yourself as arrived. The passenger has been notified."
+      error: "Failed to update ride status: %{message}"
+      unauthorized: "You don't have permission to perform this action."

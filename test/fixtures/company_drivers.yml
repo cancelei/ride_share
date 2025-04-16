@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  company: one
+  driver_profile: one
+  discarded_at: 2025-03-23 13:41:16
+
+two:
+  company: two
+  driver_profile: two
+  discarded_at: 2025-03-23 13:41:16

@@ -1,18 +1,25 @@
 Rails.application.routes.draw do
-  resources :bookings do
+  resources :company_profiles
+  resources :company_drivers, only: [ :index, :destroy ] do
     collection do
-      get :pending
+      post :add_self_as_driver
     end
+
     member do
-      post :cancel
-      get :driver_location
+      patch :approve
     end
   end
   resources :rides do
+    resources :ratings, only: [ :new, :create ]
     member do
+      post :cancel
       post :start
       post :finish
+      post :verify_security_code
+      post :arrived_at_pickup
       patch :mark_as_paid
+      patch :accept
+      patch :complete
     end
   end
 
@@ -24,6 +31,15 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  get "places/autocomplete"
+  get "places/details"
+  get "places/reverse_geocode"
+
+  # Maps API routes that proxy Google Maps requests
+  get "maps/directions"
+  get "maps/map_details"
+  get "maps/traffic_info"
 
   devise_for :users, controllers: {
     registrations: "users/registrations",
@@ -44,12 +60,12 @@ Rails.application.routes.draw do
 
   # Authenticated user routes
   authenticated :user do
-    get "/dashboard", to: "dashboard#show", as: :dashboard
+    get "/dashboard", to: "dashboard#index", as: :dashboard
+    get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
+    patch "/toggle_role", to: "users#toggle_role", as: :toggle_role
   end
 
   post "driver/update_location", to: "driver_profiles#update_location"
-
-  get "dashboard/rides", to: "dashboard#rides"
 
   resources :users do
     member do
@@ -58,13 +74,25 @@ Rails.application.routes.draw do
     end
   end
 
-  # Mount Letter Opener Web interface in development
+  # Mount letter_opener web interface for development and staging
   if Rails.env.development?
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
   end
 
   # Email testing routes (development only)
   if Rails.env.development?
-    get "test_email/:email_type", to: "bookings#test_emails", as: :test_email
+    get "test_email/:email_type", to: "application#test_email", as: :test_email
   end
+
+  # SolidQueue Web UI
+  if Rails.env.production? || Rails.env.staging?
+    authenticate :user, lambda { |u| u.admin? } do
+      mount SolidQueue::Engine, at: "/solid_queue"
+    end
+  else
+    mount SolidQueue::Engine, at: "/solid_queue"
+  end
+
+  # For drivers to cancel their company join request
+  delete "driver/cancel_company_request", to: "driver_profiles#cancel_company_request"
 end

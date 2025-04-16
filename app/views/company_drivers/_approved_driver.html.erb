@@ -1,0 +1,128 @@
+<tr id="<%= dom_id(company_driver) %>" class="bg-white hover:bg-gray-50 transition-colors">
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 h-10 w-10">
+        <div class="h-10 w-10 rounded-full <%= company_driver.driver_profile.user == company_driver.company_profile.user ? 'bg-amber-600' : 'bg-indigo-600' %> flex items-center justify-center text-white">
+          <%= company_driver.driver_profile.user.first_name[0] %><%= company_driver.driver_profile.user.last_name[0] %>
+        </div>
+      </div>
+      <div class="ml-4">
+        <div class="text-sm font-medium text-gray-900 flex items-center">
+          <%= company_driver.driver_profile.user.first_name %> <%= company_driver.driver_profile.user.last_name %>
+          
+          <% if company_driver.driver_profile.user == company_driver.company_profile.user %>
+            <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+              Owner
+            </span>
+          <% end %>
+        </div>
+        <div class="text-sm text-gray-500">
+          <%= company_driver.driver_profile.user.email %>
+        </div>
+      </div>
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="text-sm text-gray-900">
+      <%= company_driver.driver_profile.license %>
+    </div>
+    <div class="text-sm text-gray-500">
+      <%= company_driver.driver_profile.license_issuer %>
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap">
+    <% 
+      # Calculate driver statistics correctly
+      driver_profile_id = company_driver.driver_profile.id
+      
+      # Debug this value in development
+      Rails.logger.debug "Loading performance for driver_profile_id: #{driver_profile_id}"
+      
+      # Make sure we're checking for the right statuses
+      completed_rides = Ride.where(driver_id: driver_profile_id, status: 'completed').count
+      active_rides = Ride.where(driver_id: driver_profile_id, status: ['accepted', 'in_progress']).count
+      cancelled_rides = Ride.where(driver_id: driver_profile_id, status: 'cancelled').count
+      
+      # Safety check for ratings
+      driver_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: driver_profile_id)
+      avg_rating = driver_ratings.any? ? driver_ratings.average(:score)&.to_f&.round(1) : 0
+    %>
+    <div class="text-sm text-gray-500">
+      <% if completed_rides == 0 && active_rides == 0 && cancelled_rides == 0 %>
+        <div class="italic text-gray-400">
+          No ride data available yet for this driver.
+        </div>
+      <% else %>
+        <div class="flex items-center space-x-1 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span>Completed: <%= completed_rides %></span>
+        </div>
+        <div class="flex items-center space-x-1 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+          <span>Active: <%= active_rides %></span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <span>Cancelled: <%= cancelled_rides %></span>
+        </div>
+        
+        <% if avg_rating %>
+          <div class="mt-2 flex items-center">
+            <div class="flex text-yellow-400">
+              <% full_stars = avg_rating.to_i %>
+              <% half_star = avg_rating - full_stars >= 0.5 %>
+              
+              <% full_stars.times do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              <% end %>
+              
+              <% if half_star %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              <% end %>
+              
+              <% (5 - full_stars - (half_star ? 1 : 0)).times do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              <% end %>
+            </div>
+            <span class="ml-1 text-sm text-gray-500"><%= avg_rating %></span>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+    <div>
+      <% vehicle = company_driver.driver_profile.vehicles.find_by(id: company_driver.driver_profile.selected_vehicle_id) %>
+      <% if vehicle %>
+        <div class="text-sm text-gray-900 mb-2">
+          <%= vehicle.brand %> <%= vehicle.model %> (<%= vehicle.color %>)
+        </div>
+        <div class="text-xs text-gray-500 mb-2">
+          <%= vehicle.registration_number %> • <%= vehicle.seating_capacity %> seats
+        </div>
+      <% else %>
+        <div class="text-sm text-gray-500">No vehicle selected</div>
+      <% end %>
+    </div>
+    <div class="mt-2">
+      <%= button_to company_driver_path(company_driver), 
+              method: :delete,
+              form: { data: { turbo: true, turbo_confirm: "Are you sure you want to remove this driver from your company?" } },
+              class: "text-red-600 hover:text-red-900 font-medium" do %>
+        Remove Driver
+      <% end %>
+    </div>
+  </td>
+</tr> 

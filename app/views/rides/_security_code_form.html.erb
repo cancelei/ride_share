@@ -1,4 +1,9 @@
-<%= form_with(url: start_ride_path(ride), method: :post, class: "mt-4") do |form| %>
+<%= form_with(url: verify_security_code_ride_path(ride), method: :post, class: "mt-4", id: "security_code_form") do |form| %>
+  <% if local_assigns[:error].present? %>
+    <div class="mb-2 text-red-500 text-sm">
+      <%= error %>
+    </div>
+  <% end %>
   <div class="flex items-center gap-2">
     <%= form.text_field :security_code,
         class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",

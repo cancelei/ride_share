@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .ride-details {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .detail-row {
+        margin: 10px 0;
+      }
+      .highlight {
+        color: #007bff;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>New Ride Available!</h1>
+      <p>Hello <%= @driver.first_name %>,</p>
+      
+      <p>A new ride has been requested in your area. Here are the details:</p>
+      
+      <div class="ride-details">
+        <div class="detail-row">
+          <strong>Pickup:</strong> <%= @ride.pickup_address %>
+          <% if @ride.pickup_lat && @ride.pickup_lng %>
+            (<%= @ride.pickup_lat %>, <%= @ride.pickup_lng %>)
+          <% end %>
+        </div>
+        
+        <div class="detail-row">
+          <strong>Dropoff:</strong> <%= @ride.dropoff_address %>
+          <% if @ride.dropoff_lat && @ride.dropoff_lng %>
+            (<%= @ride.dropoff_lat %>, <%= @ride.dropoff_lng %>)
+          <% end %>
+        </div>
+        
+        <div class="detail-row">
+          <strong>Scheduled Time:</strong> <%= @ride.scheduled_time&.strftime("%B %d, %Y at %I:%M %p") %>
+        </div>
+        
+        <div class="detail-row">
+          <strong>Distance:</strong> <%= @ride.distance_km %> km
+        </div>
+        
+        <div class="detail-row">
+          <strong>Estimated Duration:</strong> <%= @ride.estimated_duration_minutes %> minutes
+        </div>
+        
+        <div class="detail-row">
+          <strong>Requested Seats:</strong> <%= @ride.requested_seats %>
+        </div>
+        
+        <div class="detail-row highlight">
+          <strong>Estimated Price:</strong> $<%= number_with_precision(@ride.estimated_price, precision: 2) %>
+        </div>
+        
+        <% if @ride.special_instructions.present? %>
+          <div class="detail-row">
+            <strong>Special Instructions:</strong> <%= @ride.special_instructions %>
+          </div>
+        <% end %>
+      </div>
+      
+      <p>Log in to your account to accept this ride.</p>
+      
+      <p>Best regards,<br>RideShare Team</p>
+    </div>
+  </body>
+</html> 

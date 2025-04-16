@@ -1,6 +1,7 @@
 class UsersController < ApplicationController
-  before_action :require_admin!
+  before_action :require_admin!, except: [ :toggle_role ]
   before_action :set_user, only: [ :edit, :update, :destroy, :restore, :permanent_delete ]
+  before_action :authenticate_user!, only: [ :toggle_role ]
 
   def index
     @users = if params[:show_deleted]
@@ -43,14 +44,8 @@ class UsersController < ApplicationController
   def permanent_delete
     ActiveRecord::Base.transaction do
       if @user.driver_profile.present?
-        # First handle rides and bookings
-        @user.driver_profile.rides.each do |ride|
-          ride.bookings.each do |booking|
-            booking.locations.destroy_all
-            booking.destroy!
-          end
-          ride.destroy!
-        end
+        # Handle rides
+        @user.driver_profile.rides.destroy_all
 
         # Clear the selected_vehicle reference before deleting vehicles
         @user.driver_profile.update!(selected_vehicle: nil)
@@ -63,11 +58,8 @@ class UsersController < ApplicationController
       end
 
       if @user.passenger_profile.present?
-        # Handle passenger's bookings
-        @user.passenger_profile.bookings.each do |booking|
-          booking.locations.destroy_all
-          booking.destroy!
-        end
+        # Handle passenger's rides
+        @user.passenger_profile.rides.destroy_all
 
         # Destroy the passenger profile
         @user.passenger_profile.destroy!
@@ -85,6 +77,24 @@ class UsersController < ApplicationController
   def restore
     @user.undiscard
     redirect_to users_path, notice: "User was successfully restored."
+  end
+
+  def toggle_role
+    # Get the requested role from params
+    new_role = params[:role]
+
+    # Check if the role is valid using the User model's role enum
+    if User.roles.keys.include?(new_role)
+      current_user.update(role: new_role)
+
+      # If switching to company role and no company profile exists
+      if new_role == "company" && !current_user.company_profile.present?
+        flash[:notice] = "Please create a company profile to use all company features"
+      end
+    end
+
+    # Redirect back to dashboard
+    redirect_to dashboard_path
   end
 
   private

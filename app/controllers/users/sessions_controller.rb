@@ -16,11 +16,11 @@ class Users::SessionsController < Devise::SessionsController
 
     respond_to do |format|
       if current_user
-        format.turbo_stream { redirect_to after_sign_in_path_for(resource), notice: "Signed in successfully." }
-        format.html { redirect_to after_sign_in_path_for(resource), notice: "Signed in successfully." }
+        format.turbo_stream { redirect_to after_sign_in_path_for(resource), notice: t("devise.sessions.signed_in") }
+        format.html { redirect_to after_sign_in_path_for(resource), notice: t("devise.sessions.signed_in") }
       else
-        format.turbo_stream { redirect_to new_user_session_path, alert: "Invalid email or password." }
-        format.html { redirect_to new_user_session_path, alert: "Invalid email or password." }
+        format.turbo_stream { redirect_to new_user_session_path, alert: t("devise.failure.invalid", authentication_keys: "email") }
+        format.html { redirect_to new_user_session_path, alert: t("devise.failure.invalid", authentication_keys: "email") }
       end
     end
   rescue Warden::AuthenticationError
@@ -29,15 +29,16 @@ class Users::SessionsController < Devise::SessionsController
         render turbo_stream: turbo_stream.replace(
           "login_form",
           partial: "devise/sessions/form",
-          locals: { resource: resource, error: "Invalid email or password." }
+          locals: { resource: resource, error: t("devise.failure.invalid", authentication_keys: "email") }
         )
       }
-      format.html { redirect_to new_user_session_path, alert: "Invalid email or password." }
+      format.html { redirect_to new_user_session_path, alert: t("devise.failure.invalid", authentication_keys: "email") }
     end
   end
 
   def destroy
     signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
+    flash[:notice] = t("devise.sessions.signed_out")
 
     respond_to do |format|
       format.turbo_stream { redirect_to new_user_session_path, status: :see_other }

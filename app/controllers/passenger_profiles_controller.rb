@@ -10,8 +10,9 @@ class PassengerProfilesController < ApplicationController
   def show
   end
 
-  def shared_bookings
-    @shared_bookings = Booking.where(passenger: @passenger_profile)
+
+  def shared_rides
+    @shared_rides = Ride.where(passenger: @passenger_profile)
   end
 
   # GET /passenger_profiles/new

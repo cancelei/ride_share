@@ -18,11 +18,9 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
 
-    <%= tag.meta name: "google-maps-api-key", content: ENV['GOOGLE_MAPS_API_KEY'] %>
 <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
 <script>
     // Version: 2.0
@@ -58,13 +56,9 @@
   <body class="min-h-screen bg-gray-50">
     <%= render "shared/navbar" %>
     
-    <% if notice.present? %>
-      <p class="notice py-2 px-3 bg-green-50 text-green-500 font-medium"><%= notice %></p>
-    <% end %>
-    
-    <% if alert.present? %>
-      <p class="alert py-2 px-3 bg-red-50 text-red-500 font-medium"><%= alert %></p>
-    <% end %>
+    <div id="flash" class="container mx-auto">
+      <%= render 'shared/flash' %>
+    </div>
 
     <main class="">
       <%= yield %>

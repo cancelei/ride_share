@@ -60,11 +60,11 @@ Rails.application.configure do
   # config.action_mailer.smtp_settings = nil
 
   # Ignore bad email addresses and do not raise email delivery errors
-  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_caching = false
 
   # Set default URL options for your production environment
-  config.action_mailer.default_url_options = { host: ENV["APP_HOST"] || "rideflow.live" }
+  config.action_mailer.default_url_options = { host: ENV["APP_HOST"] || "rideflow.live", protocol: "https" }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -88,4 +88,7 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Email configuration
+  config.action_mailer.deliver_later_queue_name = :mailers
 end

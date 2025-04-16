@@ -1,0 +1,67 @@
+<tr id="<%= dom_id(company_driver) %>" class="bg-gray-50 hover:bg-gray-100 transition-colors">
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 h-10 w-10">
+        <div class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center text-white">
+          <%= company_driver.driver_profile.user.first_name[0] %><%= company_driver.driver_profile.user.last_name[0] %>
+        </div>
+      </div>
+      <div class="ml-4">
+        <div class="text-sm font-medium text-gray-900">
+          <%= company_driver.driver_profile.user.first_name %> <%= company_driver.driver_profile.user.last_name %>
+          <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+            Pending Approval
+          </span>
+        </div>
+        <div class="text-sm text-gray-500">
+          <%= company_driver.driver_profile.user.email %>
+        </div>
+      </div>
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="blur-text">
+      <div class="text-sm text-gray-500">
+        <%= company_driver.driver_profile.license %>
+      </div>
+      <div class="text-sm text-gray-500">
+        <%= company_driver.driver_profile.license_issuer %>
+      </div>
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="text-sm text-gray-500 italic text-center text-wrap"> 
+      Performance data will be available after approval
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+    <div class="blur-text">
+      <% vehicle = company_driver.driver_profile.vehicles.find_by(id: company_driver.driver_profile.selected_vehicle_id) %>
+      <% if vehicle %>
+        <div class="text-sm text-gray-500 mb-2">
+          <%= vehicle.brand %> <%= vehicle.model %> (<%= vehicle.color %>)
+        </div>
+        <div class="text-xs text-gray-500 mb-2">
+          <%= vehicle.registration_number %>
+        </div>
+      <% else %>
+        <div class="text-sm text-gray-500">No vehicle selected</div>
+      <% end %>
+    </div>
+    <div class="mt-2 flex space-x-2">
+      <%= button_to approve_company_driver_path(company_driver), 
+              method: :patch,
+              form: { data: { turbo: true } },
+              class: "text-green-600 hover:text-green-900 font-medium" do %>
+        Approve
+      <% end %>
+      
+      <%= button_to company_driver_path(company_driver), 
+              method: :delete,
+              form: { data: { turbo: true, turbo_confirm: "Are you sure you want to reject this driver?" } },
+              class: "text-red-600 hover:text-red-900 font-medium" do %>
+        Reject
+      <% end %>
+    </div>
+  </td>
+</tr> 

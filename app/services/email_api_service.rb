@@ -4,8 +4,9 @@ class EmailApiService
       api_key = ENV["BREVO_API_KEY"] || Rails.application.credentials.dig(:brevo, :api_key)
 
       if api_key.blank?
-        Rails.logger.error "BREVO_API_KEY is not set!"
-        return false
+        error_msg = "BREVO_API_KEY is not set! Please configure the API key in your environment variables or credentials."
+        Rails.logger.error error_msg
+        raise StandardError, error_msg
       end
 
       Rails.logger.info "Configuring Brevo API with key: #{api_key[0..3]}...#{api_key[-4..-1]}"
