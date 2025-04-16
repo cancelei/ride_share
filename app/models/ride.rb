@@ -97,7 +97,7 @@ class Ride < ApplicationRecord
 
   def finish!
     self.end_time = Time.current
-    self.status = :rating_required
+    self.status = :completed
 
     save!
   end

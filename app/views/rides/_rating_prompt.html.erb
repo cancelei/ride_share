@@ -19,12 +19,26 @@
     %>
 
     <% if has_rated %>
-      <div class="bg-green-50 text-green-700 p-3 rounded">
-        <p>Thank you for rating this ride!</p>
-      </div>
+      <% user_rating = if is_driver
+        ride.ratings.find_by(rater_type: 'DriverProfile', rater_id: ride.driver.id)
+      elsif is_passenger
+        ride.ratings.find_by(rater_type: 'PassengerProfile', rater_id: ride.passenger.id)
+      end %>
+      <% if user_rating %>
+        <div class="bg-green-50 text-green-700 p-3 rounded">
+          <div class="font-semibold mb-1">Your Rating:</div>
+          <div class="mb-1">
+            <span class="inline-block px-2 py-1 rounded bg-green-100 text-green-800 font-bold">
+              Score: <%= user_rating.score %> / 5
+            </span>
+          </div>
+          <% if user_rating.comment.present? %>
+            <div class="italic text-green-900">“<%= user_rating.comment %>”</div>
+          <% end %>
+        </div>
+      <% end %>
     <% else %>
       <p class="mb-3 text-gray-600">Please take a moment to rate your <%= is_driver ? 'passenger' : 'driver' %></p>
-      
       <%= link_to new_ride_rating_path(ride), class: "inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors", data: { turbo_frame: "_top" } do %>
         Rate Now
       <% end %>
