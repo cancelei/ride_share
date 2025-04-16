@@ -12,24 +12,24 @@ class RatingsController < ApplicationController
     end
 
     assign_rater_and_rateable
-    nil if check_existing_rating
+    check_existing_rating
   end
 
   def create
     @rating = Rating.new(rating_params)
+    assign_rater_and_rateable
 
     respond_to do |format|
       if @rating.save
         complete_ride_if_both_rated
-
-        redirect_to dashboard_path, notice: "Thank you for your rating!", format: :html
+        format.html { redirect_to dashboard_path, notice: "Thank you for your rating!" }
       else
-        format.html { render :new, status: :unprocessable_entity, notice: "Cannot post rting" }
+        format.html { render :new, status: :unprocessable_entity, notice: "Cannot post rating" }
         format.turbo_stream {
           render turbo_stream: turbo_stream.replace(
             "rating_form",
             partial: "ratings/form",
-            locals: { rating: @rating, ride: @ride, rateable: @rateable, role: @current_role }
+            locals: { rating: @rating, ride: @ride, rateable: @rateable }
           )
         }
       end
@@ -56,13 +56,13 @@ class RatingsController < ApplicationController
   end
 
   def complete_ride_if_both_rated
-    driver_rated = Rating.exists?(rater_type: "DriverProfile", rater_id: @ride.driver.id, rateable: @ride.passenger)
-    passenger_rated = Rating.exists?(rater_type: "PassengerProfile", rater_id: @ride.passenger.id, rateable: @ride.driver)
+    driver_rated = Rating.exists?(rater_type: "DriverProfile", rater_id: @ride.driver.id, rateable: @ride.passenger, ride_id: @ride.id)
+    passenger_rated = Rating.exists?(rater_type: "PassengerProfile", rater_id: @ride.passenger.id, rateable: @ride.driver, ride_id: @ride.id)
     @ride.update(status: :completed) if driver_rated && passenger_rated
   end
 
   def set_ride
-    @ride = Ride.find(params[:ride_id] || ride_params[:ride_id])
+    @ride = Ride.find(params[:ride_id])
   end
 
   def rating_params
