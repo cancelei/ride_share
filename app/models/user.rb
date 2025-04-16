@@ -7,6 +7,22 @@ class User < ApplicationRecord
     return nil if ratings.empty?
     (ratings.sum.to_f / ratings.size).round(2)
   end
+
+  # Returns the average rating as a driver
+  def average_driver_rating
+    return nil unless driver_profile&.persisted?
+    scores = driver_profile.ratings.pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
+
+  # Returns the average rating as a passenger
+  def average_passenger_rating
+    return nil unless passenger_profile&.persisted?
+    scores = passenger_profile.ratings.pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
   include DriverLocationBroadcaster
   include Discard::Model
   include EmailNotification

@@ -62,7 +62,7 @@ class RatingsController < ApplicationController
   end
 
   def set_ride
-    @ride = Ride.find(params[:ride_id])
+    @ride = Ride.find(params[:ride_id] || params.dig(:rating, :ride_id))
   end
 
   def rating_params
