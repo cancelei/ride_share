@@ -58,6 +58,9 @@ class User < ApplicationRecord
   # Configure email notifications
   notify_by_email after_create: true
 
+  # For phone number formating
+  before_save :normalize_phone_number
+
   # Email notification methods
   def send_creation_email
     deliver_email(UserMailer, :welcome_email, self)
@@ -92,6 +95,12 @@ class User < ApplicationRecord
     full_name.split.map(&:first).join.upcase
   end
 
+
+  def formatted_phone_number
+    parsed = Phonelib.parse(phone_number)
+    parsed.valid? ? parsed.international : phone_number
+  end
+
   private
 
   def discard_profiles
@@ -104,5 +113,10 @@ class User < ApplicationRecord
     driver_profile&.undiscard
     passenger_profile&.undiscard
     company_profile&.undiscard
+  end
+
+  def normalize_phone_number
+    parsed = Phonelib.parse(phone_number)
+    self.phone_number = parsed.e164 if parsed.valid?
   end
 end
