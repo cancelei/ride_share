@@ -46,6 +46,7 @@ class User < ApplicationRecord
   allow_nil: true
 
   enum :role, { admin: 0, driver: 1, passenger: 2, company: 3 }, prefix: true
+  validates :phone_number, phone: true
 
   has_one :driver_profile, -> { with_discarded }, dependent: :destroy
   has_one :passenger_profile, -> { with_discarded }, dependent: :destroy

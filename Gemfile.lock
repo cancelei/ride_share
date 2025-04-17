@@ -249,6 +249,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.9)
+    phonelib (0.10.7)
     posthog-ruby (2.8.0)
       concurrent-ruby (~> 1)
     pp (0.6.2)
@@ -464,6 +465,7 @@ DEPENDENCIES
   letter_opener
   letter_opener_web
   pg (~> 1.1)
+  phonelib
   posthog-ruby
   propshaft
   pry
