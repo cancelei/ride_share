@@ -13,7 +13,7 @@ class Ride < ApplicationRecord
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
-  has_many :ratings, as: :rateable, dependent: :destroy
+  has_many :ratings, dependent: :destroy
 
   before_create :set_status, :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update

@@ -17,13 +17,14 @@ class RatingsController < ApplicationController
 
   def create
     @rating = Rating.new(rating_params)
-    assign_rater_and_rateable
 
     respond_to do |format|
       if @rating.save
         complete_ride_if_both_rated
         format.html { redirect_to dashboard_path, notice: "Thank you for your rating!" }
       else
+        assign_rater_and_rateable
+
         format.html { render :new, status: :unprocessable_entity, notice: "Cannot post rating" }
         format.turbo_stream {
           render turbo_stream: turbo_stream.replace(
