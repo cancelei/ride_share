@@ -8,12 +8,13 @@ module Reports
 
     def data
       if @user.role == "company" && @user.company_profile
-        drivers = @user.company_profile.driver_profiles.includes(:user, :vehicles)
+        driver_ids = @user.company_profile.rides.where(scheduled_time: @start_date..@end_date).pluck(:driver_id)
+        drivers = DriverProfile.where(id: driver_ids).includes(:user, :vehicles)
         driver_stats = drivers.map do |driver|
           driver_rides = Ride.where(driver_id: driver.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id)
           vehicles = driver.vehicles
           vehicle_stats = vehicles.map do |vehicle|
-            rides = Ride.where(vehicle_id: vehicle.id, scheduled_time: @start_date..@end_date)
+            rides = Ride.where(vehicle_id: vehicle.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id)
             {
               vehicle: vehicle,
               ride_count: rides.count,
@@ -39,10 +40,10 @@ module Reports
         end
 
         # Company-wide stats
-        all_rides = Ride.where(driver_id: drivers.map(&:id), scheduled_time: @start_date..@end_date)
+        all_rides = Ride.where(driver_id: driver_ids, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id)
         all_vehicles = drivers.flat_map(&:vehicles).uniq
-        top_vehicle = all_vehicles.max_by { |v| Ride.where(vehicle_id: v.id, scheduled_time: @start_date..@end_date).sum(:estimated_price) }
-        top_driver = drivers.max_by { |d| Ride.where(driver_id: d.id, scheduled_time: @start_date..@end_date).sum(:estimated_price) }
+        top_vehicle = all_vehicles.max_by { |v| Ride.where(vehicle_id: v.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id).sum(:estimated_price) }
+        top_driver = drivers.max_by { |d| Ride.where(driver_id: d.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id).sum(:estimated_price) }
         {
           drivers: driver_stats,
           total_drivers: drivers.count,
@@ -53,9 +54,9 @@ module Reports
           total_earnings: all_rides.sum(:estimated_price),
           avg_earning_per_ride: all_rides.count > 0 ? (all_rides.sum(:estimated_price).to_f / all_rides.count).round(2) : 0.0,
           top_vehicle: top_vehicle,
-          top_vehicle_earnings: top_vehicle ? Ride.where(vehicle_id: top_vehicle.id, scheduled_time: @start_date..@end_date).sum(:estimated_price) : 0.0,
+          top_vehicle_earnings: top_vehicle ? Ride.where(vehicle_id: top_vehicle.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id).sum(:estimated_price) : 0.0,
           top_driver: top_driver,
-          top_driver_earnings: top_driver ? Ride.where(driver_id: top_driver.id, scheduled_time: @start_date..@end_date).sum(:estimated_price) : 0.0,
+          top_driver_earnings: top_driver ? Ride.where(driver_id: top_driver.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id).sum(:estimated_price) : 0.0,
           earnings_over_time: all_rides.group_by_day(:scheduled_time, range: @start_date..@end_date).sum(:estimated_price)
         }
       elsif @user.role == "driver" && @user.driver_profile

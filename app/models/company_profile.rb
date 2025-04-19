@@ -5,6 +5,7 @@ class CompanyProfile < ApplicationRecord
   belongs_to :user, -> { with_discarded }
   has_many :company_drivers, dependent: :destroy
   has_many :driver_profiles, through: :company_drivers
+  has_many :rides
 
   validates :name, presence: true
 
