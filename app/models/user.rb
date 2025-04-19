@@ -1,28 +1,4 @@
 class User < ApplicationRecord
-  # Returns the average rating across both driver and passenger profiles (if present)
-  def average_rating
-    ratings = []
-    ratings += driver_profile.ratings.pluck(:score) if driver_profile&.persisted?
-    ratings += passenger_profile.ratings.pluck(:score) if passenger_profile&.persisted?
-    return nil if ratings.empty?
-    (ratings.sum.to_f / ratings.size).round(2)
-  end
-
-  # Returns the average rating as a driver
-  def average_driver_rating
-    return nil unless driver_profile&.persisted?
-    scores = driver_profile.ratings.pluck(:score)
-    return nil if scores.empty?
-    (scores.sum.to_f / scores.size).round(2)
-  end
-
-  # Returns the average rating as a passenger
-  def average_passenger_rating
-    return nil unless passenger_profile&.persisted?
-    scores = passenger_profile.ratings.pluck(:score)
-    return nil if scores.empty?
-    (scores.sum.to_f / scores.size).round(2)
-  end
   include DriverLocationBroadcaster
   include Discard::Model
   include EmailNotification
@@ -60,6 +36,39 @@ class User < ApplicationRecord
 
   # For phone number formating
   before_save :normalize_phone_number
+
+  # Returns the average rating across both driver and passenger profiles (if present)
+  def average_rating
+    ratings = []
+    ratings += driver_profile.ratings.pluck(:score) if driver_profile&.persisted?
+    ratings += passenger_profile.ratings.pluck(:score) if passenger_profile&.persisted?
+    return nil if ratings.empty?
+    (ratings.sum.to_f / ratings.size).round(2)
+  end
+
+  # Returns the average rating as a driver
+  def average_driver_rating
+    return nil unless driver_profile&.persisted?
+    scores = driver_profile.ratings.pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
+
+  # Returns the average rating as a passenger
+  def average_passenger_rating
+    return nil unless passenger_profile&.persisted?
+    scores = passenger_profile.ratings.pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
+
+  # Returns the average rating as a company
+  def average_company_rating
+    return nil unless company_profile&.persisted?
+    scores = company_profile.company_drivers.joins(driver_profile: :ratings).pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
 
   # Email notification methods
   def send_creation_email

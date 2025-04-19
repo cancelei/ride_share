@@ -20,10 +20,12 @@
       <div class="text-center sm:text-left flex-grow">
         <h2 class="text-xl sm:text-2xl lg:text-3xl font-semibold"><%= "#{current_user.first_name} #{current_user.last_name}" %></h2>
         <div class="flex items-center justify-center sm:justify-start mt-2">
-  <% rating = if current_user.role == "driver" 
+  <% rating = if current_user.role == "driver"
     current_user.average_driver_rating || 0
-   elsif current_user.role == "passenger" 
+   elsif current_user.role == "passenger"
     current_user.average_passenger_rating || 0
+   elsif current_user.role == "company"
+    current_user.average_company_rating || 0
    end %>
   <div class="flex flex-col sm:flex-row sm:space-x-4">
     <div class="flex items-center space-x-1" aria-label="Average rating">
