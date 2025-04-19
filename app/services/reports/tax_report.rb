@@ -9,7 +9,7 @@ module Reports
     def data
       # Collect rides and payments for the user (driver or company) in the date range
       if @user.role == "company" && @user.company_profile
-        rides = Ride.where(driver_id: @user.company_profile.driver_profiles.ids)
+        rides = Ride.where(company_profile_id: @user.company_profile.id)
                      .where(scheduled_time: @start_date..@end_date)
       elsif @user.role == "driver" && @user.driver_profile
         rides = Ride.where(driver_id: @user.driver_profile.id)

@@ -10,9 +10,11 @@ class Ride < ApplicationRecord
   include EmailNotification
   default_scope -> { kept }
 
+  scope :active_rides, -> { where(status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
+  belongs_to :company_profile, optional: true
   has_many :ratings, dependent: :destroy
 
   before_create :set_status, :generate_security_code, :calculate_distance_and_duration
@@ -70,10 +72,6 @@ class Ride < ApplicationRecord
 
   def titleize
     status.to_s.humanize
-  end
-
-  def assign_driver(driver, vehicle)
-    update(driver: driver, vehicle: vehicle)
   end
 
   def can_start?

@@ -10,7 +10,7 @@ module Reports
       if @user.role == "company" && @user.company_profile
         drivers = @user.company_profile.driver_profiles.includes(:user, :vehicles)
         driver_stats = drivers.map do |driver|
-          driver_rides = Ride.where(driver_id: driver.id, scheduled_time: @start_date..@end_date)
+          driver_rides = Ride.where(driver_id: driver.id, scheduled_time: @start_date..@end_date, company_profile_id: @user.company_profile.id)
           vehicles = driver.vehicles
           vehicle_stats = vehicles.map do |vehicle|
             rides = Ride.where(vehicle_id: vehicle.id, scheduled_time: @start_date..@end_date)
