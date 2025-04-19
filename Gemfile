@@ -89,3 +89,7 @@ gem "active_storage_validations"
 
 # Analytics
 gem "posthog-ruby"
+
+gem "grover"
+gem "chartkick"
+gem "groupdate"

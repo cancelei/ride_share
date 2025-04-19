@@ -63,6 +63,17 @@ Rails.application.routes.draw do
     get "/dashboard", to: "dashboard#index", as: :dashboard
     get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
     patch "/toggle_role", to: "users#toggle_role", as: :toggle_role
+
+    # Main reports index
+    get "/reports", to: "reports#index", as: :reports
+
+    # Tax report routes
+    get "/report", to: "reports#new", as: :new_report
+    get "/report/show", to: "reports#show", as: :report
+
+    # Managerial report routes
+    get "/managerial_report", to: "reports#new_managerial", as: :new_managerial_report
+    get "/managerial_report/show", to: "reports#managerial", as: :managerial_report
   end
 
   post "driver/update_location", to: "driver_profiles#update_location"
