@@ -1,8 +1,5 @@
 {
   "scripts": {
     "build:css": "tailwindcss -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/application.tailwind.css --minify"
-  },
-  "dependencies": {
-    "puppeteer": "^24.6.1"
   }
 }
