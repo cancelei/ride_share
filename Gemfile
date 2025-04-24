@@ -20,6 +20,7 @@ gem "stimulus-rails"
 gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+gem "phonelib"
 
 
 
@@ -88,3 +89,7 @@ gem "active_storage_validations"
 
 # Analytics
 gem "posthog-ruby"
+
+gem "grover"
+gem "chartkick"
+gem "groupdate"

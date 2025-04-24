@@ -1,0 +1,30 @@
+<table class="min-w-full bg-white border rounded mb-8">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="px-3 py-2">Vehicle</th>
+      <th class="px-3 py-2">Rides</th>
+      <th class="px-3 py-2">Completed</th>
+      <th class="px-3 py-2">Cancelled</th>
+      <th class="px-3 py-2">Earnings</th>
+      <th class="px-3 py-2">Avg/Ride</th>
+      <th class="px-3 py-2">Top Ride</th>
+      <th class="px-3 py-2">First Ride</th>
+      <th class="px-3 py-2">Last Ride</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @report_data[:vehicles].each do |stat| %>
+      <tr>
+        <td class="border px-3 py-2"><%= stat[:vehicle].registration_number.presence || stat[:vehicle].license_plate.presence || stat[:vehicle].id %></td>
+        <td class="border px-3 py-2"><%= stat[:ride_count] %></td>
+        <td class="border px-3 py-2"><%= stat[:completed_rides] %></td>
+        <td class="border px-3 py-2"><%= stat[:cancelled_rides] %></td>
+        <td class="border px-3 py-2">$<%= number_with_precision(stat[:total_earnings] || 0, precision: 2) %></td>
+        <td class="border px-3 py-2">$<%= number_with_precision(stat[:avg_earning_per_ride] || 0, precision: 2) %></td>
+        <td class="border px-3 py-2">$<%= number_with_precision(stat[:top_ride_value] || 0, precision: 2) %></td>
+        <td class="border px-3 py-2"><%= stat[:first_ride_at]&.strftime('%Y-%m-%d') %></td>
+        <td class="border px-3 py-2"><%= stat[:last_ride_at]&.strftime('%Y-%m-%d') %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -15,14 +15,14 @@
     </div>
     <div>
       <span class="text-sm text-gray-500">Active Drivers</span>
-      <% 
+      <%
         approved_driver_ids = CompanyDriver.where(company_profile_id: current_user.company_profile.id, approved: 'true')
                                          .joins(:driver_profile)
                                          .pluck('driver_profiles.id')
-        active_drivers_count = Ride.where(driver_id: approved_driver_ids, status: [:accepted, :in_progress])
+        active_drivers_count = Ride.active_rides.where(driver_id: approved_driver_ids)
                                 .select(:driver_id).distinct.count
       %>
       <p class="text-xl font-semibold text-gray-800"><%= active_drivers_count %></p>
     </div>
   </div>
-</div> 
+</div>

@@ -9,11 +9,10 @@ class RidesController < ApplicationController
     if current_user&.role_driver?
       @active_rides = Ride.includes(:driver, :passenger)
                          .where(driver: current_user.driver_profile)
-                         .where(status: [ :pending, :accepted, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+                         .active_rides
                          .order(created_at: :desc)
                          .distinct
       puts "Active Rides: #{@active_rides.inspect}"
-      binding.pry
 
       @past_rides = Ride.includes(:driver, :passenger)
                        .where(driver: current_user.driver_profile)
@@ -22,7 +21,7 @@ class RidesController < ApplicationController
                        .distinct
     elsif current_user&.role_passenger?
       @active_rides = Ride.where(passenger: current_user.passenger_profile)
-                         .where(status: [ :pending, :accepted, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+                         .active_rides
                          .order(created_at: :desc)
       puts "Active Rides: #{@active_rides.inspect}"
 
@@ -161,6 +160,12 @@ class RidesController < ApplicationController
 
       @ride.driver = current_user.driver_profile
       @ride.vehicle = current_user.driver_profile.selected_vehicle
+      @ride.company_profile = current_user.driver_profile.company_profile
+      if @ride.requested_seats > @ride.vehicle.seating_capacity
+        redirect_to dashboard_path, alert: "You don't have enough seats in your vehicle. Change the vahicle or accept another ride."
+        return
+      end
+
       @ride.status = :accepted
 
       Rails.logger.debug "RIDE ACCEPT: Attempting to save ride #{@ride.id} with driver #{@ride.driver_id} and vehicle #{@ride.vehicle_id}"

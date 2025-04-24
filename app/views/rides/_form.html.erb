@@ -167,8 +167,11 @@
 
       <div class="my-5">
         <%= form.label :scheduled_time, "Schedule time", class: "block font-medium text-gray-500" %>
-        <%= form.datetime_field :scheduled_time, value: ride.scheduled_time || Time.current, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+        <%= form.datetime_field :scheduled_time, 
+    value: (ride.scheduled_time || Time.current).strftime("%Y-%m-%dT%H:%M"),
+    class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
       </div>
+      
 
       <div class="my-5">
         <%= form.label :requested_seats, "Requested seats", class: "block font-medium text-gray-500" %>

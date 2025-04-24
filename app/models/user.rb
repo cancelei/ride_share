@@ -1,4 +1,42 @@
 class User < ApplicationRecord
+  include DriverLocationBroadcaster
+  include Discard::Model
+  include EmailNotification
+  default_scope -> { kept }
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
+
+  has_one_attached :avatar
+
+  validates :avatar,
+  content_type: {
+    in: %w[image/png image/jpeg],
+    message: "must be a PNG, JPEG, or JPG"
+  },
+  size: {
+    less_than: 5.megabytes,
+    message: "must be less than 5MB"
+  },
+  allow_nil: true
+
+  enum :role, { admin: 0, driver: 1, passenger: 2, company: 3 }, prefix: true
+  validates :phone_number, phone: true
+
+  has_one :driver_profile, -> { with_discarded }, dependent: :destroy
+  has_one :passenger_profile, -> { with_discarded }, dependent: :destroy
+  has_one :company_profile, -> { with_discarded }, dependent: :destroy
+
+  before_discard :discard_profiles
+  before_undiscard :undiscard_profiles
+
+  # Configure email notifications
+  notify_by_email after_create: true
+
+  # For phone number formating
+  before_save :normalize_phone_number
+
   # Returns the average rating across both driver and passenger profiles (if present)
   def average_rating
     ratings = []
@@ -23,39 +61,14 @@ class User < ApplicationRecord
     return nil if scores.empty?
     (scores.sum.to_f / scores.size).round(2)
   end
-  include DriverLocationBroadcaster
-  include Discard::Model
-  include EmailNotification
-  default_scope -> { kept }
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
 
-  has_one_attached :avatar
-
-  validates :avatar,
-  content_type: {
-    in: %w[image/png image/jpeg],
-    message: "must be a PNG, JPEG, or JPG"
-  },
-  size: {
-    less_than: 5.megabytes,
-    message: "must be less than 5MB"
-  },
-  allow_nil: true
-
-  enum :role, { admin: 0, driver: 1, passenger: 2, company: 3 }, prefix: true
-
-  has_one :driver_profile, -> { with_discarded }, dependent: :destroy
-  has_one :passenger_profile, -> { with_discarded }, dependent: :destroy
-  has_one :company_profile, -> { with_discarded }, dependent: :destroy
-
-  before_discard :discard_profiles
-  before_undiscard :undiscard_profiles
-
-  # Configure email notifications
-  notify_by_email after_create: true
+  # Returns the average rating as a company
+  def average_company_rating
+    return nil unless company_profile&.persisted?
+    scores = company_profile.company_drivers.joins(driver_profile: :ratings).pluck(:score)
+    return nil if scores.empty?
+    (scores.sum.to_f / scores.size).round(2)
+  end
 
   # Email notification methods
   def send_creation_email
@@ -91,6 +104,12 @@ class User < ApplicationRecord
     full_name.split.map(&:first).join.upcase
   end
 
+
+  def formatted_phone_number
+    parsed = Phonelib.parse(phone_number)
+    parsed.valid? ? parsed.international : phone_number
+  end
+
   private
 
   def discard_profiles
@@ -103,5 +122,10 @@ class User < ApplicationRecord
     driver_profile&.undiscard
     passenger_profile&.undiscard
     company_profile&.undiscard
+  end
+
+  def normalize_phone_number
+    parsed = Phonelib.parse(phone_number)
+    self.phone_number = parsed.e164 if parsed.valid?
   end
 end

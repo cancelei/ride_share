@@ -14,15 +14,7 @@ module EmailNotification
   # Helper to deliver emails in the background if in production/staging
   # or just log in development
   def deliver_email(mailer_class, method_name, *args)
-    if Rails.env.production? || Rails.env.staging?
       # Send in background using solid_queue
       mailer_class.send(method_name, *args).deliver_later(queue: :mailers)
-    else
-      # Just log in development
-      Rails.logger.info "===== DEVELOPMENT EMAIL NOTIFICATION ====="
-      Rails.logger.info "Would deliver email: #{mailer_class}.#{method_name}"
-      Rails.logger.info "With args: #{args.inspect}"
-      Rails.logger.info "========================================"
-    end
   end
 end
