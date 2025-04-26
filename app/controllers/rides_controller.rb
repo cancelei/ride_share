@@ -311,7 +311,7 @@ class RidesController < ApplicationController
             render turbo_stream: [
               turbo_stream.replace("ride_#{@ride.id}",
                 partial: "rides/ride_card",
-                locals: { ride: @ride.reload, current_user: current_user }
+                locals: { ride: @ride, current_user: current_user }
               ),
               turbo_stream.update("flash",
                 partial: "shared/flash",

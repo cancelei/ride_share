@@ -217,13 +217,14 @@
                       id: "security_code_form_#{ride.id}",
                       data: { turbo: true }) do |form| %>
           <%= form.text_field :security_code,
-              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm",
+              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm h-[40px] w-[130px] p-2",
               placeholder: "Enter 4-digit code",
               maxlength: 4,
               required: true %>
-          <%= form.submit "Verify & Start",
-              class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
-              data: { disable_with: "Verifying..." } %>
+          <button type="submit" class="verify-button rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500 flex items-center gap-2"
+           data-ride-id="<%= ride.id %>" data-disable-with="Verifying...">
+            <span class="btn-text">Verify & Start</span>
+          </button>
         <% end %>
       </div>
     <% end %>
