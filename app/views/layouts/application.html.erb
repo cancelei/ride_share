@@ -56,7 +56,7 @@
     ]);
 
     // Add user data if the user is logged in
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("turbo:load", function() {
       <% if user_signed_in? %>
         Brevo.push([
             "updateIntegrationData", 
@@ -68,31 +68,6 @@
         ]);
       <% end %>
     });
-
-    document.addEventListener("turbo:load", addLoader);
-
-    function addLoader() {
-      let links = document.querySelectorAll("turbo-frame a[href], turbo-frame button, #pending_rides button[type=submit], form:has(#security_code) [type=submit]");
-
-      links.forEach((l) => {
-        l.addEventListener("click", function (event) {
-          let link = event.target.closest("a") || event.target;
-
-          let loader = document.createElement("span");
-          loader.classList.add('loader');
-          link.style.position = 'relative';
-          loader.style.display = 'inline-block';
-          link.appendChild(loader);
-          link.disabled = true;
-
-          // Simulate async action (e.g., API call)
-          setTimeout(() => {
-            loader.style.display = 'none';
-            link.disabled = false;
-          }, 2000);
-        })
-      })
-    }
 </script>
 
     <%= render 'layouts/pwa' %>

@@ -41,7 +41,7 @@
         <%= button_to cancel_ride_path(ride), 
             method: :post, 
             class: "text-sm text-white bg-red-600 hover:bg-red-800 px-3 py-1 rounded-md cursor-pointer", 
-            data: { turbo: true, confirm: "Are you sure you want to cancel this ride?" } do %>
+            data: { turbo: true, confirm: "Are you sure you want to cancel this ride?", controller: "loader", action: "loader#addLoader" } do %>
           Cancel Ride
         <% end %>
       <% end %>
