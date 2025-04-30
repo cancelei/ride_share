@@ -73,28 +73,6 @@ class RidesController < ApplicationController
   def create
     @ride = Ride.new(ride_params)
     @ride.passenger = current_user.passenger_profile
-    @ride.status = "pending"
-
-    # Handle pickup location from Google Places API V1 response
-    if params[:ride][:pickup_location].present?
-      @ride.pickup_location = params[:ride][:pickup_location]
-      @ride.pickup_address = params[:ride][:pickup_address]
-    end
-
-    if params[:ride][:dropoff_location].present?
-      @ride.dropoff_location = params[:ride][:dropoff_location]
-      @ride.dropoff_address = params[:ride][:dropoff_address]
-    end
-
-    # Set coordinates and calculate price
-    @ride.pickup_lat = params[:ride][:pickup_lat]
-    @ride.pickup_lng = params[:ride][:pickup_lng]
-    @ride.dropoff_lat = params[:ride][:dropoff_lat]
-    @ride.dropoff_lng = params[:ride][:dropoff_lng]
-
-    Rails.logger.debug "RIDE DEBUG: Initial ride params: #{ride_params.inspect}"
-    Rails.logger.debug "RIDE DEBUG: Coordinates: pickup=(#{@ride.pickup_lat},#{@ride.pickup_lng}), dropoff=(#{@ride.dropoff_lat},#{@ride.dropoff_lng})"
-    Rails.logger.debug "RIDE DEBUG: Distance and Price: distance=#{@ride.distance_km}km, price=$#{@ride.estimated_price}"
 
     respond_to do |format|
       if @ride.save
