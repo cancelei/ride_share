@@ -53,7 +53,7 @@ Rails.application.configure do
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
   # Set delivery method to API
-  config.action_mailer.delivery_method = :letter_opener_web
+  config.action_mailer.delivery_method = :api
 
   # Remove any SMTP settings
   # config.action_mailer.smtp_settings = nil
