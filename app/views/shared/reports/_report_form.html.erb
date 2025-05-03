@@ -10,7 +10,7 @@
       <%= date_field_tag :end_date, params[:end_date] || Date.current.end_of_month, class: "border rounded px-3 py-2 w-full" %>
     </div>
     <div>
-      <%= submit_tag "Generate Report", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded" %>
+      <%= submit_tag "Generate Report", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded btn-loader btn-loader-light", data: { controller: "button-loader" } %>
     </div>
   <% end %>
 </div>

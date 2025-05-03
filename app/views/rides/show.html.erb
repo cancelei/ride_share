@@ -132,13 +132,15 @@
   
   <div class="mt-6 flex flex-wrap gap-3">
     <% if @ride.status == "pending" && current_user&.role_driver? %>
-      <%= button_to "Accept Ride", accept_ride_path(@ride), method: :patch, class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500" %>
+      <%= button_to "Accept Ride", accept_ride_path(@ride), method: :patch, 
+          class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 btn-loader btn-loader-light", 
+          data: { controller: "button-loader" } %>
     <% end %>
     
     <% if @ride.status == "in_progress" && current_user&.role_driver? && current_user.driver_profile == @ride.driver %>
       <%= button_to finish_ride_path(@ride), method: :post, 
-                  class: "px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors",
-                  data: { turbo: true, confirm: "Are you sure you want to finish this ride?" } do %>
+                  class: "px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors btn-loader btn-loader-light",
+                  data: { turbo: true, confirm: "Are you sure you want to finish this ride?", controller: "button-loader" } do %>
         <div class="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -149,7 +151,9 @@
     <% end %>
     
     <% if @ride.status == "pending" && current_user&.role_passenger? && current_user.passenger_profile == @ride.passenger %>
-      <%= button_to "Cancel Ride", cancel_ride_path(@ride), method: :post, class: "px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500" %>
+      <%= button_to "Cancel Ride", cancel_ride_path(@ride), method: :post, 
+          class: "px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500 btn-loader btn-loader-light", 
+          data: { controller: "button-loader" } %>
     <% end %>
     
     <% if @ride.pickup_location.present? && @ride.dropoff_location.present? %>

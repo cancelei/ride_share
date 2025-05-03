@@ -36,6 +36,46 @@
   transition: opacity 0.5s ease-out;
 }
 
+/* Button Loading Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn-loader {
+  position: relative;
+}
+
+.btn-loader.loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loader.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 1em;
+  width: 1em;
+  margin: -0.5em 0 0 -0.5em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.75s linear infinite;
+  @apply border-white;
+}
+
+/* Custom button loading colors */
+.btn-loader.loading.btn-loader-dark::after {
+  @apply border-gray-700 border-r-transparent;
+}
+
+.btn-loader.loading.btn-loader-light::after {
+  @apply border-white border-r-transparent;
+}
+
 /* Map Controls */
 .custom-map-control {
   @apply m-2;

@@ -380,13 +380,15 @@
         
         <%= button_to toggle_role_path(role: 'passenger'), 
             method: :patch,
-            class: "bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded border border-gray-300 transition duration-150 ease-in-out" do %>
+            class: "bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded border border-gray-300 transition duration-150 ease-in-out btn-loader btn-loader-dark",
+            data: { controller: "button-loader" } do %>
           Return to Passenger
         <% end %>
         
         <%= button_to toggle_role_path(role: 'driver'), 
             method: :patch,
-            class: "bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded border border-gray-300 transition duration-150 ease-in-out" do %>
+            class: "bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded border border-gray-300 transition duration-150 ease-in-out btn-loader btn-loader-dark",
+            data: { controller: "button-loader" } do %>
           Return to Driver
         <% end %>
       </div>
