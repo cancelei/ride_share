@@ -12,19 +12,6 @@ module RideStatusBroadcaster
       Rails.logger.debug "DEBUG: Broadcasting to passenger: #{passenger.user_id}"
       passenger_user = passenger.user
 
-      Turbo::StreamsChannel.broadcast_update_to(
-        "user_#{passenger.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_rides: Ride.where(passenger: passenger).order(scheduled_time: :desc),
-          params: {
-            type: [ :completed, :cancelled ].include?(status.to_sym) ? "history" : "active"
-          },
-          user: passenger_user
-        }
-      )
-
       # Direct broadcast to the specific ride card when status changes
       if [ "accepted", "in_progress", "completed" ].include?(status)
         Rails.logger.debug "DEBUG: Broadcasting #{status} status to passenger's ride card"
@@ -45,21 +32,6 @@ module RideStatusBroadcaster
     if driver.present?
       Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
       driver_user = driver.user
-
-      Turbo::StreamsChannel.broadcast_update_to(
-        "user_#{driver.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_rides: Ride.where(driver: driver).order(scheduled_time: :desc),
-          params: {
-            type: [ :completed, :cancelled ].include?(status.to_sym) ? "history" : "active",
-            pending_rides: Ride.pending,
-            past_rides: driver.rides.historical_rides
-          },
-          user: driver_user
-        }
-      )
 
       # Direct broadcast to the specific ride card when status changes
       if [ "accepted", "in_progress", "completed" ].include?(status)

@@ -32,7 +32,7 @@ class User < ApplicationRecord
   before_undiscard :undiscard_profiles
 
   # Configure email notifications
-  notify_by_email after_create: true
+  after_create :send_creation_email
 
   # For phone number formating
   before_save :normalize_phone_number

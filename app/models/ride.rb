@@ -19,8 +19,8 @@ class Ride < ApplicationRecord
 
   before_create :set_status, :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update
-  after_commit :broadcast_ride_status, if: :saved_change_to_status?
-  after_create :ensure_status_set, :notify_available_drivers
+  after_commit :broadcast_ride_status, :handle_status_change_notifications, if: :saved_change_to_status?
+  after_create :ensure_status_set, :notify_available_drivers, :send_creation_notification
   before_validation :set_coordinates_from_params
   before_save :sync_locations
 
@@ -66,10 +66,6 @@ class Ride < ApplicationRecord
 
   attribute :paid, :boolean, default: false
 
-  # Configure email notifications for different ride statuses
-  notify_by_email after_update: true, on: -> { saved_change_to_status? ? :handle_status_change_notifications : nil }
-  notify_by_email after_create: true, on: :send_creation_notification
-
   def titleize
     status.to_s.humanize
   end
@@ -101,9 +97,7 @@ class Ride < ApplicationRecord
   end
 
   def set_status
-    Rails.logger.debug "RIDE DEBUG: Inside set_status, current status: #{status.inspect}"
     self.status ||= "pending"
-    Rails.logger.debug "RIDE DEBUG: After set_status, status: #{status.inspect}"
   end
 
   def status_color
@@ -187,21 +181,19 @@ class Ride < ApplicationRecord
 
   # Handle notifications based on status changes
   def handle_status_change_notifications
-    if saved_change_to_status?
-      case status
-      when "accepted"
-        deliver_email(UserMailer, :ride_accepted, self)
-      when "waiting_for_passenger_boarding"
-        deliver_email(UserMailer, :driver_arrived, self)
-      when "in_progress"
-        deliver_email(UserMailer, :ride_in_progress, self)
-      when "rating_required"
-        deliver_email(UserMailer, :send_rating_email_to_passenger, self)
-        deliver_email(UserMailer, :send_rating_email_to_driver, self)
-      when "completed"
-        deliver_email(UserMailer, :ride_completion_passenger, self)
-        deliver_email(UserMailer, :ride_completion_driver, self)
-      end
+    case status
+    when "accepted"
+      deliver_email(UserMailer, :ride_accepted, self)
+    when "waiting_for_passenger_boarding"
+      deliver_email(UserMailer, :driver_arrived, self)
+    when "in_progress"
+      deliver_email(UserMailer, :ride_in_progress, self)
+    when "rating_required"
+      deliver_email(UserMailer, :send_rating_email_to_passenger, self)
+      deliver_email(UserMailer, :send_rating_email_to_driver, self)
+    when "completed"
+      deliver_email(UserMailer, :ride_completion_passenger, self)
+      deliver_email(UserMailer, :ride_completion_driver, self)
     end
   end
 
@@ -221,17 +213,6 @@ class Ride < ApplicationRecord
     if passenger.present?
       Rails.logger.debug "DEBUG: Broadcasting to passenger: #{passenger.user_id}"
       passenger_user = passenger.user
-
-      Turbo::StreamsChannel.broadcast_replace_to(
-        "user_#{passenger.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_rides: Ride.where(passenger_id: passenger.id),
-          params: { type: determine_tab_type },
-          user: passenger_user
-        }
-      )
 
       # Direct broadcast to the specific ride card when status changes to accepted or waiting_for_passenger_boarding
       if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
@@ -253,20 +234,6 @@ class Ride < ApplicationRecord
     if driver.present?
       Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
       driver_user = driver.user
-
-      # Get the driver's rides
-      driver_rides = Ride.where(driver_id: driver.id)
-
-      Turbo::StreamsChannel.broadcast_replace_to(
-        "user_#{driver.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_rides: driver_rides,
-          params: { type: determine_tab_type },
-          user: driver_user
-        }
-      )
 
       # Direct broadcast to the specific ride card when status changes to accepted or other states
       if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
