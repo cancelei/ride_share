@@ -34,7 +34,6 @@ class Ride < ApplicationRecord
     cancelled: "cancelled"
   }
 
-  scope :active_rides, -> { where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
   scope :historical_rides, -> { where(status: [ :completed, :cancelled ]) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
   scope :past, -> { where(status: [ :completed ]) }
