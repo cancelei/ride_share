@@ -40,13 +40,25 @@ RUN curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
 
 RUN yarn install
 
-# Install application gems
+# Copy dependency files first for better caching
 COPY Gemfile Gemfile.lock ./
+COPY package.json yarn.lock ./
+
+# Install Ruby gems
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Copy application code
+# Install Node.js and Yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install --global yarn
+
+# Install JS dependencies
+RUN NODE_ENV=production yarn install --frozen-lockfile && \
+    yarn cache clean
+
+# Copy the rest of the app
 COPY . .
 
 # Precompile bootsnap code for faster boot times
