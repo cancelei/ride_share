@@ -65,6 +65,10 @@ class Ride < ApplicationRecord
 
   attribute :paid, :boolean, default: false
 
+  def self.active_driver_rides(driver_id)
+    active_rides.where(driver_id: driver_id)
+  end
+
   def titleize
     status.to_s.humanize
   end

@@ -40,7 +40,7 @@
 
       # Make sure we're checking for the right statuses
       completed_rides = Ride.where(driver_id: driver_profile_id, status: 'completed').count
-      active_rides = Ride.active_rides.count
+      active_rides = Ride.active_driver_rides(driver_profile_id).count
       cancelled_rides = Ride.where(driver_id: driver_profile_id, status: 'cancelled').count
 
       # Safety check for ratings
