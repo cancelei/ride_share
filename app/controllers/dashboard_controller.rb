@@ -58,7 +58,7 @@ class DashboardController < ApplicationController
       if @company_profile.present?
         # Get all company drivers for the driver table display
         @company_drivers = CompanyDriver.where(company_profile_id: @company_profile.id)
-                                      .includes(driver_profile: [ :user, :vehicles ])
+                                      .includes(:company_profile, driver_profile: [ :user ])
 
         # Get rides only from approved drivers
         all_rides = Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc)

@@ -67,6 +67,7 @@ group :development do
   gem "letter_opener"
   gem "letter_opener_web"  # Use web interface instead of GTK
   gem "pry"
+  gem "bullet"
 end
 
 group :test do
