@@ -46,7 +46,7 @@ module RidesHelper
     when "history"
       rides.where(status: [ :completed, :cancelled ])
     else # 'active' or any other value
-      rides.where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+      rides.where(status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
     end
   end
 
