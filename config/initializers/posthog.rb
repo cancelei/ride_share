@@ -11,8 +11,3 @@ rescue => e
   Rails.logger.error "Failed to initialize PostHog: #{e.message}"
   Rails.logger.debug e.backtrace.join("\n")
 end
-
-# Enable debug logging in development and staging
-if Rails.env.development? || Rails.env.staging?
-  $posthog.logger.level = Logger::DEBUG
-end

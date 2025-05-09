@@ -8,6 +8,7 @@ Grover.configure do |config|
     args: ENV.fetch("CHROME_PUPPETEER_ARGS", "--disable-gpu,--disable-dev-shm-usage").split(","),
     # Production-ready defaults
     default_viewport: { width: 1280, height: 800 },
-    timeout: 300_000
+    timeout: 300_000,
+    launch_args: ['--no-sandbox', '--disable-setuid-sandbox']
   }
 end

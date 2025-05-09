@@ -49,7 +49,6 @@ class ReportsController < ApplicationController
     # Fix: Grover.new expects HTML as first argument and options as keyword arguments, not a second positional argument
     options = PDF_OPTIONS.merge(display_url: request.original_url)
     grover = Grover.new(html, **options)
-
     begin
       pdf_data = grover.to_pdf
       send_data pdf_data,
