@@ -34,7 +34,7 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install Node.js and Yarn using a more stable version (20.x LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     npm install --global yarn
 
