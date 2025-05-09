@@ -9,6 +9,6 @@ Grover.configure do |config|
     # Production-ready defaults
     default_viewport: { width: 1280, height: 800 },
     timeout: 300_000,
-    launch_args: ['--no-sandbox', '--disable-setuid-sandbox']
+    launch_args: [ "--no-sandbox", "--disable-setuid-sandbox" ]
   }
 end

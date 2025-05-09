@@ -49,16 +49,10 @@ class ReportsController < ApplicationController
     # Fix: Grover.new expects HTML as first argument and options as keyword arguments, not a second positional argument
     options = PDF_OPTIONS.merge(display_url: request.original_url)
     grover = Grover.new(html, **options)
-    begin
-      pdf_data = grover.to_pdf
+    pdf_data = grover.to_pdf
       send_data pdf_data,
                 filename: "#{filename_prefix}_#{@start_date}_to_#{@end_date}.pdf",
                 type: "application/pdf",
                 disposition: "inline"
-    rescue => e
-      Rails.logger.error("PDF generation failed: #{e.message}")
-      flash[:error] = "Could not generate PDF. Please try again."
-      redirect_to request.referrer || root_path
-    end
   end
 end
