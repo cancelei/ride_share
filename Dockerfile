@@ -33,12 +33,10 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libpq-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Add these lines:
-RUN curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
+# Install Node.js and Yarn using a more stable version (20.x LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     npm install --global yarn
-
-RUN yarn install
 
 # Copy dependency files first for better caching
 COPY Gemfile Gemfile.lock ./
@@ -48,11 +46,6 @@ COPY package.json yarn.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
-
-# Install Node.js and Yarn
-RUN curl -fsSL https://deb.nodesource.com/setup_23.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install --global yarn
 
 # Install JS dependencies
 RUN NODE_ENV=production yarn install --frozen-lockfile && \
