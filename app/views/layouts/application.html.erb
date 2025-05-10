@@ -10,8 +10,8 @@
     <%= csp_meta_tag %>
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <%# We're now using the static manifest file in public directory %>
+    <%# tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
@@ -19,8 +19,9 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css" />
     <%= javascript_importmap_tags %>
-
 <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
 <script>
     // Version: 2.0
@@ -35,7 +36,7 @@
     ]);
 
     // Add user data if the user is logged in
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("turbo:load", function() {
       <% if user_signed_in? %>
         Brevo.push([
             "updateIntegrationData", 
@@ -51,6 +52,25 @@
 
     <%= render 'layouts/pwa' %>
 
+<style>
+ .loader {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@keyframes spin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+</style>
   </head>
 
   <body class="min-h-screen bg-gray-50">

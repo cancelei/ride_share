@@ -93,12 +93,7 @@
 
       <%= render "shared/tab_navigation" %>
 
-      <%= turbo_frame_tag "rides_content" do %>
-        <%= render "dashboard/rides_content",
-            my_rides: @filtered_rides,
-            params: { type: params[:type] || 'active' },
-            user: current_user %>
-      <% end %>
+      <%= turbo_frame_tag "rides_content", src: user_rides_path %>
     </div>
   </div>
 </div>

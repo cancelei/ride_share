@@ -87,6 +87,6 @@
 
   <div class="flex justify-end">
     <%= link_to "Cancel", root_path, class: "mr-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
-    <%= form.submit "Submit Rating", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+    <%= form.submit "Submit Rating", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 btn-loader btn-loader-light", data: { controller: "button-loader" } %>
   </div>
 <% end %>

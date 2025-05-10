@@ -20,13 +20,16 @@
       <div class="text-center sm:text-left flex-grow">
         <h2 class="text-xl sm:text-2xl lg:text-3xl font-semibold"><%= "#{current_user.first_name} #{current_user.last_name}" %></h2>
         <div class="flex items-center justify-center sm:justify-start mt-2">
-  <% rating = if current_user.role == "driver" 
+  <% rating = if current_user.role == "driver"
     current_user.average_driver_rating || 0
-   elsif current_user.role == "passenger" 
+   elsif current_user.role == "passenger"
     current_user.average_passenger_rating || 0
+   elsif current_user.role == "company"
+    current_user.average_company_rating || 0
    end %>
   <div class="flex flex-col sm:flex-row sm:space-x-4">
     <div class="flex items-center space-x-1" aria-label="Average rating">
+      <% rating = rating || 0 %>
       <% 5.times do |i| %>
         <svg xmlns="http://www.w3.org/2000/svg"
              class="h-5 w-5 sm:h-6 sm:w-6 <%= i < rating ? 'text-yellow-400' : 'text-gray-300' %>"
@@ -47,7 +50,8 @@
     <div class="grid grid-cols-2 mb-6">
       <%= button_to toggle_role_path(role: 'passenger'),
           method: :patch,
-          class: "relative flex items-center justify-center p-4 rounded-[4px] #{current_user.role == 'passenger' ? 'bg-[#F9FAFB]' : 'bg-white'} border border-gray-200 transition-all hover:border-[#3758F9] focus:outline-none focus:ring-2 focus:ring-[#3758F9] focus:ring-opacity-50" do %>
+          class: "relative flex items-center justify-center p-4 rounded-[4px] #{current_user.role == 'passenger' ? 'bg-[#F9FAFB]' : 'bg-white'} border border-gray-200 transition-all hover:border-[#3758F9] focus:outline-none focus:ring-2 focus:ring-[#3758F9] focus:ring-opacity-50 btn-loader btn-loader-dark",
+          data: { controller: "button-loader" } do %>
         <div class="flex items-center space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg"
                class="h-5 w-5 #{current_user.role == 'passenger' ? 'text-[#3758F9]' : 'text-gray-500'}"
@@ -75,7 +79,8 @@
 
       <%= button_to toggle_role_path(role: 'driver'),
           method: :patch,
-          class: "relative flex items-center justify-center p-4 rounded-[4px] #{current_user.role == 'driver' ? 'bg-[#F9FAFB]' : 'bg-white'} border border-gray-200 transition-all hover:border-[#3758F9] focus:outline-none focus:ring-2 focus:ring-[#3758F9] focus:ring-opacity-50" do %>
+          class: "relative flex items-center justify-center p-4 rounded-[4px] #{current_user.role == 'driver' ? 'bg-[#F9FAFB]' : 'bg-white'} border border-gray-200 transition-all hover:border-[#3758F9] focus:outline-none focus:ring-2 focus:ring-[#3758F9] focus:ring-opacity-50 btn-loader btn-loader-dark",
+          data: { controller: "button-loader" } do %>
         <div class="flex items-center space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg"
                class="h-5 w-5 #{current_user.role == 'driver' ? 'text-[#3758F9]' : 'text-[#637381]'}"
@@ -107,7 +112,8 @@
 
       <%= button_to toggle_role_path(role: 'company'),
           method: :patch,
-          class: "relative flex items-center justify-center p-4 rounded-[4px] #{current_user.role == 'company' ? 'bg-[#F9FAFB]' : 'bg-white'} border border-gray-200 transition-all hover:border-[#3758F9] focus:outline-none focus:ring-2 focus:ring-[#3758F9] focus:ring-opacity-50" do %>
+          class: "relative flex items-center justify-center p-4 rounded-[4px] #{current_user.role == 'company' ? 'bg-[#F9FAFB]' : 'bg-white'} border border-gray-200 transition-all hover:border-[#3758F9] focus:outline-none focus:ring-2 focus:ring-[#3758F9] focus:ring-opacity-50 btn-loader btn-loader-dark",
+          data: { controller: "button-loader" } do %>
         <div class="flex items-center space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg"
                class="h-5 w-5 #{current_user.role == 'company' ? 'text-[#3758F9]' : 'text-[#637381]'}"
