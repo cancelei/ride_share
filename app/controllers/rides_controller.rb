@@ -36,9 +36,7 @@ class RidesController < ApplicationController
   # GET /rides/1 or /rides/1.json
   def show
     respond_to do |format|
-      format.html {
-        redirect_back(fallback_location: dashboard_path)
-      }
+      format.html
       format.turbo_stream do
         if params[:expanded] == "true"
           render turbo_stream: turbo_stream.update("ride_details_#{@ride.id}", partial: "rides/ride_details", locals: { ride: @ride })

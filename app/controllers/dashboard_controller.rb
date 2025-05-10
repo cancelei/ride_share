@@ -47,7 +47,7 @@ class DashboardController < ApplicationController
       @active_users = User.kept.count
       @total_rides = Ride.with_discarded.count
       @active_rides = Ride.kept.count
-      @recent_rides = Ride.with_discarded.order(created_at: :desc).limit(10)
+      @recent_rides = Ride.includes(passenger: :user).with_discarded.order(created_at: :desc).limit(10)
     when "company"
       tab_type = params[:type].to_s
 
