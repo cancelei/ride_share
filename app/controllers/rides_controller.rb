@@ -37,13 +37,7 @@ class RidesController < ApplicationController
   def show
     respond_to do |format|
       format.html
-      format.turbo_stream do
-        if params[:expanded] == "true"
-          render turbo_stream: turbo_stream.update("ride_details_#{@ride.id}", partial: "rides/ride_details", locals: { ride: @ride })
-        else
-          render turbo_stream: turbo_stream.update("ride_details_#{@ride.id}", "")
-        end
-      end
+      format.turbo_stream
       format.json { render :show, status: :ok, location: @ride }
     end
   end

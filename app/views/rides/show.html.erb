@@ -170,6 +170,4 @@
   <% end %>
 </div>
 
-<%= turbo_frame_tag "ride_details_#{@ride.id}" do %>
-  <%= render "rides/ride_details", ride: @ride if params[:expanded] == "true" %>
-<% end %>
+<%= turbo_frame_tag "ride_details_#{@ride.id}", src: ride_path(@ride) %>
