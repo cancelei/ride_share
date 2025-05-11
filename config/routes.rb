@@ -60,7 +60,7 @@ Rails.application.routes.draw do
 
   # Authenticated user routes
   authenticated :user do
-    get "/dashboard", to: "dashboard#index", as: :dashboard
+    get "/dashboard", to: "dashboard#show", as: :dashboard
     get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
     patch "/toggle_role", to: "users#toggle_role", as: :toggle_role
 

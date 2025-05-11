@@ -2,7 +2,7 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
   before_action :set_stats, only: [ :show, :update_stats ]
 
-  def index
+  def show
     @user = current_user
 
     case @user.role
@@ -96,10 +96,7 @@ class DashboardController < ApplicationController
       end
     else
       redirect_to root_path, alert: "Invalid user role"
-      return
     end
-
-    render "dashboard/show"
   end
 
   def user_rides
