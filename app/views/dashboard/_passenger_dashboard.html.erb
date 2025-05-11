@@ -22,24 +22,7 @@
 
       <%= render "shared/tab_navigation" %>
 
-      <%= turbo_frame_tag "rides_content" do %>
-        <% if @filtered_rides.any? %>
-          <div class="grid grid-cols-1 gap-6 mt-6">
-            <% @filtered_rides.each do |ride| %>
-              <%= render "rides/ride_card", ride: ride, current_user: current_user %>
-            <% end %>
-          </div>
-        <% else %>
-          <div class="text-center py-8">
-            <div class="mb-4">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-              </svg>
-            </div>
-            <p class="text-gray-500">No rides at the moment.</p>
-          </div>
-        <% end %>
-      <% end %>
+      <%= turbo_frame_tag "rides_content", src: user_rides_path(type: params[:type]) %>
     </div>
 
     <%# Available Rides Section %>

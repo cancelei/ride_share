@@ -4,44 +4,16 @@ class DashboardController < ApplicationController
 
   def show
     @user = current_user
+    @tab_type = params[:type].to_s
+    @tab_type = "active" unless @tab_type == "history"
 
     case @user.role
     when "driver"
-      tab_type = params[:type].to_s
-
       @driver_profile = @user.driver_profile
       @current_vehicle = @driver_profile&.selected_vehicle
       @pending_rides = Ride.where(status: :pending)
-      @active_rides = Ride.active_rides.where(driver: @driver_profile)
-      puts "Active Rides: #{@active_rides.inspect}"
-      @past_rides = Ride.where(driver: @driver_profile, status: [ :completed, :cancelled ]).order(created_at: :desc).limit(5)
-      @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
-      @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
-
-      # Get all rides for display
-      all_rides = Ride.where(driver: @driver_profile, status: [ :accepted, :in_progress, :completed, :cancelled, :rating_required, :waiting_for_passenger_boarding ])
-      # binding.pry
-      # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-      # Set the tab_type for the view
-      tab_type = "active" unless tab_type == "history"
-
     when "passenger"
-      tab_type = params[:type].to_s
-
       @passenger_profile = @user.passenger_profile
-      all_rides = Ride.where(passenger: @passenger_profile).order(scheduled_time: :desc)
-
-      # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-      # Set the tab_type for the view
-      tab_type = "active" unless tab_type == "history"
-
-      # Keep these for backwards compatibility
-      @my_rides = all_rides.limit(5)
-      @past_rides = all_rides.where(status: :completed).order(created_at: :desc).limit(5)
     when "admin"
       @total_users = User.with_discarded.count
       @active_users = User.kept.count
@@ -49,8 +21,6 @@ class DashboardController < ApplicationController
       @active_rides = Ride.kept.count
       @recent_rides = Ride.includes(passenger: :user).with_discarded.order(created_at: :desc).limit(10)
     when "company"
-      tab_type = params[:type].to_s
-
       # Safely get company profile
       @company_profile = @user.company_profile
 
@@ -64,10 +34,7 @@ class DashboardController < ApplicationController
         all_rides = Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc)
 
         # Filter rides based on tab type using helper
-        @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-        # Set the tab_type for the view
-        tab_type = "active" unless tab_type == "history"
+        @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
 
         # Aggregated statistics
         @active_rides = all_rides.active_rides
@@ -103,7 +70,8 @@ class DashboardController < ApplicationController
     @user = current_user
 
     # Convert params[:type] to string to ensure consistent comparison
-    tab_type = params[:type].to_s
+    @tab_type = params[:type].to_s
+    @tab_type = "active" unless @tab_type == "history"
 
     case @user.role
     when "driver"
@@ -114,10 +82,7 @@ class DashboardController < ApplicationController
       all_rides = Ride.where(driver: @driver_profile).order(scheduled_time: :desc)
 
       # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-      # Set the tab_type for the view
-      tab_type = "active" unless tab_type == "history"
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
 
       # Additional data needed for driver dashboard
       @pending_rides = Ride.where(status: :pending)
@@ -133,10 +98,7 @@ class DashboardController < ApplicationController
       all_rides = Ride.where(passenger: @passenger_profile).order(scheduled_time: :desc)
 
       # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-      # Set the tab_type for the view
-      tab_type = "active" unless tab_type == "history"
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
 
       # Additional data needed for passenger dashboard
       @my_rides = all_rides.limit(5)
@@ -149,13 +111,10 @@ class DashboardController < ApplicationController
         CompanyDriver.where(company_profile_id: @company_profile.id).includes(driver_profile: [ :user, :vehicles ]) : []
 
       # Get rides only from approved drivers
-      all_rides = Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc)
+      all_rides = @company_profile ? Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc) : []
 
       # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, tab_type)
-
-      # Set the tab_type for the view
-      tab_type = "active" unless tab_type == "history"
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
 
       # Aggregated statistics for the company dashboard
       @active_rides = all_rides.active_rides
@@ -180,7 +139,7 @@ class DashboardController < ApplicationController
         if turbo_frame_request?
           render partial: "dashboard/turbo_rides_frame", locals: {
             my_rides: @filtered_rides,
-            tab_type: tab_type,
+            tab_type: @tab_type,
             user: @user
           }
         else
@@ -194,7 +153,7 @@ class DashboardController < ApplicationController
           partial: "dashboard/rides_content",
           locals: {
             my_rides: @filtered_rides,
-            params: { type: tab_type },
+            tab_type: @tab_type,
             user: @user
           }
         )
@@ -224,7 +183,7 @@ class DashboardController < ApplicationController
       @company_profile = current_user.company_profile
 
       # Get all rides from approved drivers only
-      all_rides = Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc)
+      all_rides = @company_profile ? Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc) : Ride.none
 
       # Filter rides based on status
       @active_rides = all_rides.active_rides
@@ -241,8 +200,8 @@ class DashboardController < ApplicationController
                                           .sum(:estimated_price)
 
       # Get all company drivers for the driver table
-      @company_drivers = CompanyDriver.where(company_profile_id: @company_profile.id)
-                                     .includes(driver_profile: [ :user, :vehicles ])
+      @company_drivers = @company_profile ? CompanyDriver.where(company_profile_id: @company_profile.id)
+                                     .includes(driver_profile: [ :user, :vehicles ]) : CompanyDriver.none
     end
 
     # Handle other roles if needed

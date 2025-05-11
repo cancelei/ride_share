@@ -1,8 +1,4 @@
 <div class="border-b border-gray-200 mb-6 overflow-x-auto">
-  <%= turbo_frame_tag "tab_state" do %>
-    <input type="hidden" id="current_tab" value="<%= params[:type] || 'active' %>" data-turbo-permanent />
-  <% end %>
-  
   <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap -mb-px" aria-label="Tabs">
     <% active_tab = params[:type] || 'active' %>
     
