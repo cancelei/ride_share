@@ -40,35 +40,3 @@
     <% end %>
   </nav>
 </div>
-
-<%= turbo_frame_tag "rides_content_script" do %>
-  <%= javascript_tag do %>
-    document.addEventListener('turbo:load', function() {
-      updateTabStyling();
-    });
-    
-    document.addEventListener('turbo:render', function() {
-      updateTabStyling();
-    });
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      updateTabStyling();
-    });
-    
-    function updateTabStyling() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramType = urlParams.get('type');
-      const currentTab = paramType || document.getElementById('current_tab')?.value || 'active';
-      
-      document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
-        if (tab.id === currentTab + '_tab') {
-          tab.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
-          tab.classList.remove('text-gray-700', 'border-transparent');
-        } else {
-          tab.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
-          tab.classList.add('text-gray-700', 'border-transparent');
-        }
-      });
-    }
-  <% end %>
-<% end %> 
