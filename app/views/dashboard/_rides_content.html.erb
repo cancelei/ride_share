@@ -16,7 +16,7 @@
     <p>Debug: tab type: <%= tab_type %></p>
   </div>
 <% end %>
-
+<%= render partial: "shared/tab_navigation", type: tab_type %>
 <div class="mt-6">
   <% if rides_to_display.present? %>
     <div class="grid grid-cols-1 gap-6">

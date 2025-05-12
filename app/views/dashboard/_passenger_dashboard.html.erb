@@ -20,8 +20,6 @@
         <% end %>
       </div>
 
-      <%= render "shared/tab_navigation" %>
-
       <%= turbo_frame_tag "rides_content", src: user_rides_path(type: params[:type]) %>
     </div>
 

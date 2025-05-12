@@ -91,8 +91,6 @@
         <h2 class="text-xl font-semibold text-[#001D3D]">My Rides</h2>
       </div>
 
-      <%= render "shared/tab_navigation" %>
-
       <%= turbo_frame_tag "rides_content", src: user_rides_path(type: params[:type]) %>
     </div>
   </div>
