@@ -39,6 +39,7 @@ class Ride < ApplicationRecord
   scope :past, -> { where(status: [ :completed ]) }
   scope :completed_rides, -> { where(status: :completed) }
   scope :cancelled_rides, -> { where(status: :cancelled) }
+  scope :for_company, ->(company_id) { where(company_profile_id: company_id).includes(:driver, :passenger).order("rides.scheduled_time desc") }
 
   scope :total_estimated_price_for_24_hours, -> {
     where("created_at >= ? AND paid = true", 1.day.ago)
@@ -216,43 +217,28 @@ class Ride < ApplicationRecord
     if passenger.present?
       Rails.logger.debug "DEBUG: Broadcasting to passenger: #{passenger.user_id}"
       passenger_user = passenger.user
-
-      # Direct broadcast to the specific ride card when status changes to accepted or waiting_for_passenger_boarding
-      if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
-        Rails.logger.debug "DEBUG: Broadcasting status #{status} to passenger's ride card"
-
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "user_#{passenger.user_id}_rides",
-          target: "ride_#{id}",
-          partial: "rides/ride_card",
-          locals: {
-            ride: self,
-            current_user: passenger_user
-          }
-        )
-      end
+      broadcast_ride_card_to_user(passenger, passenger_user) if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
     end
 
     # Broadcast to the driver
     if driver.present?
       Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
       driver_user = driver.user
-
-      # Direct broadcast to the specific ride card when status changes to accepted or other states
-      if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
-        Rails.logger.debug "DEBUG: Broadcasting status #{status} to driver's ride card"
-
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "user_#{driver.user_id}_rides",
-          target: "ride_#{id}",
-          partial: "rides/ride_card",
-          locals: {
-            ride: self,
-            current_user: driver_user
-          }
-        )
-      end
+      broadcast_ride_card_to_user(driver, driver_user) if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
     end
+  end
+
+  def broadcast_ride_card_to_user(profile, current_user)
+    return unless profile.present?
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "user_#{profile.user_id}_rides",
+      target: "ride_#{id}",
+      partial: "rides/ride_card",
+      locals: {
+        ride: self,
+        current_user: current_user
+      }
+    )
   end
 
   def generate_security_code

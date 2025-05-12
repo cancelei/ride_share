@@ -170,4 +170,10 @@
   <% end %>
 </div>
 
-<%= turbo_frame_tag "ride_details_#{@ride.id}", src: ride_path(@ride) %>
+<%= turbo_frame_tag "ride_details_#{@ride.id}" do %>
+  <% if params[:expanded] == "true" %>
+    <div id="ride_details_content_<%= @ride.id %>">
+      <%= render partial: "rides/ride_details", locals: { ride: @ride } %>
+    </div>
+  <% end %>
+<% end %>

@@ -295,6 +295,8 @@
     <% end %>
     
     <!-- Expandable Details Section -->
-    <%= turbo_frame_tag "ride_details_#{ride.id}", src: ride_path(ride) %>
+    <%= turbo_frame_tag "ride_details_#{ride.id}" do %>
+      <!-- Content will be loaded via Turbo Stream -->
+    <% end %>
   </div>
 </div>

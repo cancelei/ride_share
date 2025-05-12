@@ -1,6 +1,11 @@
 <%= turbo_stream_from current_user, "dashboard" %>
 <%= turbo_stream_from "user_#{current_user.id}_rides" %>
 <%= turbo_stream_from current_user.company_profile if current_user.company_profile.present? %>
+<% if @company_profile.present? %>
+  <%= turbo_stream_from @company_stream_name %>
+  <%= turbo_stream_from @company_rides_stream_name %>
+  <%= turbo_stream_from @company_drivers_stream_name %>
+<% end %>
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
   <% if current_user.company_profile.present? %>
@@ -81,97 +86,7 @@
       </div>
 
       <%# Recent Activity / Ride Status %>
-      <div class="bg-white rounded-lg shadow">
-        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Rides</h3>
-          <p class="mt-1 max-w-2xl text-sm text-gray-500">The most recent rides from your drivers.</p>
-        </div>
-
-        <div class="p-4">
-          <% if @filtered_rides.present? %>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ride ID</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passenger</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <% @filtered_rides.limit(10).each do |ride| %>
-                    <tr>
-                      <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #<%= ride.id %>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap">
-                        <% if ride.driver %>
-                          <% driver_user = User.find(ride.driver.user_id) %>
-                          <div class="text-sm text-gray-900"><%= "#{driver_user.first_name} #{driver_user.last_name}" %></div>
-                        <% else %>
-                          <div class="text-sm text-gray-500">Unassigned</div>
-                        <% end %>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap">
-                        <% if ride.passenger %>
-                          <% passenger_user = User.find(ride.passenger.user_id) %>
-                          <div class="text-sm text-gray-900"><%= "#{passenger_user.first_name} #{passenger_user.last_name}" %></div>
-                        <% else %>
-                          <div class="text-sm text-gray-500">Unknown</div>
-                        <% end %>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900"><%= ride.pickup_address&.truncate(15) || "N/A" %></div>
-                        <div class="text-sm text-gray-500">→ <%= ride.dropoff_address&.truncate(15) || "N/A" %></div>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap">
-                        <% status_class = {
-                          'pending' => 'bg-yellow-100 text-yellow-800',
-                          'accepted' => 'bg-blue-100 text-blue-800',
-                          'in_progress' => 'bg-indigo-100 text-indigo-800',
-                          'completed' => 'bg-green-100 text-green-800',
-                          'cancelled' => 'bg-red-100 text-red-800'
-                        }[ride.status] || 'bg-gray-100 text-gray-800' %>
-
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= status_class %>">
-                          <%= ride.status&.humanize %>
-                        </span>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <%= number_to_currency(ride.estimated_price || 0) %>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900"><%= ride.scheduled_time&.strftime("%b %d, %Y") || "N/A" %></div>
-                        <div class="text-sm text-gray-500"><%= ride.scheduled_time&.strftime("%H:%M") || "N/A" %></div>
-                      </td>
-                      <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <%= link_to "View", ride_path(ride), class: "text-indigo-600 hover:text-indigo-900" %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="mt-4 flex justify-center">
-              <%= link_to "View All Rides", user_rides_path(type: params[:type] || "active"), class: "text-indigo-600 hover:text-indigo-900" %>
-            </div>
-          <% else %>
-            <div class="text-center py-8">
-              <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No rides found</h3>
-              <p class="mt-1 text-sm text-gray-500">There are currently no rides in this category.</p>
-            </div>
-          <% end %>
-        </div>
-      </div>
+      <%= render "dashboard/company_recent_rides", rides: @filtered_rides %>
 
       <%# Completed and Cancelled Rides %>
       <div class="space-y-6">

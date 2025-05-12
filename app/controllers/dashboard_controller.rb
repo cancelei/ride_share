@@ -31,7 +31,7 @@ class DashboardController < ApplicationController
                                       .includes(:company_profile, driver_profile: [ :user ])
 
         # Get rides only from approved drivers
-        all_rides = Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc)
+        all_rides = Ride.for_company(@company_profile.id)
 
         # Filter rides based on tab type using helper
         @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
@@ -43,11 +43,16 @@ class DashboardController < ApplicationController
 
         # Financial statistics
         @last_week_rides_total = all_rides.where(status: :completed)
-                                        .where("created_at >= ?", 1.week.ago)
+                                        .where("rides.created_at >= ?", 1.week.ago)
                                         .sum(:estimated_price)
         @monthly_rides_total = all_rides.where(status: :completed)
-                                          .where("created_at >= ?", 30.days.ago)
+                                          .where("rides.created_at >= ?", 30.days.ago)
                                           .sum(:estimated_price)
+
+        # Set up Turbo stream channel identifiers
+        @company_stream_name = "company_#{@company_profile.id}"
+        @company_rides_stream_name = "#{@company_stream_name}_rides"
+        @company_drivers_stream_name = "#{@company_stream_name}_drivers"
       else
         # Set empty values for all variables to ensure the view doesn't crash
         @company_drivers = []
