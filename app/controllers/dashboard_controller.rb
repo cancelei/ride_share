@@ -1,6 +1,6 @@
 class DashboardController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_stats, only: [ :show, :update_stats ]
+  before_action :set_stats, only: [ :update_stats ]
 
   def show
     @user = current_user
@@ -28,7 +28,7 @@ class DashboardController < ApplicationController
       if @company_profile.present?
         # Get all company drivers for the driver table display
         @company_drivers = CompanyDriver.where(company_profile_id: @company_profile.id)
-                                      .includes(:company_profile, driver_profile: [ :user ])
+                                      .includes(driver_profile: [ :user ])
 
         # Get rides only from approved drivers
         all_rides = Ride.for_company(@company_profile.id)

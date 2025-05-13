@@ -62,6 +62,7 @@ Rails.application.routes.draw do
   authenticated :user do
     get "/dashboard", to: "dashboard#show", as: :dashboard
     get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
+    get "/dashboard/update_stats", to: "dashboard#update_stats", as: :update_stats
     patch "/toggle_role", to: "users#toggle_role", as: :toggle_role
 
     # Main reports index

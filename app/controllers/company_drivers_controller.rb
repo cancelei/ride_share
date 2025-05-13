@@ -47,11 +47,11 @@ class CompanyDriversController < ApplicationController
         flash.now[:notice] = "Driver was successfully approved."
         render turbo_stream: [
           turbo_stream.replace(dom_id(@company_driver), partial: "company_drivers/company_driver", locals: { company_driver: @company_driver }),
-          turbo_stream.replace("financial_summary_card", partial: "dashboard/financial_summary", locals: {
+          turbo_stream.replace("financial_summary", partial: "dashboard/financial_summary", locals: {
             last_week_rides_total: @last_week_rides_total,
             monthly_rides_total: @monthly_rides_total
           }),
-          turbo_stream.replace("ride_statistics_card", partial: "dashboard/ride_statistics", locals: {
+          turbo_stream.replace("ride_statistics", partial: "dashboard/ride_statistics", locals: {
             active_rides: @active_rides,
             completed_rides: @completed_rides,
             cancelled_rides: @cancelled_rides
@@ -104,11 +104,11 @@ class CompanyDriversController < ApplicationController
           @company_drivers = dashboard_controller.instance_variable_get(:@company_drivers)
 
           streams.concat([
-            turbo_stream.replace("financial_summary_card", partial: "dashboard/financial_summary", locals: {
+            turbo_stream.replace("financial_summary", partial: "dashboard/financial_summary", locals: {
               last_week_rides_total: @last_week_rides_total,
               monthly_rides_total: @monthly_rides_total
             }),
-            turbo_stream.replace("ride_statistics_card", partial: "dashboard/ride_statistics", locals: {
+            turbo_stream.replace("ride_statistics", partial: "dashboard/ride_statistics", locals: {
               active_rides: @active_rides,
               completed_rides: @completed_rides,
               cancelled_rides: @cancelled_rides
@@ -184,11 +184,11 @@ class CompanyDriversController < ApplicationController
 
           render turbo_stream: [
             turbo_stream.append("company_drivers tbody", partial: "company_drivers/company_driver", locals: { company_driver: @company_driver }),
-            turbo_stream.replace("financial_summary_card", partial: "dashboard/financial_summary", locals: {
+            turbo_stream.replace("financial_summary", partial: "dashboard/financial_summary", locals: {
               last_week_rides_total: @last_week_rides_total,
               monthly_rides_total: @monthly_rides_total
             }),
-            turbo_stream.replace("ride_statistics_card", partial: "dashboard/ride_statistics", locals: {
+            turbo_stream.replace("ride_statistics", partial: "dashboard/ride_statistics", locals: {
               active_rides: @active_rides,
               completed_rides: @completed_rides,
               cancelled_rides: @cancelled_rides
