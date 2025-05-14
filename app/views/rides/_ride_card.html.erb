@@ -192,8 +192,8 @@
           </div>
         </div>
         <%= button_to finish_ride_path(ride), method: :post, 
-                    class: "w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors",
-                    data: { turbo: true, confirm: "Are you sure you want to finish this ride?" } do %>
+                    class: "w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors btn-loader btn-loader-light",
+                    data: { turbo: true, confirm: "Are you sure you want to finish this ride?", controller: "button-loader" } do %>
           <div class="flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -217,13 +217,14 @@
                       id: "security_code_form_#{ride.id}",
                       data: { turbo: true }) do |form| %>
           <%= form.text_field :security_code,
-              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm",
+              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm h-[40px] w-[130px] p-2",
               placeholder: "Enter 4-digit code",
               maxlength: 4,
               required: true %>
-          <%= form.submit "Verify & Start",
-              class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
-              data: { disable_with: "Verifying..." } %>
+          <button type="submit" class="verify-button rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500 flex items-center gap-2 btn-loader btn-loader-light"
+           data-ride-id="<%= ride.id %>" data-controller="button-loader">
+            <span class="btn-text">Verify & Start</span>
+          </button>
         <% end %>
       </div>
     <% end %>
@@ -278,8 +279,8 @@
           <div class="mt-4">
             <%= button_to arrived_at_pickup_ride_path(ride), 
                         method: :post,
-                        class: "w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors",
-                        data: { turbo: true } do %>
+                        class: "w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors btn-loader btn-loader-light",
+                        data: { turbo: true, controller: "button-loader" } do %>
               <div class="flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -295,9 +296,7 @@
     
     <!-- Expandable Details Section -->
     <%= turbo_frame_tag "ride_details_#{ride.id}" do %>
-      <% if params[:expanded] == "true" && params[:id].to_i == ride.id %>
-        <%= render "rides/ride_details", ride: ride %>
-      <% end %>
+      <!-- Content will be loaded via Turbo Stream -->
     <% end %>
   </div>
 </div>

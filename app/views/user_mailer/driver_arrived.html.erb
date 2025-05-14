@@ -59,22 +59,21 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Your Driver Has Arrived!</h1>
+      <h1>Your driver is here!</h1>
     </div>
-    
+
     <p>Hello <%= @passenger.first_name %>,</p>
-    
+
     <p>Great news! Your RideFlow driver has arrived at your pickup location and is waiting for you.</p>
-    
+    <p>Please meet your driver at the pickup location.</p>
+    <p><strong><%= @ride.pickup_address || @ride.pickup_location %></strong></p>
+
     <div class="info-box">
       <h3>Driver Information:</h3>
       <p><strong>Name:</strong> <%= @driver.full_name %></p>
       <p><strong>Vehicle:</strong> <%= @ride.vehicle.brand %> <%= @ride.vehicle.model %> (<%= @ride.vehicle.color %>)</p>
       <p><strong>License Plate:</strong> <%= @ride.vehicle.registration_number %></p>
     </div>
-    
-    <p>Please meet your driver at your selected pickup location:</p>
-    <p><strong><%= @ride.pickup_address || @ride.pickup_location %></strong></p>
     
     <p>Remember to share this security code with your driver to start the ride:</p>
     <div style="text-align: center;">

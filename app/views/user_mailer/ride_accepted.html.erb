@@ -1,5 +1,13 @@
 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-  <h1>Driver Assigned!</h1>
+  <h1>A driver has claimed your ride request!</h1>
+  
+  <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h2>Ride Details</h2>
+    <p><strong>Be sure to be at the pickup location at the requested time.</strong></p>
+    <p>You will need to give the driver this code <%= @ride.security_code %> to start the drive for safety!</p>
+    <p>If you need to cancel or change, please do that in the rideflow website at least 1 hour before pickup. Expand the ride request "view details" and find the cancellation button.</p>
+    <p>Be ready to pay for your ride when you are close to your destination. Copy the driver's crypto address inside the ride request on the rideflow platform. Show the driver the completed transaction before exiting the vehicle.</p>
+  </div>
   
   <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
     <h2>Driver Details</h2>

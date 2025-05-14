@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_19_165610) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -142,6 +142,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
     t.datetime "arrived_time"
     t.string "cancellation_reason"
     t.string "cancelled_by"
+    t.bigint "company_profile_id"
+    t.index ["company_profile_id"], name: "index_rides_on_company_profile_id"
     t.index ["discarded_at"], name: "index_rides_on_discarded_at"
     t.index ["driver_id"], name: "index_rides_on_driver_id"
     t.index ["passenger_id"], name: "index_rides_on_passenger_id"
@@ -329,6 +331,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id", on_delete: :nullify
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "ratings", "rides"
+  add_foreign_key "rides", "company_profiles"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
   add_foreign_key "rides", "passenger_profiles", column: "passenger_id"
   add_foreign_key "rides", "vehicles"

@@ -1,0 +1,96 @@
+<!-- Container optimized for both screen and print (A4 portrait) -->
+<div class="max-w-4xl mx-auto p-6 bg-white shadow rounded-lg print:shadow-none print:max-w-full print:p-2">
+  <h1 class="text-3xl font-bold mb-2 text-gray-800 print:text-2xl print:mb-1">Managerial Report</h1>
+  <p class="text-gray-600 mb-6 print:mb-2 print:text-sm"><span class="font-semibold">Period:</span> <%= @start_date %> to <%= @end_date %></p>
+
+  <% if @report_data[:drivers] %>
+    <div class="mb-8 print:mb-4">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3 print:text-xl print:mb-2">Company Summary</h2>
+      <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1 text-gray-700 mb-4 print:text-sm print:gap-x-4 print:gap-y-0.5">
+        <li><span class="font-medium">Total Drivers:</span> <%= @report_data[:total_drivers] %></li>
+        <li><span class="font-medium">Total Vehicles:</span> <%= @report_data[:total_vehicles] %></li>
+        <li><span class="font-medium">Total Rides:</span> <%= @report_data[:total_rides] %></li>
+        <li><span class="font-medium">Completed Rides:</span> <%= @report_data[:completed_rides] %></li>
+        <li><span class="font-medium">Cancelled Rides:</span> <%= @report_data[:cancelled_rides] %></li>
+        <li><span class="font-medium">Total Earnings:</span> $<%= number_with_precision(@report_data[:total_earnings] || 0, precision: 2) %></li>
+        <li><span class="font-medium">Avg. Earnings per Ride:</span> $<%= number_with_precision(@report_data[:avg_earning_per_ride] || 0, precision: 2) %></li>
+        <% if @report_data[:top_vehicle] %>
+          <li><span class="font-medium">Top Vehicle (by earnings):</span> <%= @report_data[:top_vehicle].registration_number || @report_data[:top_vehicle].id %> - $<%= number_with_precision(@report_data[:top_vehicle_earnings] || 0, precision: 2) %></li>
+        <% end %>
+        <% if @report_data[:top_driver] %>
+          <li><span class="font-medium">Top Driver (by earnings):</span> <%= @report_data[:top_driver].user.full_name %> - $<%= number_with_precision(@report_data[:top_driver_earnings] || 0, precision: 2) %></li>
+        <% end %>
+      </ul>
+    </div>
+    <% @report_data[:drivers].each do |driver| %>
+      <div class="mb-10 p-4 bg-gray-50 rounded-lg border border-gray-200 print:mb-4 print:p-2 print:break-inside-avoid">
+        <h3 class="text-xl font-semibold text-gray-800 mb-2 print:text-base print:mb-1">Driver: <%= driver[:driver_name] %></h3>
+        <ul class="flex flex-wrap gap-x-8 gap-y-1 text-gray-700 mb-3 print:text-xs print:gap-x-4 print:mb-2">
+          <li>Rides: <span class="font-semibold"><%= driver[:ride_count] %></span></li>
+          <li>Completed: <span class="font-semibold"><%= driver[:completed_rides] %></span></li>
+          <li>Cancelled: <span class="font-semibold"><%= driver[:cancelled_rides] %></span></li>
+          <li>Earnings: <span class="font-semibold">$<%= number_with_precision(driver[:total_earnings] || 0, precision: 2) %></span></li>
+          <li>Avg/Ride: <span class="font-semibold">$<%= number_with_precision(driver[:avg_earning_per_ride] || 0, precision: 2) %></span></li>
+        </ul>
+        <div class="overflow-x-auto print:overflow-visible">
+          <table class="min-w-full border border-gray-300 rounded-lg print:text-xs print:w-full print:table-fixed print:border-collapse print:border print:rounded-none">
+            <thead class="bg-blue-100 print:bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[15%] print:text-xs print:break-words print:border">Vehicle</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[9%] print:text-xs print:break-words print:border">Rides</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[9%] print:text-xs print:break-words print:border">Compl.</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[9%] print:text-xs print:break-words print:border">Canc.</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[12%] print:text-xs print:break-words print:border">Earnings</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[12%] print:text-xs print:break-words print:border">Avg/Ride</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[9%] print:text-xs print:break-words print:border">Top</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[12%] print:text-xs print:break-words print:border">First</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-700 print:px-1 print:py-1 print:w-[12%] print:text-xs print:break-words print:border">Last</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% driver[:vehicles].each do |stat| %>
+                <tr class="even:bg-gray-50 print:even:bg-gray-100 print:break-inside-avoid">
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:align-top print:break-words"><%= stat[:vehicle].registration_number.presence || stat[:vehicle].license_plate.presence || stat[:vehicle].id %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:text-center"><%= stat[:ride_count] %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:text-center"><%= stat[:completed_rides] %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:text-center"><%= stat[:cancelled_rides] %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:break-words">$<%= number_with_precision(stat[:total_earnings] || 0, precision: 2) %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:break-words">$<%= number_with_precision(stat[:avg_earning_per_ride] || 0, precision: 2) %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:break-words">$<%= number_with_precision(stat[:top_ride_value] || 0, precision: 2) %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:break-words"><%= stat[:first_ride_at]&.strftime("%Y-%m-%d") || '-' %></td>
+                  <td class="px-3 py-2 print:px-1 print:py-1 print:text-xs print:border print:break-words"><%= stat[:last_ride_at]&.strftime("%Y-%m-%d") || '-' %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  <% elsif @report_data[:vehicles] %>
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold mb-2 text-blue-700">Driver Summary</h2>
+      <ul class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1 text-gray-700">
+        <li><span class="font-medium">Total Vehicles:</span> <%= @report_data[:total_vehicles] %></li>
+        <li><span class="font-medium">Total Rides:</span> <%= @report_data[:total_rides] %></li>
+        <li><span class="font-medium">Completed Rides:</span> <%= @report_data[:completed_rides] %></li>
+        <li><span class="font-medium">Cancelled Rides:</span> <%= @report_data[:cancelled_rides] %></li>
+        <li><span class="font-medium">Total Earnings:</span> $<%= number_with_precision(@report_data[:total_earnings] || 0, precision: 2) %></li>
+        <li><span class="font-medium">Avg. Earnings per Ride:</span> $<%= number_with_precision(@report_data[:avg_earning_per_ride] || 0, precision: 2) %></li>
+        <% if @report_data[:top_vehicle] %>
+          <li><span class="font-medium">Top Vehicle (by earnings):</span> <%= @report_data[:top_vehicle].registration_number || @report_data[:top_vehicle].id %></li>
+        <% end %>
+      </ul>
+    </div>
+    <%= render "shared/reports/vehicle_chart" %>
+    <%= render "shared/reports/company_table" %>
+    <%= render "shared/reports/vehicle_table" %>
+  <% else %>
+    <p class="text-gray-500">No data available for this period.</p>
+  <% end %>
+
+  <% if request.format.html? %>
+    <div class="mt-6 print:hidden">
+      <%= link_to "Download PDF", managerial_report_path(format: :pdf, start_date: @start_date, end_date: @end_date), class: "btn btn-secondary inline-block px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition" %>
+    </div>
+  <% end %>
+</div>

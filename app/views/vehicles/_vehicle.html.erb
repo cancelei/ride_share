@@ -36,19 +36,4 @@
       <% end %>
     </div>
   </div>
-
-  <%# Toggle Details Link %>
-  <div class="flex items-center mt-2">
-    <%= link_to driver_profile_vehicle_path(local_assigns[:driver_profile] || vehicle.driver_profile, vehicle, expanded: true, format: :turbo_stream),
-        data: { turbo_stream: true, turbo_frame: "vehicle_details_#{vehicle.id}" },
-        class: "flex items-center text-sm text-blue-600 hover:text-blue-800" do %>
-      <span>View Details</span>
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-    <% end %>
-  </div>
-
-  <%# Turbo Frame for Details %>
-  <%= turbo_frame_tag "vehicle_details_#{vehicle.id}" %>
 </div>

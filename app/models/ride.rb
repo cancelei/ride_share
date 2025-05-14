@@ -10,15 +10,17 @@ class Ride < ApplicationRecord
   include EmailNotification
   default_scope -> { kept }
 
+  scope :active_rides, -> { where(status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
-  has_many :ratings, as: :rateable, dependent: :destroy
+  belongs_to :company_profile, optional: true
+  has_many :ratings, dependent: :destroy
 
   before_create :set_status, :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update
-  after_commit :broadcast_ride_status, if: :saved_change_to_status?
-  after_create :ensure_status_set, :notify_available_drivers
+  after_commit :broadcast_ride_status, :handle_status_change_notifications, if: :saved_change_to_status?
+  after_create :ensure_status_set, :notify_available_drivers, :send_creation_notification
   before_validation :set_coordinates_from_params
   before_save :sync_locations
 
@@ -32,12 +34,12 @@ class Ride < ApplicationRecord
     cancelled: "cancelled"
   }
 
-  scope :active_rides, -> { where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
   scope :historical_rides, -> { where(status: [ :completed, :cancelled ]) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
   scope :past, -> { where(status: [ :completed ]) }
   scope :completed_rides, -> { where(status: :completed) }
   scope :cancelled_rides, -> { where(status: :cancelled) }
+  scope :for_company, ->(company_id) { where(company_profile_id: company_id).includes(:driver, :passenger).order("rides.scheduled_time desc") }
 
   scope :total_estimated_price_for_24_hours, -> {
     where("created_at >= ? AND paid = true", 1.day.ago)
@@ -64,16 +66,12 @@ class Ride < ApplicationRecord
 
   attribute :paid, :boolean, default: false
 
-  # Configure email notifications for different ride statuses
-  notify_by_email after_update: true, on: -> { saved_change_to_status? ? :handle_status_change_notifications : nil }
-  notify_by_email after_create: true, on: :send_creation_notification
+  def self.active_driver_rides(driver_id)
+    active_rides.where(driver_id: driver_id)
+  end
 
   def titleize
     status.to_s.humanize
-  end
-
-  def assign_driver(driver, vehicle)
-    update(driver: driver, vehicle: vehicle)
   end
 
   def can_start?
@@ -103,9 +101,7 @@ class Ride < ApplicationRecord
   end
 
   def set_status
-    Rails.logger.debug "RIDE DEBUG: Inside set_status, current status: #{status.inspect}"
     self.status ||= "pending"
-    Rails.logger.debug "RIDE DEBUG: After set_status, status: #{status.inspect}"
   end
 
   def status_color
@@ -189,21 +185,19 @@ class Ride < ApplicationRecord
 
   # Handle notifications based on status changes
   def handle_status_change_notifications
-    if saved_change_to_status?
-      case status
-      when "accepted"
-        deliver_email(UserMailer, :ride_accepted, self)
-      when "waiting_for_passenger_boarding"
-        deliver_email(UserMailer, :driver_arrived, self)
-      when "in_progress"
-        deliver_email(UserMailer, :ride_in_progress, self)
-      when "rating_required"
-        deliver_email(UserMailer, :send_rating_email_to_passenger, self)
-        deliver_email(UserMailer, :send_rating_email_to_driver, self)
-      when "completed"
-        deliver_email(UserMailer, :ride_completion_passenger, self)
-        deliver_email(UserMailer, :ride_completion_driver, self)
-      end
+    case status
+    when "accepted"
+      deliver_email(UserMailer, :ride_accepted, self)
+    when "waiting_for_passenger_boarding"
+      deliver_email(UserMailer, :driver_arrived, self)
+    when "in_progress"
+      deliver_email(UserMailer, :ride_in_progress, self)
+    when "rating_required"
+      deliver_email(UserMailer, :send_rating_email_to_passenger, self)
+      deliver_email(UserMailer, :send_rating_email_to_driver, self)
+    when "completed"
+      deliver_email(UserMailer, :ride_completion_passenger, self)
+      deliver_email(UserMailer, :ride_completion_driver, self)
     end
   end
 
@@ -223,68 +217,28 @@ class Ride < ApplicationRecord
     if passenger.present?
       Rails.logger.debug "DEBUG: Broadcasting to passenger: #{passenger.user_id}"
       passenger_user = passenger.user
-
-      Turbo::StreamsChannel.broadcast_replace_to(
-        "user_#{passenger.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_rides: Ride.where(passenger_id: passenger.id),
-          params: { type: determine_tab_type },
-          user: passenger_user
-        }
-      )
-
-      # Direct broadcast to the specific ride card when status changes to accepted or waiting_for_passenger_boarding
-      if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
-        Rails.logger.debug "DEBUG: Broadcasting status #{status} to passenger's ride card"
-
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "user_#{passenger.user_id}_rides",
-          target: "ride_#{id}",
-          partial: "rides/ride_card",
-          locals: {
-            ride: self,
-            current_user: passenger_user
-          }
-        )
-      end
+      broadcast_ride_card_to_user(passenger, passenger_user) if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
     end
 
     # Broadcast to the driver
     if driver.present?
       Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
       driver_user = driver.user
-
-      # Get the driver's rides
-      driver_rides = Ride.where(driver_id: driver.id)
-
-      Turbo::StreamsChannel.broadcast_replace_to(
-        "user_#{driver.user_id}_dashboard",
-        target: "rides_content",
-        partial: "dashboard/rides_content",
-        locals: {
-          my_rides: driver_rides,
-          params: { type: determine_tab_type },
-          user: driver_user
-        }
-      )
-
-      # Direct broadcast to the specific ride card when status changes to accepted or other states
-      if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
-        Rails.logger.debug "DEBUG: Broadcasting status #{status} to driver's ride card"
-
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "user_#{driver.user_id}_rides",
-          target: "ride_#{id}",
-          partial: "rides/ride_card",
-          locals: {
-            ride: self,
-            current_user: driver_user
-          }
-        )
-      end
+      broadcast_ride_card_to_user(driver, driver_user) if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
     end
+  end
+
+  def broadcast_ride_card_to_user(profile, current_user)
+    return unless profile.present?
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "user_#{profile.user_id}_rides",
+      target: "ride_#{id}",
+      partial: "rides/ride_card",
+      locals: {
+        ride: self,
+        current_user: current_user
+      }
+    )
   end
 
   def generate_security_code

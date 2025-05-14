@@ -1,7 +1,7 @@
 <%= turbo_frame_tag "rides_content" do %>
   <%= render partial: "dashboard/rides_content", locals: {
     my_rides: my_rides,
-    params: { type: tab_type },
+    tab_type: tab_type,
     user: user
   } %>
 <% end %> 

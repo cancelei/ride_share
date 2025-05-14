@@ -14,17 +14,6 @@ class VehiclesController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.turbo_stream do
-        if params[:expanded] == "true"
-          render turbo_stream: turbo_stream.update(
-            "vehicle_details_#{@vehicle.id}",
-            partial: "vehicles/vehicle_details",
-            locals: { vehicle: @vehicle }
-          )
-        else
-          render turbo_stream: turbo_stream.update("vehicle_details_#{@vehicle.id}", "")
-        end
-      end
     end
   end
 

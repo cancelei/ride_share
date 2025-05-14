@@ -11,6 +11,7 @@
         maxlength: 4,
         required: true %>
     <%= form.submit "Verify & Start Ride",
-        class: "rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500" %>
+        class: "rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 btn-loader btn-loader-light",
+        data: { controller: "button-loader" } %>
   </div>
 <% end %> 

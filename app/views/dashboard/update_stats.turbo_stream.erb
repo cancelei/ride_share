@@ -1,8 +1,8 @@
-<%= turbo_stream.replace "financial_summary_card" do %>
+<%= turbo_stream.replace "financial_summary" do %>
   <%= render "dashboard/financial_summary" %>
 <% end %>
 
-<%= turbo_stream.replace "ride_statistics_card" do %>
+<%= turbo_stream.replace "ride_statistics" do %>
   <%= render "dashboard/ride_statistics" %>
 <% end %>
 
@@ -12,4 +12,20 @@
 
 <%= turbo_stream.replace "performance_card" do %>
   <%= render "dashboard/performance_card" %>
-<% end %> 
+<% end %>
+
+<%= turbo_stream.replace "company_drivers" do %>
+  <%= render "dashboard/company_drivers" %>
+<% end %>
+
+<%= turbo_stream.replace "company_recent_rides" do %>
+  <%= render "dashboard/company_recent_rides", rides: @filtered_rides %>
+<% end %>
+
+<%= turbo_stream.replace "company_completed_rides" do %>
+  <%= render "dashboard/company_completed_rides" %>
+<% end %>
+
+<%= turbo_stream.replace "company_cancelled_rides" do %>
+  <%= render "dashboard/company_cancelled_rides" %>
+<% end %>

@@ -13,6 +13,7 @@ FileUtils.chdir APP_ROOT do
   # Add necessary setup steps to this file.
 
   puts "== Installing dependencies =="
+  system("yarn install")
   system("bundle check") || system!("bundle install")
 
   # puts "\n== Copying sample files =="
