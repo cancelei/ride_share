@@ -26,43 +26,11 @@ class DashboardController < ApplicationController
 
       # If company profile exists, set up all necessary variables
       if @company_profile.present?
-        # Get all company drivers for the driver table display
-        @company_drivers = CompanyDriver.where(company_profile_id: @company_profile.id)
-                                      .includes(driver_profile: [ :user ])
-
-        # Get rides only from approved drivers
-        all_rides = Ride.for_company(@company_profile.id)
-
-        # Filter rides based on tab type using helper
-        @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
-
-        # Aggregated statistics
-        @active_rides = all_rides.active_rides
-        @completed_rides = all_rides.where(status: :completed)
-        @cancelled_rides = all_rides.where(status: :cancelled)
-
-        # Financial statistics
-        @last_week_rides_total = all_rides.where(status: :completed)
-                                        .where("rides.created_at >= ?", 1.week.ago)
-                                        .sum(:estimated_price)
-        @monthly_rides_total = all_rides.where(status: :completed)
-                                          .where("rides.created_at >= ?", 30.days.ago)
-                                          .sum(:estimated_price)
-
         # Set up Turbo stream channel identifiers
         @company_stream_name = "company_#{@company_profile.id}"
         @company_rides_stream_name = "#{@company_stream_name}_rides"
         @company_drivers_stream_name = "#{@company_stream_name}_drivers"
       else
-        # Set empty values for all variables to ensure the view doesn't crash
-        @company_drivers = []
-        @active_rides = Ride.none
-        @completed_rides = Ride.none
-        @cancelled_rides = Ride.none
-        @filtered_rides = Ride.none
-        @last_week_rides_total = 0
-        @monthly_rides_total = 0
-
         # Optional: Add a flash message
         flash.now[:notice] = "Please create a company profile to use the company dashboard"
       end
@@ -174,7 +142,16 @@ class DashboardController < ApplicationController
   # New action for Turbo updates
   def update_stats
     respond_to do |format|
+      if @company_profile.present?
       format.turbo_stream
+      else
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(
+            "rides_content",
+            ""
+          )
+        end
+      end
     end
   end
 
@@ -184,7 +161,7 @@ class DashboardController < ApplicationController
     # Common stats for all roles
     @user = current_user
 
-    if current_user.role_company?
+    if current_user.role_company? && current_user.company_profile.present?
       @company_profile = current_user.company_profile
 
       # Get all rides from approved drivers only
