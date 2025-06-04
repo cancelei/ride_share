@@ -276,10 +276,24 @@
           </div>
 
           <!-- "I've Arrived" Button -->
-          <div class="mt-4">
+          <div class="mt-4 flex flex-col sm:flex-row gap-2 w-100">
+            <% can_cancel = (current_user&.role_driver? && current_user.driver_profile == ride.driver && ride.can_be_cancelled_by_driver?) %>
+              <% if can_cancel %>
+                <%= button_to can_cancel ? cancel_ride_path(ride) : "#", 
+                  method: :post, 
+                  class: "flex-1 w-full flex items-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm transition-colors",
+                  data: { turbo: true, confirm: "Are you sure you want to cancel this ride?", controller: "button-loader" } do %>
+                  Cancel Ride
+                <% end %>
+              <% else %>
+                <div role="button" class="flex-1 flex items-center text-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm transition-colors">
+                  Wait for 4 hours before cancelling
+                </div>
+              <% end %>
+
             <%= button_to arrived_at_pickup_ride_path(ride), 
                         method: :post,
-                        class: "w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors btn-loader btn-loader-light",
+                        class: "flex-1 w-full flex items-center justify-center gap-2 rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-500 shadow-sm transition-colors",
                         data: { turbo: true, controller: "button-loader" } do %>
               <div class="flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -288,8 +302,8 @@
                 I've Arrived at Pickup
               </div>
             <% end %>
-            <p class="text-xs text-gray-500 mt-1 text-center">Click when you've reached the pickup location</p>
           </div>
+          <p class="text-xs text-gray-500 mt-1 text-center">Click when you've reached the pickup location</p>
         </div>
       </div>
     <% end %>

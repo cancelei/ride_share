@@ -83,7 +83,7 @@ class Ride < ApplicationRecord
   end
 
   def can_be_cancelled_by_driver?
-    waiting_for_passenger_boarding?
+    waiting_for_passenger_boarding? || (accepted? && updated_at < 4.hours.ago)
   end
 
   def start!
