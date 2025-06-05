@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_19_165610) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_05_163136) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -109,10 +109,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_19_165610) do
     t.index ["ride_id"], name: "index_ratings_on_ride_id"
   end
 
+  create_table "ride_statuses", force: :cascade do |t|
+    t.string "status", default: "pending", null: false
+    t.bigint "ride_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ride_id"], name: "index_ride_statuses_on_ride_id"
+    t.index ["user_id"], name: "index_ride_statuses_on_user_id"
+  end
+
   create_table "rides", force: :cascade do |t|
     t.datetime "start_time"
     t.datetime "end_time"
-    t.string "status"
     t.integer "available_seats", default: 0
     t.float "estimated_price"
     t.float "effective_price"
@@ -331,6 +340,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_19_165610) do
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id", on_delete: :nullify
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "ratings", "rides"
+  add_foreign_key "ride_statuses", "rides"
+  add_foreign_key "ride_statuses", "users"
   add_foreign_key "rides", "company_profiles"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
   add_foreign_key "rides", "passenger_profiles", column: "passenger_id"

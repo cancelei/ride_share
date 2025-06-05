@@ -10,35 +10,28 @@ class Ride < ApplicationRecord
   include EmailNotification
   default_scope -> { kept }
 
-  scope :active_rides, -> { where(status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
+  scope :active_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }) }
+  scope :passenger_active, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ] }) }
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
   belongs_to :company_profile, optional: true
   has_many :ratings, dependent: :destroy
+  has_many :ride_statuses, dependent: :destroy
 
-  before_create :set_status, :generate_security_code, :calculate_distance_and_duration
+  before_create :generate_security_code, :calculate_distance_and_duration
   after_update :broadcast_status_update
-  after_commit :broadcast_ride_status, :handle_status_change_notifications, if: :saved_change_to_status?
-  after_create :ensure_status_set, :notify_available_drivers, :send_creation_notification
+  after_create :set_status, :ensure_status_set, :notify_available_drivers, :send_creation_notification
   before_validation :set_coordinates_from_params
   before_save :sync_locations
 
-  enum :status, {
-    pending: "pending",
-    accepted: "accepted",
-    waiting_for_passenger_boarding: "waiting_for_passenger_boarding",
-    in_progress: "in_progress",
-    rating_required: "rating_required",
-    completed: "completed",
-    cancelled: "cancelled"
-  }
-
-  scope :historical_rides, -> { where(status: [ :completed, :cancelled ]) }
+  scope :historical_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed, :cancelled ] }) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
-  scope :past, -> { where(status: [ :completed ]) }
-  scope :completed_rides, -> { where(status: :completed) }
-  scope :cancelled_rides, -> { where(status: :cancelled) }
+  scope :past, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
+  scope :pending, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :pending ] }) }
+  scope :completed_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
+  scope :completed, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
+  scope :cancelled_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :cancelled ] }) }
   scope :for_company, ->(company_id) { where(company_profile_id: company_id).includes(:driver, :passenger).order("rides.scheduled_time desc") }
 
   scope :total_estimated_price_for_24_hours, -> {
@@ -66,6 +59,26 @@ class Ride < ApplicationRecord
 
   attribute :paid, :boolean, default: false
 
+  def status
+    ride_statuses&.last&.status
+  end
+
+  def accepted?
+    ride_statuses.any?(&:accepted?)
+  end
+
+  def in_progress?
+    ride_statuses.any?(&:in_progress?)
+  end
+
+  def completed?
+    ride_statuses.any?(:completed?)
+  end
+
+  def waiting_for_passenger_boarding?
+    ride_statuses.any?(:waiting_for_passenger_boarding?)
+  end
+
   def self.active_driver_rides(driver_id)
     active_rides.where(driver_id: driver_id)
   end
@@ -86,13 +99,6 @@ class Ride < ApplicationRecord
     waiting_for_passenger_boarding? || (accepted? && updated_at < 4.hours.ago)
   end
 
-  def start!
-    self.start_time = Time.current
-    self.status = :in_progress
-
-    save!
-  end
-
   def finish!
     self.end_time = Time.current
     self.status = :completed
@@ -100,8 +106,35 @@ class Ride < ApplicationRecord
     save!
   end
 
+  def accept!
+    ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :accepted)
+  end
+
+  def waiting!
+    update(arrived_time: Time.current)
+    ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :waiting_for_passenger_boarding)
+  end
+
+  def in_progress!
+    update(start_time: Time.current)
+    ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :in_progress)
+  end
+
+  alias :start! :in_progress!
+
+  def complete!
+    update(end_time: Time.current)
+    ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :completed)
+  end
+
+  alias :finish! :complete!
+
+  def cancel!
+    ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :cancelled)
+  end
+
   def set_status
-    self.status ||= "pending"
+    ride_statuses.find_or_create_by(user_id: passenger_id)
   end
 
   def status_color
@@ -207,39 +240,6 @@ class Ride < ApplicationRecord
   end
 
   private
-
-  def broadcast_ride_status
-    Rails.logger.debug "DEBUG: Ride#broadcast_ride_status called for ride #{id}"
-    Rails.logger.debug "DEBUG: Ride status: #{status}"
-    Rails.logger.debug "DEBUG: Status changed from #{status_before_last_save} to #{status}"
-
-    # Broadcast to the passenger
-    if passenger.present?
-      Rails.logger.debug "DEBUG: Broadcasting to passenger: #{passenger.user_id}"
-      passenger_user = passenger.user
-      broadcast_ride_card_to_user(passenger, passenger_user) if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
-    end
-
-    # Broadcast to the driver
-    if driver.present?
-      Rails.logger.debug "DEBUG: Broadcasting to driver: #{driver.user_id}"
-      driver_user = driver.user
-      broadcast_ride_card_to_user(driver, driver_user) if status == "accepted" || status == "waiting_for_passenger_boarding" || status == "in_progress"
-    end
-  end
-
-  def broadcast_ride_card_to_user(profile, current_user)
-    return unless profile.present?
-    Turbo::StreamsChannel.broadcast_replace_to(
-      "user_#{profile.user_id}_rides",
-      target: "ride_#{id}",
-      partial: "rides/ride_card",
-      locals: {
-        ride: self,
-        current_user: current_user
-      }
-    )
-  end
 
   def generate_security_code
     self.security_code = sprintf("%04d", rand(10000))

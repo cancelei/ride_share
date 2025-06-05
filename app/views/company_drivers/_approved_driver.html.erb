@@ -39,9 +39,9 @@
       Rails.logger.debug "Loading performance for driver_profile_id: #{driver_profile_id}"
 
       # Make sure we're checking for the right statuses
-      completed_rides = Ride.where(driver_id: driver_profile_id, status: 'completed').count
+      completed_rides = Ride.where(driver_id: driver_profile_id).completed.count
       active_rides = Ride.active_driver_rides(driver_profile_id).count
-      cancelled_rides = Ride.where(driver_id: driver_profile_id, status: 'cancelled').count
+      cancelled_rides = Ride.where(driver_id: driver_profile_id).cancelled.count
 
       # Safety check for ratings
       driver_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: driver_profile_id)

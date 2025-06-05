@@ -44,9 +44,9 @@ module RidesHelper
   def filter_rides_by_tab(rides, tab_type)
     case tab_type.to_s
     when "history"
-      rides.includes(:driver, :passenger).where(status: [ :completed, :cancelled ])
+      rides.includes(:driver, :passenger).historical_rides
     else # 'active' or any other value
-      rides.includes(:driver, :passenger).where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+      rides.includes(:driver, :passenger).passenger_active
     end
   end
 

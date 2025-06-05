@@ -11,7 +11,7 @@ class DashboardController < ApplicationController
     when "driver"
       @driver_profile = @user.driver_profile
       @current_vehicle = @driver_profile&.selected_vehicle
-      @pending_rides = Ride.where(status: :pending)
+      @pending_rides = Ride.pending
     when "passenger"
       @passenger_profile = @user.passenger_profile
     when "admin"
@@ -58,9 +58,9 @@ class DashboardController < ApplicationController
       @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
 
       # Additional data needed for driver dashboard
-      @pending_rides = Ride.where(status: :pending)
+      @pending_rides = Ride.pending
       @active_rides = Ride.active_rides.where(driver: @driver_profile)
-      @past_rides = all_rides.where(status: :completed).order(created_at: :desc).limit(5)
+      @past_rides = all_rides.completed.order(created_at: :desc).limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
       @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
 
@@ -75,7 +75,7 @@ class DashboardController < ApplicationController
 
       # Additional data needed for passenger dashboard
       @my_rides = all_rides.limit(5)
-      @past_rides = all_rides.where(status: :completed).order(created_at: :desc).limit(5)
+      @past_rides = all_rides.completed.order(created_at: :desc).limit(5)
     when "company"
       @company_profile = @user.company_profile
 
@@ -91,14 +91,14 @@ class DashboardController < ApplicationController
 
       # Aggregated statistics for the company dashboard
       @active_rides = all_rides.active_rides
-      @completed_rides = all_rides.where(status: :completed)
-      @cancelled_rides = all_rides.where(status: :cancelled)
+      @completed_rides = all_rides.completed
+      @cancelled_rides = all_rides.cancelled
 
       # Financial statistics
-      @last_week_rides_total = all_rides.where(status: :completed)
+      @last_week_rides_total = all_rides.completed
                                         .where("created_at >= ?", 1.week.ago)
                                         .sum(:estimated_price)
-      @monthly_rides_total = all_rides.where(status: :completed)
+      @monthly_rides_total = all_rides.completed
                                         .where("created_at >= ?", 30.days.ago)
                                         .sum(:estimated_price)
     else
@@ -169,15 +169,15 @@ class DashboardController < ApplicationController
 
       # Filter rides based on status
       @active_rides = all_rides.active_rides
-      @completed_rides = all_rides.where(status: "completed")
-      @cancelled_rides = all_rides.where(status: "cancelled")
+      @completed_rides = all_rides.completed
+      @cancelled_rides = all_rides.cancelled
       @filtered_rides = all_rides
 
       # Financial stats
-      @last_week_rides_total = all_rides.where(status: :completed)
+      @last_week_rides_total = all_rides.completed
                                           .where("created_at >= ?", 1.week.ago)
                                           .sum(:estimated_price)
-      @monthly_rides_total = all_rides.where(status: :completed)
+      @monthly_rides_total = all_rides.completed
                                           .where("created_at >= ?", 30.days.ago)
                                           .sum(:estimated_price)
 

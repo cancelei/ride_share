@@ -16,7 +16,7 @@ class RidesController < ApplicationController
 
       @past_rides = Ride.includes(:driver, :passenger)
                        .where(driver: current_user.driver_profile)
-                       .where(status: [ :completed, :cancelled ])
+                       .historical_rides
                        .order(created_at: :desc)
                        .distinct
     elsif current_user&.role_passenger?
@@ -26,7 +26,7 @@ class RidesController < ApplicationController
       puts "Active Rides: #{@active_rides.inspect}"
 
       @past_rides = Ride.where(passenger: current_user.passenger_profile)
-                       .where(status: [ :completed, :cancelled ])
+                       .historical_rides
                        .order(created_at: :desc)
     else
       @rides = Ride.all.order(created_at: :desc)
@@ -138,7 +138,7 @@ class RidesController < ApplicationController
         return
       end
 
-      @ride.status = :accepted
+      @ride.accept!
 
       Rails.logger.debug "RIDE ACCEPT: Attempting to save ride #{@ride.id} with driver #{@ride.driver_id} and vehicle #{@ride.vehicle_id}"
 
@@ -161,8 +161,7 @@ class RidesController < ApplicationController
   # POST /rides/1/start
   def start
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      @ride.start_time = Time.current
-      @ride.status = :in_progress
+      @ride.start!
 
       if @ride.save
         redirect_to ride_path(@ride), notice: "Ride started successfully."
@@ -185,7 +184,7 @@ class RidesController < ApplicationController
             render turbo_stream: [
               turbo_stream.replace("ride_#{@ride.id}",
                 partial: "rides/ride_card",
-                locals: { ride: @ride.reload, current_user: current_user }
+                locals: { ride: @ride, current_user: current_user }
               ),
               turbo_stream.update("flash",
                 partial: "shared/flash",
@@ -249,8 +248,7 @@ class RidesController < ApplicationController
 
   def complete
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      @ride.end_time = Time.current
-      @ride.status = :completed
+      @ride.finish!
 
       if @ride.save
         flash[:notice] = "Ride completed successfully."
@@ -269,7 +267,7 @@ class RidesController < ApplicationController
     if (current_user&.role_passenger? && @ride.passenger == current_user.passenger_profile) ||
        (current_user&.role_driver? && @ride.driver == current_user.driver_profile && @ride.can_be_cancelled_by_driver?)
 
-      @ride.status = :cancelled
+      @ride.cancel!
       @ride.cancellation_reason = params[:cancellation_reason]
       @ride.cancelled_by = current_user.role
 
@@ -326,7 +324,7 @@ class RidesController < ApplicationController
   # POST /rides/1/verify_security_code
   def verify_security_code
     if @ride.security_code == params[:security_code]
-      @ride.update(status: "in_progress", start_time: Time.current)
+      @ride.in_progress!
 
       respond_to do |format|
         format.html {
@@ -367,7 +365,7 @@ class RidesController < ApplicationController
   # POST /rides/1/arrived_at_pickup
   def arrived_at_pickup
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      if @ride.update(status: :waiting_for_passenger_boarding, arrived_time: Time.current)
+      if @ride.waiting!
         # Make sure both driver and passenger get updated UI
         broadcast_ride_acceptance(@ride, current_user)
 

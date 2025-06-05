@@ -6,7 +6,7 @@ class RatingsController < ApplicationController
     @rating = Rating.new
 
     if @ride.driver.user == @ride.passenger.user
-      @ride.update(status: :completed)
+      @ride.complete!
       redirect_to dashboard_path, notice: "Ride Completed! No rating required for self-rides."
       return
     end
