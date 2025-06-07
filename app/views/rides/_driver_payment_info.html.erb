@@ -9,7 +9,7 @@
     
     <div class="flex items-start space-x-4 mb-4">
       <div class="flex-shrink-0">
-        <% if ride.driver&.user&.avatar.attached? %>
+        <% if ride.driver&.user&.avatar&.attached? %>
           <%= image_tag ride.driver.user.avatar.variant(resize_to_fill: [64, 64]), class: "h-16 w-16 rounded-full" %>
         <% else %>
           <div class="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">

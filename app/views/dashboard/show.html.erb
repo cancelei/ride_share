@@ -8,6 +8,8 @@
     <%= render "dashboard/driver_dashboard" %>
   <% when "company" %>
     <%= render "dashboard/company_dashboard" %>
+  <% when "admin" %>
+    <%= render "dashboard/admin_dashboard" %>
   <% else %>
     <div class="bg-white rounded-lg shadow p-6">
       <p>Please select a role to view the appropriate dashboard.</p>

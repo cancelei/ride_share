@@ -20,7 +20,7 @@ class Rating < ApplicationRecord
       passenger_rated = Rating.exists?(rater_type: "PassengerProfile", rater_id: ride.passenger.id, rateable: ride.driver)
 
       # Change status to completed only when both have rated
-      ride.update(status: :completed) if driver_rated && passenger_rated
+      ride.complete! if driver_rated && passenger_rated
     end
   end
 end

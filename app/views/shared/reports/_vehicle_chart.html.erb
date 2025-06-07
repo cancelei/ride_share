@@ -1,0 +1,5 @@
+<% vehicle_chart_data = @report_data[:vehicles].map { |v| [v[:vehicle].registration_number || v[:vehicle].id, v[:total_earnings].to_f] }.to_h %>
+<div class="mb-8 bg-white rounded shadow p-4">
+  <h3 class="text-lg font-semibold mb-2">Earnings by Vehicle</h3>
+  <%= bar_chart vehicle_chart_data, height: "250px", colors: ["#3b82f6"] %>
+</div>

@@ -1,11 +1,11 @@
-<% if ride.status.in?(['pending', 'accepted', 'in_progress']) %>
+<% if ride_status(ride, current_user.id).in?(['pending', 'accepted', 'in_progress']) %>
   <% location_data = defined?(current_user) ? current_user&.current_location : user&.current_location %>
   <div id="ride-<%= ride.id %>-distance"
        class="mt-2 text-sm text-gray-600"
        data-controller="driver-location"
        data-driver-location-ride-id-value="<%= ride.id %>"
-       data-driver-location-pickup-lat-value="<%= ride.status_accepted? ? ride.pickup_lat : ride.dropoff_lat %>"
-       data-driver-location-pickup-lng-value="<%= ride.status_accepted? ? ride.pickup_lng : ride.dropoff_lng %>"
+       data-driver-location-pickup-lat-value="<%= ride_status(ride, current_user.id) == "accepted" ? ride.pickup_lat : ride.dropoff_lat %>"
+       data-driver-location-pickup-lng-value="<%= ride_status(ride, current_user.id) == "accepted" ? ride.pickup_lng : ride.dropoff_lng %>"
        data-driver-location-interval-value="60000"
        data-driver-location-location-latitude-value="<%= location_data&.dig(:coordinates, :latitude) %>"
        data-driver-location-location-longitude-value="<%= location_data&.dig(:coordinates, :longitude) %>"

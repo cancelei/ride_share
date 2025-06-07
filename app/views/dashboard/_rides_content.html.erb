@@ -1,10 +1,10 @@
-<% rides = local_assigns[:my_rides] || @my_rides %>
+<% rides = local_assigns[:my_rides] || @my_rides || @filtered_rides %>
 <% user = local_assigns[:user] || current_user %>
 
-<% tab_type = local_assigns[:params]&.dig(:type) || params[:type] || 'active' %>
+<% tab_type = local_assigns[:tab_type] || local_assigns[:params]&.dig(:type) || params[:type] || 'active' %>
 <input type="hidden" id="current_tab_state" value="<%= tab_type %>" data-turbo-permanent>
 
-<% rides_to_display = filter_rides_by_tab(rides, tab_type) %>
+<% rides_to_display = rides %>
 
 <!-- Debug info -->
 <% if Rails.env.development? %>
@@ -13,9 +13,10 @@
     <p>Debug: user id: <%= user&.id %></p>
     <p>Debug: user role: <%= user&.role %></p>
     <p>Debug: rides count: <%= rides_to_display.count %></p>
+    <p>Debug: tab type: <%= tab_type %></p>
   </div>
 <% end %>
-
+<%= render partial: "shared/tab_navigation", type: tab_type %>
 <div class="mt-6">
   <% if rides_to_display.present? %>
     <div class="grid grid-cols-1 gap-6">

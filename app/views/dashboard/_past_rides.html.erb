@@ -49,8 +49,8 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap"><%= ride.requested_seats %></td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 text-sm rounded-full <%= ride_status_color(ride.status) %>">
-                  <%= ride.status.titleize %>
+                <span class="px-2 py-1 text-sm rounded-full <%= ride_status_color(ride_status(ride, current_user.id)) %>">
+                  <%= ride_status(ride, current_user.id)&.titleize %>
                 </span>
               </td>
             </tr>

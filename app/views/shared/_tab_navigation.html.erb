@@ -1,8 +1,4 @@
 <div class="border-b border-gray-200 mb-6 overflow-x-auto">
-  <%= turbo_frame_tag "tab_state" do %>
-    <input type="hidden" id="current_tab" value="<%= params[:type] || 'active' %>" data-turbo-permanent />
-  <% end %>
-  
   <nav class="flex flex-nowrap min-w-full sm:min-w-0 sm:flex-wrap -mb-px" aria-label="Tabs">
     <% active_tab = params[:type] || 'active' %>
     
@@ -40,35 +36,3 @@
     <% end %>
   </nav>
 </div>
-
-<%= turbo_frame_tag "rides_content_script" do %>
-  <%= javascript_tag do %>
-    document.addEventListener('turbo:load', function() {
-      updateTabStyling();
-    });
-    
-    document.addEventListener('turbo:render', function() {
-      updateTabStyling();
-    });
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      updateTabStyling();
-    });
-    
-    function updateTabStyling() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramType = urlParams.get('type');
-      const currentTab = paramType || document.getElementById('current_tab')?.value || 'active';
-      
-      document.querySelectorAll('#active_tab, #history_tab').forEach(tab => {
-        if (tab.id === currentTab + '_tab') {
-          tab.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
-          tab.classList.remove('text-gray-700', 'border-transparent');
-        } else {
-          tab.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
-          tab.classList.add('text-gray-700', 'border-transparent');
-        }
-      });
-    }
-  <% end %>
-<% end %> 
