@@ -50,9 +50,13 @@ module RidesHelper
     end
   end
 
+  def ride_status(ride, user_id)
+    ride.ride_statuses.find_by(user_id: user_id)&.status
+  end
+
   # Check if driver payment info should be displayed
   def show_driver_payment_info?(ride, current_user)
-    (ride.status == "accepted" || ride.status == "waiting_for_passenger_boarding" || ride.status == "in_progress") &&
+    (ride_status(ride, current_user.id) == "accepted" || ride_status(ride, current_user.id) == "waiting_for_passenger_boarding" || ride_status(ride, current_user.id) == "in_progress") &&
       current_user&.role_passenger? &&
       current_user&.passenger_profile == ride.passenger
   end

@@ -20,7 +20,7 @@ class Ride < ApplicationRecord
   has_many :ride_statuses, dependent: :destroy
 
   before_create :generate_security_code, :calculate_distance_and_duration
-  after_update :broadcast_status_update
+  after_update :check_status, :broadcast_status_update
   after_create :set_status, :ensure_status_set, :notify_available_drivers, :send_creation_notification
   before_validation :set_coordinates_from_params
   before_save :sync_locations
@@ -40,12 +40,12 @@ class Ride < ApplicationRecord
   }
 
   scope :total_estimated_price_for_last_week, -> {
-    where("created_at >= ? AND paid = true", 1.week.ago)
+    where("rides.created_at >= ? AND paid = true", 1.week.ago)
     .sum(:estimated_price)
   }
 
   scope :total_estimated_price_for_last_thirty_days, -> {
-    where("created_at >= ? AND paid = true", 30.days.ago)
+    where("rides.created_at >= ? AND paid = true", 30.days.ago)
     .sum(:estimated_price)
   }
 
@@ -60,7 +60,7 @@ class Ride < ApplicationRecord
   attribute :paid, :boolean, default: false
 
   def status
-    ride_statuses&.last&.status
+    ride_statuses&.order(:updated_at)&.last&.status
   end
 
   def accepted?
@@ -72,11 +72,11 @@ class Ride < ApplicationRecord
   end
 
   def completed?
-    ride_statuses.any?(:completed?)
+    ride_statuses.any?(&:completed?)
   end
 
   def waiting_for_passenger_boarding?
-    ride_statuses.any?(:waiting_for_passenger_boarding?)
+    ride_statuses.any?(&:waiting_for_passenger_boarding?)
   end
 
   def self.active_driver_rides(driver_id)
@@ -107,7 +107,15 @@ class Ride < ApplicationRecord
   end
 
   def accept!
+    save!
+
     ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :accepted)
+  end
+
+  def driver_cancels
+    ride_statuses.find_by(user_id: driver.user_id)&.update_column(:status, :cancelled) if driver.present?
+
+    ride_statuses.where(user_id: passenger.user_id).update_all(status: :pending)
   end
 
   def waiting!
@@ -130,11 +138,16 @@ class Ride < ApplicationRecord
   alias :finish! :complete!
 
   def cancel!
-    ride_statuses.where(user_id: [ passenger.user_id, driver.user_id ]).update_all(status: :cancelled)
+    ride_statuses.where(user_id: [ passenger.user_id, driver&.user_id ]).update_all(status: :cancelled)
   end
 
   def set_status
     ride_statuses.find_or_create_by(user_id: passenger_id)
+  end
+
+  def check_status
+    ride_statuses.find_or_create_by(user_id: passenger_id) if passenger_id
+    ride_statuses.find_or_create_by(user_id: driver_id) if driver_id
   end
 
   def status_color
@@ -181,7 +194,7 @@ class Ride < ApplicationRecord
   end
 
   def self.total_estimated_price_for_last_week
-    where("created_at >= ?", 1.week.ago).sum(:estimated_price)
+    where("rides.created_at >= ?", 1.week.ago).sum(:estimated_price)
   end
 
   def calculate_price

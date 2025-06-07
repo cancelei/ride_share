@@ -60,7 +60,7 @@ class DashboardController < ApplicationController
       # Additional data needed for driver dashboard
       @pending_rides = Ride.pending
       @active_rides = Ride.active_rides.where(driver: @driver_profile)
-      @past_rides = all_rides.completed.order(created_at: :desc).limit(5)
+      @past_rides = all_rides.completed.order("rides.created_at DESC").limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
       @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
 
@@ -75,7 +75,7 @@ class DashboardController < ApplicationController
 
       # Additional data needed for passenger dashboard
       @my_rides = all_rides.limit(5)
-      @past_rides = all_rides.completed.order(created_at: :desc).limit(5)
+      @past_rides = all_rides.completed.order(rides: { created_at: :desc }).limit(5)
     when "company"
       @company_profile = @user.company_profile
 
@@ -96,10 +96,10 @@ class DashboardController < ApplicationController
 
       # Financial statistics
       @last_week_rides_total = all_rides.completed
-                                        .where("created_at >= ?", 1.week.ago)
+                                        .where("rides.created_at >= ?", 1.week.ago)
                                         .sum(:estimated_price)
       @monthly_rides_total = all_rides.completed
-                                        .where("created_at >= ?", 30.days.ago)
+                                        .where("rides.created_at >= ?", 30.days.ago)
                                         .sum(:estimated_price)
     else
       redirect_to root_path, alert: "Invalid user role"
@@ -175,10 +175,10 @@ class DashboardController < ApplicationController
 
       # Financial stats
       @last_week_rides_total = all_rides.completed
-                                          .where("created_at >= ?", 1.week.ago)
+                                          .where("rides.created_at >= ?", 1.week.ago)
                                           .sum(:estimated_price)
       @monthly_rides_total = all_rides.completed
-                                          .where("created_at >= ?", 30.days.ago)
+                                          .where("rides.created_at >= ?", 30.days.ago)
                                           .sum(:estimated_price)
 
       # Get all company drivers for the driver table

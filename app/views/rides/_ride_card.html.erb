@@ -6,18 +6,18 @@
         <p>Debug: current_user defined? <%= defined?(current_user) %></p>
         <p>Debug: current_user present? <%= current_user.present? if defined?(current_user) %></p>
         <p>Debug: current_user role: <%= current_user&.role if defined?(current_user) %></p>
-        <p>Debug: ride status: <%= ride.status %></p>
+        <p>Debug: ride status: <%= ride_status(ride, current_user.id) %></p>
         <p>Debug: security code: <%= ride.security_code %></p>
         <p>Debug: is passenger? <%= current_user&.role_passenger? if defined?(current_user) %></p>
         <p>Debug: is passenger's ride? <%= current_user&.passenger_profile == ride.passenger if defined?(current_user) && current_user&.role_passenger? %></p>
-        <p>Debug: should show security code? <%= ride.status == "accepted" && defined?(current_user) && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %></p>
+        <p>Debug: should show security code? <%= ride_status(ride, current_user.id) == "accepted" && defined?(current_user) && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %></p>
       </div>
     <% end %>
     
     <!-- Ride Status Banner -->
     <div class="flex justify-between items-center mb-3">
-      <span class="inline-flex items-center rounded-md border border-<%= ride_status_color(ride.status) %>-400 bg-<%= ride_status_color(ride.status) %>-50 px-3 py-1 text-sm font-medium text-<%= ride_status_color(ride.status) %>-600">
-        <%= ride.status&.titleize || "Unknown" %>
+      <span class="inline-flex items-center rounded-md border border-<%= ride_status_color(ride_status(ride, current_user.id)) %>-400 bg-<%= ride_status_color(ride_status(ride, current_user.id)) %>-50 px-3 py-1 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id)) %>-600">
+        <%= ride_status(ride, current_user.id)&.titleize || "Unknown" %>
       </span>
       <p class="text-sm text-gray-500">
         <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
@@ -25,7 +25,7 @@
     </div>
     
     <!-- Security Code Alert for Passengers (Only for accepted rides) -->
-    <% if ride.status == "accepted" && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %>
+    <% if ride_status(ride, current_user.id) == "accepted" && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %>
       <div id="security_code_alert_<%= ride.id %>" class="mb-4 bg-blue-100 border-l-4 border-blue-500 p-4 rounded-md animate-pulse">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -158,12 +158,12 @@
     <!-- Payment Methods Section -->
     
     <!-- Rating Prompt (shows form or user's rating after ride is completed) -->
-    <% if ride.status == "completed" && current_user&.present? %>
+    <% if ride_status(ride, current_user.id) == "completed" && current_user&.present? %>
       <%= render "rides/rating_prompt", ride: ride, current_user: current_user %>
     <% end %>
     
     <!-- Finish Ride Button (Only for in_progress rides and drivers) -->
-    <% if ride.status == "in_progress" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
+    <% if ride_status(ride, current_user.id) == "in_progress" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
       <div class="mt-4 pt-4 border-t border-gray-200">
         <!-- Google Maps Navigation to Destination -->
         <div class="mb-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
@@ -230,7 +230,7 @@
     <% end %>
     
     <!-- Navigation and Arrived Button (Only for accepted rides and drivers) -->
-    <% if ride.status == "accepted" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
+    <% if ride_status(ride, current_user.id) == "accepted" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
       <div class="mt-4 pt-4 border-t border-gray-200">
         <!-- Google Maps Navigation Section -->
         <div class="mt-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">

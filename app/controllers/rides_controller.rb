@@ -267,7 +267,12 @@ class RidesController < ApplicationController
     if (current_user&.role_passenger? && @ride.passenger == current_user.passenger_profile) ||
        (current_user&.role_driver? && @ride.driver == current_user.driver_profile && @ride.can_be_cancelled_by_driver?)
 
-      @ride.cancel!
+      if current_user.role_driver?
+        @ride.driver_cancels
+      else
+        @ride.cancel!
+      end
+
       @ride.cancellation_reason = params[:cancellation_reason]
       @ride.cancelled_by = current_user.role
 
