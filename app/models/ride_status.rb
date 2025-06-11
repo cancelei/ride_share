@@ -1,4 +1,9 @@
 class RideStatus < ApplicationRecord
+  include EmailNotification
+
+  belongs_to :ride
+  belongs_to :user
+
   enum :status, {
     pending: "pending",
     accepted: "accepted",
@@ -40,5 +45,23 @@ class RideStatus < ApplicationRecord
         current_user: user
       }
     )
+  end
+
+  # Handle notifications based on status changes
+  def handle_status_change_notifications
+    case status
+    when "accepted"
+      deliver_email(UserMailer, :ride_accepted, self)
+    when "waiting_for_passenger_boarding"
+      deliver_email(UserMailer, :driver_arrived, self)
+    when "in_progress"
+      deliver_email(UserMailer, :ride_in_progress, self)
+    when "rating_required"
+      deliver_email(UserMailer, :send_rating_email_to_passenger, self)
+      deliver_email(UserMailer, :send_rating_email_to_driver, self)
+    when "completed"
+      deliver_email(UserMailer, :ride_completion_passenger, self)
+      deliver_email(UserMailer, :ride_completion_driver, self)
+    end
   end
 end

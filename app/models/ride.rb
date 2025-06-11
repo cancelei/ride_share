@@ -28,7 +28,7 @@ class Ride < ApplicationRecord
   scope :historical_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed, :cancelled ] }) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
   scope :past, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
-  scope :pending, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :pending ] }) }
+  scope :pending, -> { joins(:ride_statuses).where(ride_statuses: { status: [ :pending ] }) }
   scope :completed_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
   scope :completed, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
   scope :cancelled_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :cancelled ] }) }
@@ -115,7 +115,9 @@ class Ride < ApplicationRecord
   def driver_cancels
     ride_statuses.find_by(user_id: driver.user_id)&.update_column(:status, :cancelled) if driver.present?
 
-    ride_statuses.where(user_id: passenger.user_id).update_all(status: :pending)
+    ride_statuses.find_by(user_id: passenger.user_id).update(status: :pending)
+
+    update(driver_id: nil, vehicle_id: nil)
   end
 
   def waiting!
@@ -227,24 +229,6 @@ class Ride < ApplicationRecord
     self.estimated_duration_minutes = (duration_seconds / 60.0).round
 
     calculate_price
-  end
-
-  # Handle notifications based on status changes
-  def handle_status_change_notifications
-    case status
-    when "accepted"
-      deliver_email(UserMailer, :ride_accepted, self)
-    when "waiting_for_passenger_boarding"
-      deliver_email(UserMailer, :driver_arrived, self)
-    when "in_progress"
-      deliver_email(UserMailer, :ride_in_progress, self)
-    when "rating_required"
-      deliver_email(UserMailer, :send_rating_email_to_passenger, self)
-      deliver_email(UserMailer, :send_rating_email_to_driver, self)
-    when "completed"
-      deliver_email(UserMailer, :ride_completion_passenger, self)
-      deliver_email(UserMailer, :ride_completion_driver, self)
-    end
   end
 
   # Send notification when ride is first created

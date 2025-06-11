@@ -6,8 +6,8 @@
         <div class="p-4">
           <!-- Ride Status Banner -->
           <div class="flex justify-between items-center mb-3">
-            <span class="inline-flex items-center rounded-md border border-<%= ride_status_color(ride_status(ride, current_user.id) || ride.status) %>-400 bg-<%= ride_status_color(ride_status(ride, current_user.id) || ride.status) %>-50 px-3 py-1 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id) || ride.status) %>-600">
-              <%= ride_status(ride, current_user.id)&.titleize || ride.status || "Unknown" %>
+            <span class="inline-flex items-center rounded-md border border-<%= ride_status_color(ride_status(ride, current_user.id)) %>-400 bg-<%= ride_status_color(ride_status(ride, current_user.id)) %>-50 px-3 py-1 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id)) %>-600">
+              <%= ride_status(ride, current_user.id)&.titleize || "Unknown" %>
             </span>
             <p class="text-sm text-gray-500">
               <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
@@ -106,7 +106,7 @@
           
           <!-- Driver-specific Actions -->
           <% if current_user&.role_driver? %>
-            <% if ride.status == "pending" %>
+            <% if ride_status(ride, current_user.id) == "pending" %>
               <div class="mt-4 pt-4 border-t border-gray-200">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                   <div class="flex items-center">

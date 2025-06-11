@@ -51,7 +51,7 @@ module RidesHelper
   end
 
   def ride_status(ride, user_id)
-    ride.ride_statuses.find_by(user_id: user_id)&.status
+    ride.ride_statuses.find_by(user_id: user_id)&.status || ride.status
   end
 
   # Check if driver payment info should be displayed
