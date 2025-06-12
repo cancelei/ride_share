@@ -41,12 +41,12 @@ module RidesHelper
     end
   end
 
-  def filter_rides_by_tab(rides, tab_type)
+  def filter_rides_by_tab(rides, tab_type, user_id)
     case tab_type.to_s
     when "history"
-      rides.includes(:driver, :passenger).historical_rides
+      rides.includes(:driver, :passenger).historical_rides(user_id)
     else # 'active' or any other value
-      rides.includes(:driver, :passenger).passenger_active
+      rides.includes(:driver, :passenger).passenger_active(user_id)
     end
   end
 

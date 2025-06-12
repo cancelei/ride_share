@@ -11,7 +11,7 @@ class DashboardController < ApplicationController
     when "driver"
       @driver_profile = @user.driver_profile
       @current_vehicle = @driver_profile&.selected_vehicle
-      @pending_rides = Ride.pending.reject { |r| r.ride_statuses.any? { |s| s.user_id == @user.id } }
+      @pending_rides = Ride.pending.reject { |r| r.ride_statuses.any? { |s| s.user_id == @user.id && s.status == "cancelled" } }
     when "passenger"
       @passenger_profile = @user.passenger_profile
     when "admin"
@@ -55,11 +55,11 @@ class DashboardController < ApplicationController
       all_rides = Ride.where(driver: @driver_profile).order(scheduled_time: :desc)
 
       # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type, @user.id)
 
       # Additional data needed for driver dashboard
-      @pending_rides = Ride.pending.reject { |r| r.ride_statuses.any? { |s| s.user_id == @user.id } }
-      @active_rides = Ride.active_rides.where(driver: @driver_profile)
+      @pending_rides = Ride.driver_pending(@user.id)
+      @active_rides = Ride.driver_active(@user.id).where(driver: @driver_profile)
       @past_rides = all_rides.completed.order("rides.created_at DESC").limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
       @monthly_rides_total = @past_rides.total_estimated_price_for_last_thirty_days
@@ -71,11 +71,11 @@ class DashboardController < ApplicationController
       all_rides = Ride.where(passenger: @passenger_profile).order(scheduled_time: :desc)
 
       # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type, @user.id)
 
       # Additional data needed for passenger dashboard
       @my_rides = all_rides.limit(5)
-      @past_rides = all_rides.completed.order(rides: { created_at: :desc }).limit(5)
+      @past_rides = all_rides.completed.order(rides: { created_at: :desc }).first(5)
     when "company"
       @company_profile = @user.company_profile
 
@@ -87,7 +87,7 @@ class DashboardController < ApplicationController
       all_rides = @company_profile ? Ride.where(company_profile_id: @company_profile.id).order(scheduled_time: :desc) : []
 
       # Filter rides based on tab type using helper
-      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type)
+      @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type, @user.id)
 
       # Aggregated statistics for the company dashboard
       @active_rides = all_rides.active_rides

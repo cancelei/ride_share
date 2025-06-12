@@ -11,7 +11,9 @@ class Ride < ApplicationRecord
   default_scope -> { kept }
 
   scope :active_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }) }
-  scope :passenger_active, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ] }) }
+  scope :passenger_active, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
+  scope :driver_pending, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :pending ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
+  scope :driver_active, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
@@ -25,12 +27,12 @@ class Ride < ApplicationRecord
   before_validation :set_coordinates_from_params
   before_save :sync_locations
 
-  scope :historical_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed, :cancelled ] }) }
+  scope :historical_rides, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :completed, :cancelled ] }).where.not(rides: { id: RideStatus.where(user_id: user_id, status: :pending).pluck(:ride_id) }) }
   scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
-  scope :past, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
+  scope :past, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }).where.not(rides: { id: RideStatus.where(status: :pending).pluck(:ride_id) }) }
   scope :pending, -> { joins(:ride_statuses).where(ride_statuses: { status: [ :pending ] }) }
   scope :completed_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
-  scope :completed, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
+  scope :completed, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }).where.not(rides: { id: RideStatus.where(status: :pending).pluck(:ride_id) }) }
   scope :cancelled_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :cancelled ] }) }
   scope :for_company, ->(company_id) { where(company_profile_id: company_id).includes(:driver, :passenger).order("rides.scheduled_time desc") }
 
@@ -96,7 +98,7 @@ class Ride < ApplicationRecord
   end
 
   def can_be_cancelled_by_driver?
-    waiting_for_passenger_boarding? || (accepted? && updated_at < 4.hours.ago)
+    waiting_for_passenger_boarding? || (accepted? && (scheduled_time - Time.now) / 1.hour > 4)
   end
 
   def finish!
