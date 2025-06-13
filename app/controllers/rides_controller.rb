@@ -65,6 +65,23 @@ class RidesController < ApplicationController
   def create
     @ride = Ride.new(ride_params)
     @ride.passenger = current_user.passenger_profile
+    utc_time_string = ride_params[:scheduled_time]
+    user_timezone   = current_user.timezone
+
+    # Parse the string into Time (assumes UTC):
+    utc_time = Time.parse(utc_time_string)
+
+    # "Remove" UTC by treating this time as local in user's timezone:
+    user_time = ActiveSupport::TimeZone[user_timezone].local(
+      utc_time.year,
+      utc_time.month,
+      utc_time.day,
+      utc_time.hour,
+      utc_time.min,
+      utc_time.sec
+    )
+
+    @ride.scheduled_time = user_time
 
     respond_to do |format|
       if @ride.save

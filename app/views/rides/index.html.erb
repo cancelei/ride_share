@@ -21,7 +21,7 @@
                     <%= ride_status(ride, current_user.id) %>
                   </span>
                   <p class="text-sm text-gray-500">
-                    <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                    <%= ride.scheduled_time&.in_time_zone(current_user.timezone).strftime("%b %d, %I:%M %p") %>
                   </p>
                 </div>
                 
@@ -62,7 +62,7 @@
                     <%= ride_status(ride, current_user.id) %>
                   </span>
                   <p class="text-sm text-gray-500">
-                    <%= ride.end_time&.strftime("%b %d, %I:%M %p") || ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                    <%= ride.end_time&.in_time_zone(current_user.timezone)&.strftime("%b %d, %I:%M %p") || ride.scheduled_time&.in_time_zone(current_user.timezone)&.strftime("%b %d, %I:%M %p") %>
                   </p>
                 </div>
                 
@@ -100,7 +100,7 @@
                 <%= ride_status(ride, current_user.id) %>
               </span>
               <p class="text-sm text-gray-500">
-                <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                <%= ride.scheduled_time&.in_time_zone(current_user.timezone)&.strftime("%b %d, %I:%M %p") %>
               </p>
             </div>
             

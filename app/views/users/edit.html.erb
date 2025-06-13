@@ -68,6 +68,14 @@
                     </div>
                 </div>
             </div>
+            <%= f.hidden_field :timezone, id: 'timezone-field' %>
+
+            <script>
+                document.addEventListener('turbo:load', function() {
+                const timezoneField = document.getElementById('timezone-field');
+                timezoneField.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                });
+            </script>
         <% end %>
 
         <%= link_to 'Back', users_path %>
