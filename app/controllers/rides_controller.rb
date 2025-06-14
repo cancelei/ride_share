@@ -9,25 +9,24 @@ class RidesController < ApplicationController
     if current_user&.role_driver?
       @active_rides = Ride.includes(:driver, :passenger)
                          .where(driver: current_user.driver_profile)
-                         .where(status: [ :pending, :accepted, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+                         .active_rides
                          .order(created_at: :desc)
                          .distinct
       puts "Active Rides: #{@active_rides.inspect}"
-      binding.pry
 
       @past_rides = Ride.includes(:driver, :passenger)
                        .where(driver: current_user.driver_profile)
-                       .where(status: [ :completed, :cancelled ])
+                       .historical_rides
                        .order(created_at: :desc)
                        .distinct
     elsif current_user&.role_passenger?
       @active_rides = Ride.where(passenger: current_user.passenger_profile)
-                         .where(status: [ :pending, :accepted, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+                         .active_rides
                          .order(created_at: :desc)
       puts "Active Rides: #{@active_rides.inspect}"
 
       @past_rides = Ride.where(passenger: current_user.passenger_profile)
-                       .where(status: [ :completed, :cancelled ])
+                       .historical_rides
                        .order(created_at: :desc)
     else
       @rides = Ride.all.order(created_at: :desc)
@@ -38,13 +37,7 @@ class RidesController < ApplicationController
   def show
     respond_to do |format|
       format.html
-      format.turbo_stream do
-        if params[:expanded] == "true"
-          render turbo_stream: turbo_stream.update("ride_details_#{@ride.id}", partial: "rides/ride_details", locals: { ride: @ride })
-        else
-          render turbo_stream: turbo_stream.update("ride_details_#{@ride.id}", "")
-        end
-      end
+      format.turbo_stream
       format.json { render :show, status: :ok, location: @ride }
     end
   end
@@ -72,28 +65,23 @@ class RidesController < ApplicationController
   def create
     @ride = Ride.new(ride_params)
     @ride.passenger = current_user.passenger_profile
-    @ride.status = "pending"
+    utc_time_string = ride_params[:scheduled_time]
+    user_timezone   = current_user.timezone
 
-    # Handle pickup location from Google Places API V1 response
-    if params[:ride][:pickup_location].present?
-      @ride.pickup_location = params[:ride][:pickup_location]
-      @ride.pickup_address = params[:ride][:pickup_address]
-    end
+    # Parse the string into Time (assumes UTC):
+    utc_time = Time.parse(utc_time_string)
 
-    if params[:ride][:dropoff_location].present?
-      @ride.dropoff_location = params[:ride][:dropoff_location]
-      @ride.dropoff_address = params[:ride][:dropoff_address]
-    end
+    # "Remove" UTC by treating this time as local in user's timezone:
+    user_time = ActiveSupport::TimeZone[user_timezone].local(
+      utc_time.year,
+      utc_time.month,
+      utc_time.day,
+      utc_time.hour,
+      utc_time.min,
+      utc_time.sec
+    )
 
-    # Set coordinates and calculate price
-    @ride.pickup_lat = params[:ride][:pickup_lat]
-    @ride.pickup_lng = params[:ride][:pickup_lng]
-    @ride.dropoff_lat = params[:ride][:dropoff_lat]
-    @ride.dropoff_lng = params[:ride][:dropoff_lng]
-
-    Rails.logger.debug "RIDE DEBUG: Initial ride params: #{ride_params.inspect}"
-    Rails.logger.debug "RIDE DEBUG: Coordinates: pickup=(#{@ride.pickup_lat},#{@ride.pickup_lng}), dropoff=(#{@ride.dropoff_lat},#{@ride.dropoff_lng})"
-    Rails.logger.debug "RIDE DEBUG: Distance and Price: distance=#{@ride.distance_km}km, price=$#{@ride.estimated_price}"
+    @ride.scheduled_time = user_time
 
     respond_to do |format|
       if @ride.save
@@ -161,7 +149,13 @@ class RidesController < ApplicationController
 
       @ride.driver = current_user.driver_profile
       @ride.vehicle = current_user.driver_profile.selected_vehicle
-      @ride.status = :accepted
+      @ride.company_profile = current_user.driver_profile.company_profile
+      if @ride.requested_seats > @ride.vehicle.seating_capacity
+        redirect_to dashboard_path, alert: "You don't have enough seats in your vehicle. Change the vahicle or accept another ride."
+        return
+      end
+
+      @ride.accept!
 
       Rails.logger.debug "RIDE ACCEPT: Attempting to save ride #{@ride.id} with driver #{@ride.driver_id} and vehicle #{@ride.vehicle_id}"
 
@@ -184,8 +178,7 @@ class RidesController < ApplicationController
   # POST /rides/1/start
   def start
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      @ride.start_time = Time.current
-      @ride.status = :in_progress
+      @ride.start!
 
       if @ride.save
         redirect_to ride_path(@ride), notice: "Ride started successfully."
@@ -208,7 +201,7 @@ class RidesController < ApplicationController
             render turbo_stream: [
               turbo_stream.replace("ride_#{@ride.id}",
                 partial: "rides/ride_card",
-                locals: { ride: @ride.reload, current_user: current_user }
+                locals: { ride: @ride, current_user: current_user }
               ),
               turbo_stream.update("flash",
                 partial: "shared/flash",
@@ -272,8 +265,7 @@ class RidesController < ApplicationController
 
   def complete
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      @ride.end_time = Time.current
-      @ride.status = :completed
+      @ride.finish!
 
       if @ride.save
         flash[:notice] = "Ride completed successfully."
@@ -292,7 +284,12 @@ class RidesController < ApplicationController
     if (current_user&.role_passenger? && @ride.passenger == current_user.passenger_profile) ||
        (current_user&.role_driver? && @ride.driver == current_user.driver_profile && @ride.can_be_cancelled_by_driver?)
 
-      @ride.status = :cancelled
+      if current_user.role_driver?
+        @ride.driver_cancels
+      else
+        @ride.cancel!
+      end
+
       @ride.cancellation_reason = params[:cancellation_reason]
       @ride.cancelled_by = current_user.role
 
@@ -306,7 +303,7 @@ class RidesController < ApplicationController
             render turbo_stream: [
               turbo_stream.replace("ride_#{@ride.id}",
                 partial: "rides/ride_card",
-                locals: { ride: @ride.reload, current_user: current_user }
+                locals: { ride: @ride, current_user: current_user }
               ),
               turbo_stream.update("flash",
                 partial: "shared/flash",
@@ -349,7 +346,7 @@ class RidesController < ApplicationController
   # POST /rides/1/verify_security_code
   def verify_security_code
     if @ride.security_code == params[:security_code]
-      @ride.update(status: "in_progress", start_time: Time.current)
+      @ride.in_progress!
 
       respond_to do |format|
         format.html {
@@ -390,7 +387,7 @@ class RidesController < ApplicationController
   # POST /rides/1/arrived_at_pickup
   def arrived_at_pickup
     if current_user&.role_driver? && @ride.driver == current_user.driver_profile
-      if @ride.update(status: :waiting_for_passenger_boarding, arrived_time: Time.current)
+      if @ride.waiting!
         # Make sure both driver and passenger get updated UI
         broadcast_ride_acceptance(@ride, current_user)
 

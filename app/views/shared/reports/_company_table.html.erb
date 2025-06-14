@@ -1,0 +1,33 @@
+<%# Table for company revenue breakdown (for drivers with multiple companies) %>
+<% if @report_data[:companies] && @report_data[:companies].size > 1 %>
+  <div class="mb-8 bg-white rounded shadow p-4">
+    <h3 class="text-lg font-semibold mb-2">Earnings by Company</h3>
+    <% company_chart_data = @report_data[:companies].map { |c| [c[:company_name], c[:total_earnings].to_f] }.to_h %>
+    <%= pie_chart company_chart_data, height: "250px", colors: ["#f59e42", "#3b82f6", "#10b981", "#f43f5e", "#6366f1"] %>
+  </div>
+  <h3 class="text-lg font-semibold mt-6 mb-2">Revenue Breakdown by Company</h3>
+  <table class="min-w-full bg-white border rounded mb-8">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-3 py-2">Company</th>
+        <th class="px-3 py-2">Rides</th>
+        <th class="px-3 py-2">Completed</th>
+        <th class="px-3 py-2">Cancelled</th>
+        <th class="px-3 py-2">Earnings</th>
+        <th class="px-3 py-2">Avg/Ride</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @report_data[:companies].each do |company| %>
+        <tr>
+          <td class="border px-3 py-2"><%= company[:company_name] %></td>
+          <td class="border px-3 py-2"><%= company[:ride_count] %></td>
+          <td class="border px-3 py-2"><%= company[:completed_rides] %></td>
+          <td class="border px-3 py-2"><%= company[:cancelled_rides] %></td>
+          <td class="border px-3 py-2">$<%= number_with_precision(company[:total_earnings] || 0, precision: 2) %></td>
+          <td class="border px-3 py-2">$<%= number_with_precision(company[:avg_earning_per_ride] || 0, precision: 2) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

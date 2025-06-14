@@ -41,18 +41,22 @@ module RidesHelper
     end
   end
 
-  def filter_rides_by_tab(rides, tab_type)
+  def filter_rides_by_tab(rides, tab_type, user_id)
     case tab_type.to_s
     when "history"
-      rides.where(status: [ :completed, :cancelled ])
+      rides.includes(:driver, :passenger).historical_rides(user_id)
     else # 'active' or any other value
-      rides.where(status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ])
+      rides.includes(:driver, :passenger).passenger_active(user_id)
     end
+  end
+
+  def ride_status(ride, user_id)
+    ride.ride_statuses.find_by(user_id: user_id)&.status || ride.status
   end
 
   # Check if driver payment info should be displayed
   def show_driver_payment_info?(ride, current_user)
-    (ride.status == "accepted" || ride.status == "waiting_for_passenger_boarding" || ride.status == "in_progress") &&
+    (ride_status(ride, current_user.id) == "accepted" || ride_status(ride, current_user.id) == "waiting_for_passenger_boarding" || ride_status(ride, current_user.id) == "in_progress") &&
       current_user&.role_passenger? &&
       current_user&.passenger_profile == ride.passenger
   end

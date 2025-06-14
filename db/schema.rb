@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_13_162311) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -109,10 +109,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
     t.index ["ride_id"], name: "index_ratings_on_ride_id"
   end
 
+  create_table "ride_statuses", force: :cascade do |t|
+    t.string "status", default: "pending", null: false
+    t.bigint "ride_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ride_id"], name: "index_ride_statuses_on_ride_id"
+    t.index ["user_id"], name: "index_ride_statuses_on_user_id"
+  end
+
   create_table "rides", force: :cascade do |t|
     t.datetime "start_time"
     t.datetime "end_time"
-    t.string "status"
     t.integer "available_seats", default: 0
     t.float "estimated_price"
     t.float "effective_price"
@@ -142,6 +151,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
     t.datetime "arrived_time"
     t.string "cancellation_reason"
     t.string "cancelled_by"
+    t.bigint "company_profile_id"
+    t.index ["company_profile_id"], name: "index_rides_on_company_profile_id"
     t.index ["discarded_at"], name: "index_rides_on_discarded_at"
     t.index ["driver_id"], name: "index_rides_on_driver_id"
     t.index ["passenger_id"], name: "index_rides_on_passenger_id"
@@ -297,6 +308,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
     t.decimal "current_longitude", precision: 10, scale: 6
     t.datetime "location_updated_at"
     t.datetime "discarded_at"
+    t.string "timezone"
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -329,6 +341,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_14_235429) do
   add_foreign_key "driver_profiles", "vehicles", column: "selected_vehicle_id", on_delete: :nullify
   add_foreign_key "passenger_profiles", "users"
   add_foreign_key "ratings", "rides"
+  add_foreign_key "ride_statuses", "rides"
+  add_foreign_key "ride_statuses", "users"
+  add_foreign_key "rides", "company_profiles"
   add_foreign_key "rides", "driver_profiles", column: "driver_id"
   add_foreign_key "rides", "passenger_profiles", column: "passenger_id"
   add_foreign_key "rides", "vehicles"

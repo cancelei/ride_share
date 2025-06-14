@@ -6,26 +6,26 @@
         <p>Debug: current_user defined? <%= defined?(current_user) %></p>
         <p>Debug: current_user present? <%= current_user.present? if defined?(current_user) %></p>
         <p>Debug: current_user role: <%= current_user&.role if defined?(current_user) %></p>
-        <p>Debug: ride status: <%= ride.status %></p>
+        <p>Debug: ride status: <%= ride_status(ride, current_user.id) %></p>
         <p>Debug: security code: <%= ride.security_code %></p>
         <p>Debug: is passenger? <%= current_user&.role_passenger? if defined?(current_user) %></p>
         <p>Debug: is passenger's ride? <%= current_user&.passenger_profile == ride.passenger if defined?(current_user) && current_user&.role_passenger? %></p>
-        <p>Debug: should show security code? <%= ride.status == "accepted" && defined?(current_user) && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %></p>
+        <p>Debug: should show security code? <%= ride_status(ride, current_user.id) == "accepted" && defined?(current_user) && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %></p>
       </div>
     <% end %>
     
     <!-- Ride Status Banner -->
     <div class="flex justify-between items-center mb-3">
-      <span class="inline-flex items-center rounded-md border border-<%= ride_status_color(ride.status) %>-400 bg-<%= ride_status_color(ride.status) %>-50 px-3 py-1 text-sm font-medium text-<%= ride_status_color(ride.status) %>-600">
-        <%= ride.status&.titleize || "Unknown" %>
+      <span class="inline-flex items-center rounded-md border border-<%= ride_status_color(ride_status(ride, current_user.id)) %>-400 bg-<%= ride_status_color(ride_status(ride, current_user.id)) %>-50 px-3 py-1 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id)) %>-600">
+        <%= ride_status(ride, current_user.id)&.titleize || "Unknown" %>
       </span>
       <p class="text-sm text-gray-500">
-        <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+        <%= ride.scheduled_time&.in_time_zone(current_user.timezone).strftime("%b %d, %I:%M %p") %>
       </p>
     </div>
     
     <!-- Security Code Alert for Passengers (Only for accepted rides) -->
-    <% if ride.status == "accepted" && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %>
+    <% if ride_status(ride, current_user.id) == "accepted" && current_user&.role_passenger? && current_user&.passenger_profile == ride.passenger %>
       <div id="security_code_alert_<%= ride.id %>" class="mb-4 bg-blue-100 border-l-4 border-blue-500 p-4 rounded-md animate-pulse">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -158,12 +158,12 @@
     <!-- Payment Methods Section -->
     
     <!-- Rating Prompt (shows form or user's rating after ride is completed) -->
-    <% if ride.status == "completed" && current_user&.present? %>
+    <% if ride_status(ride, current_user.id) == "completed" && current_user&.present? %>
       <%= render "rides/rating_prompt", ride: ride, current_user: current_user %>
     <% end %>
     
     <!-- Finish Ride Button (Only for in_progress rides and drivers) -->
-    <% if ride.status == "in_progress" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
+    <% if ride_status(ride, current_user.id) == "in_progress" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
       <div class="mt-4 pt-4 border-t border-gray-200">
         <!-- Google Maps Navigation to Destination -->
         <div class="mb-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
@@ -192,8 +192,8 @@
           </div>
         </div>
         <%= button_to finish_ride_path(ride), method: :post, 
-                    class: "w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors",
-                    data: { turbo: true, confirm: "Are you sure you want to finish this ride?" } do %>
+                    class: "w-full rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors btn-loader btn-loader-light",
+                    data: { turbo: true, confirm: "Are you sure you want to finish this ride?", controller: "button-loader" } do %>
           <div class="flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -217,19 +217,20 @@
                       id: "security_code_form_#{ride.id}",
                       data: { turbo: true }) do |form| %>
           <%= form.text_field :security_code,
-              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm",
+              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm h-[40px] w-[130px] p-2",
               placeholder: "Enter 4-digit code",
               maxlength: 4,
               required: true %>
-          <%= form.submit "Verify & Start",
-              class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
-              data: { disable_with: "Verifying..." } %>
+          <button type="submit" class="verify-button rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500 flex items-center gap-2 btn-loader btn-loader-light"
+           data-ride-id="<%= ride.id %>" data-controller="button-loader">
+            <span class="btn-text">Verify & Start</span>
+          </button>
         <% end %>
       </div>
     <% end %>
     
     <!-- Navigation and Arrived Button (Only for accepted rides and drivers) -->
-    <% if ride.status == "accepted" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
+    <% if ride_status(ride, current_user.id) == "accepted" && current_user&.present? && current_user.role_driver? && current_user.driver_profile == ride.driver %>
       <div class="mt-4 pt-4 border-t border-gray-200">
         <!-- Google Maps Navigation Section -->
         <div class="mt-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-100">
@@ -275,11 +276,25 @@
           </div>
 
           <!-- "I've Arrived" Button -->
-          <div class="mt-4">
+          <div class="mt-4 flex flex-col sm:flex-row gap-2 w-100">
+            <% can_cancel = (current_user&.role_driver? && current_user.driver_profile == ride.driver && ride.can_be_cancelled_by_driver?) %>
+              <% if can_cancel %>
+                <%= button_to can_cancel ? cancel_ride_path(ride) : "#", 
+                  method: :post, 
+                  class: "flex-1 w-full flex items-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm transition-colors",
+                  data: { turbo: true, confirm: "Are you sure you want to cancel this ride?", controller: "button-loader" } do %>
+                  Cancel Ride
+                <% end %>
+              <% else %>
+                <div role="button" class="flex-1 flex items-center text-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm transition-colors">
+                  You are unable to cancel
+                </div>
+              <% end %>
+
             <%= button_to arrived_at_pickup_ride_path(ride), 
                         method: :post,
-                        class: "w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors",
-                        data: { turbo: true } do %>
+                        class: "flex-1 w-full flex items-center justify-center gap-2 rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-500 shadow-sm transition-colors",
+                        data: { turbo: true, controller: "button-loader" } do %>
               <div class="flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -287,17 +302,15 @@
                 I've Arrived at Pickup
               </div>
             <% end %>
-            <p class="text-xs text-gray-500 mt-1 text-center">Click when you've reached the pickup location</p>
           </div>
+          <p class="text-xs text-gray-500 mt-1 text-center">Click when you've reached the pickup location</p>
         </div>
       </div>
     <% end %>
     
     <!-- Expandable Details Section -->
     <%= turbo_frame_tag "ride_details_#{ride.id}" do %>
-      <% if params[:expanded] == "true" && params[:id].to_i == ride.id %>
-        <%= render "rides/ride_details", ride: ride %>
-      <% end %>
+      <!-- Content will be loaded via Turbo Stream -->
     <% end %>
   </div>
 </div>

@@ -1,0 +1,42 @@
+<%= turbo_frame_tag dom_id(ride) do %>
+  <tr id="<%= dom_id(ride) %>">
+    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+      #<%= ride.id %>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap">
+      <% if ride.driver %>
+        <% driver_user = ride.driver.user %>
+        <div class="text-sm text-gray-900"><%= "#{driver_user.first_name} #{driver_user.last_name}" %></div>
+      <% else %>
+        <div class="text-sm text-gray-500">Unassigned</div>
+      <% end %>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap">
+      <% if ride.passenger %>
+        <% passenger_user = ride.passenger.user %>
+        <div class="text-sm text-gray-900"><%= "#{passenger_user.first_name} #{passenger_user.last_name}" %></div>
+      <% else %>
+        <div class="text-sm text-gray-500">Unknown</div>
+      <% end %>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap">
+      <div class="text-sm text-gray-900"><%= ride.pickup_address&.truncate(15) || "N/A" %></div>
+      <div class="text-sm text-gray-500">→ <%= ride.dropoff_address&.truncate(15) || "N/A" %></div>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap">
+      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= ride_status_color(ride_status(ride, current_user.id)) %>">
+        <%= ride_status(ride, current_user.id)&.humanize %>
+      </span>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+      <%= number_to_currency(ride.estimated_price || 0) %>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap">
+      <div class="text-sm text-gray-900"><%= ride.scheduled_time&.strftime("%b %d, %Y") || "N/A" %></div>
+      <div class="text-sm text-gray-500"><%= ride.scheduled_time&.strftime("%H:%M") || "N/A" %></div>
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+      <%= link_to "View", ride_path(ride), class: "text-indigo-600 hover:text-indigo-900", data: { turbo_frame: "_top" } %>
+    </td>
+  </tr>
+<% end %> 

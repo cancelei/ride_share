@@ -60,9 +60,21 @@ Rails.application.routes.draw do
 
   # Authenticated user routes
   authenticated :user do
-    get "/dashboard", to: "dashboard#index", as: :dashboard
+    get "/dashboard", to: "dashboard#show", as: :dashboard
     get "/dashboard/user_rides", to: "dashboard#user_rides", as: :user_rides
+    get "/dashboard/update_stats", to: "dashboard#update_stats", as: :update_stats
     patch "/toggle_role", to: "users#toggle_role", as: :toggle_role
+
+    # Main reports index
+    get "/reports", to: "reports#index", as: :reports
+
+    # Tax report routes
+    get "/report", to: "reports#new", as: :new_report
+    get "/report/show", to: "reports#show", as: :report
+
+    # Managerial report routes
+    get "/managerial_report", to: "reports#new_managerial", as: :new_managerial_report
+    get "/managerial_report/show", to: "reports#managerial", as: :managerial_report
   end
 
   post "driver/update_location", to: "driver_profiles#update_location"
@@ -74,7 +86,7 @@ Rails.application.routes.draw do
     end
   end
 
-  # Mount letter_opener web interface for development and staging
+  # Mount letter_opener web interface for development only
   if Rails.env.development?
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
   end

@@ -15,16 +15,18 @@
       <p class="text-xl font-semibold text-gray-800"><%= completion_rate %>%</p>
     </div>
     <div>
-      <span class="text-sm text-gray-500">Average Rating</span>
-      <% 
-        avg_rating = 0
-        rides_with_ratings = driver.rides.past.joins("LEFT JOIN ratings ON ratings.rateable_id = rides.id AND ratings.rateable_type = 'Ride'")
-        if rides_with_ratings.any?
-          all_ratings = Rating.where(rateable_type: 'DriverProfile', rateable_id: driver.id)
-          avg_rating = all_ratings.any? ? all_ratings.average(:score).to_f.round(1) : 0
-        end
-      %>
-      <p class="text-xl font-semibold text-gray-800"><%= avg_rating %> / 5</p>
+      <% driver_count = current_user.company_profile.driver_profiles.count %>
+      <% is_solo_driver = (driver_count == 1 && current_user.company_profile.driver_profiles.first.user_id == current_user.id) %>
+      <% if is_solo_driver %>
+        <span class="text-sm text-gray-500">Your Rating</span>
+        <% scores = current_user.driver_profile&.ratings&.pluck(:score) || [] %>
+        <% avg_rating = scores.present? ? (scores.sum.to_f / scores.size).round(2) : 0 %>
+        <p class="text-xl font-semibold text-gray-800"><%= avg_rating %> / 5</p>
+      <% else %>
+        <span class="text-sm text-gray-500">Average Driver Rating (<%= driver_count %> drivers)</span>
+        <% avg_rating = current_user.company_profile&.average_driver_rating || 0 %>
+        <p class="text-xl font-semibold text-gray-800"><%= avg_rating %> / 5</p>
+      <% end %>
     </div>
   </div>
 </div> 

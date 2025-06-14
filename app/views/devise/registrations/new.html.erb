@@ -32,16 +32,21 @@
           </div>
 
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div class="space-y-2">
-              <%= f.label :phone_number, class: "block text-sm font-medium text-gray-700" %>
-              <%= f.text_field :phone_number, autocomplete: "tel",
-                  class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
-            </div>
-
+            <!-- Country dropdown -->
             <div class="space-y-2">
               <%= f.label :country, class: "block text-sm font-medium text-gray-700" %>
-              <%= f.select :country, country_options, { include_blank: "Select Country" }, 
+              <%= f.select :country, country_options, { include_blank: "Select Country" },
+                  id: "country_select",
                   class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 bg-white" %>
+            </div>
+          
+            <!-- Phone input -->
+            <div class="space-y-2 w-full">
+              <%= f.label :phone_number, class: "block text-sm font-medium text-gray-700" %>
+              <%= f.telephone_field :phone_number,
+                  id: "phone_input",
+                  autocomplete: "tel",
+                  class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 placeholder-gray-400" %>
             </div>
           </div>
 
@@ -71,6 +76,15 @@
             </div>
           </div>
 
+          <%= f.hidden_field :timezone, id: 'timezone-field' %>
+
+          <script>
+            document.addEventListener('turbo:load', function() {
+              const timezoneField = document.getElementById('timezone-field');
+              timezoneField.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            });
+          </script>
+
           <div class="pt-4">
             <%= f.submit "Sign up", 
                 class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200" %>
@@ -84,3 +98,47 @@
     </div>
   </div>
 </div>
+
+
+<script type="module">
+document.addEventListener("turbo:load", function () {
+    const input = document.querySelector("#phone_input");
+    const countrySelect = document.querySelector("#country_select");
+
+    if (!input || !countrySelect) return;
+
+    const iti = window.intlTelInput(input, {
+      initialCountry: "auto",
+      nationalMode: false,
+      formatOnDisplay: true,
+      utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.min.js", // for formatting & validation
+    });
+
+    // When phone number changes, update the country dropdown
+    input.addEventListener("countrychange", function () {
+      const selectedCountryData = iti.getSelectedCountryData();
+      if(!Boolean(selectedCountryData.iso2)){
+        return;
+      }
+      const countryCode = selectedCountryData.iso2.toUpperCase();
+
+      // Update the select dropdown
+      if (countrySelect) {
+        const matchedOption = Array.from(countrySelect.options).find(
+          option => option.value === countryCode
+        );
+        if (matchedOption) countrySelect.value = countryCode;
+      }
+    });
+
+    // When country dropdown changes, update phone input country
+    countrySelect.addEventListener("change", function () {
+      const selectedCountry = this.value.toLowerCase();
+      if (selectedCountry) {
+        iti.setCountry(selectedCountry);
+      }
+    });
+  });
+
+
+</script>

@@ -12,7 +12,8 @@ class RideNotificationService
     drivers.each do |driver|
       Rails.logger.info "Sending notification to driver #{driver.id} (#{driver.email})"
       begin
-        RideMailer.new_ride_notification(driver, ride).deliver_later
+        # Store the ride_id instead of the ride object to prevent serialization issues
+        RideMailer.new_ride_notification(driver, ride.id).deliver_later
         Rails.logger.info "Successfully queued notification for driver #{driver.id}"
       rescue => e
         Rails.logger.error "Failed to send notification to driver #{driver.id}: #{e.message}"

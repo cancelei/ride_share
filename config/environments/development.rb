@@ -3,6 +3,15 @@ require "email_interceptor"
 
 
 Rails.application.configure do
+  config.after_initialize do
+    Bullet.enable        = true
+    Bullet.alert         = true
+    Bullet.bullet_logger = true
+    Bullet.console       = true
+    Bullet.rails_logger  = true
+    Bullet.add_footer    = true
+  end
+
   ActionMailer::Base.register_interceptor(EmailInterceptor)
 
   # Settings specified here will take precedence over those in config/application.rb.
@@ -47,10 +56,9 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Email configuration
+  config.action_mailer.delivery_method = :letter_opener_web
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.perform_caching = false
-  config.action_mailer.delivery_method = :letter_opener_web
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 
   # Enable detailed email logging

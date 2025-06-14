@@ -17,11 +17,11 @@
             <% @active_rides.each do |ride| %>
               <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start mb-3">
-                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
-                    <%= ride.status %>
+                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride_status(ride, current_user.id)) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id)) %>-800">
+                    <%= ride_status(ride, current_user.id) %>
                   </span>
                   <p class="text-sm text-gray-500">
-                    <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                    <%= ride.scheduled_time&.in_time_zone(current_user.timezone).strftime("%b %d, %I:%M %p") %>
                   </p>
                 </div>
                 
@@ -58,11 +58,11 @@
             <% @past_rides.each do |ride| %>
               <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start mb-3">
-                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
-                    <%= ride.status %>
+                  <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride_status(ride, current_user.id)) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id)) %>-800">
+                    <%= ride_status(ride, current_user.id) %>
                   </span>
                   <p class="text-sm text-gray-500">
-                    <%= ride.end_time&.strftime("%b %d, %I:%M %p") || ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                    <%= ride.end_time&.in_time_zone(current_user.timezone)&.strftime("%b %d, %I:%M %p") || ride.scheduled_time&.in_time_zone(current_user.timezone)&.strftime("%b %d, %I:%M %p") %>
                   </p>
                 </div>
                 
@@ -96,11 +96,11 @@
         <% @rides.each do |ride| %>
           <div class="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start mb-3">
-              <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride.status) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride.status) %>-800">
-                <%= ride.status %>
+              <span class="inline-flex items-center rounded-md bg-<%= ride_status_color(ride_status(ride, current_user.id)) %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= ride_status_color(ride_status(ride, current_user.id)) %>-800">
+                <%= ride_status(ride, current_user.id) %>
               </span>
               <p class="text-sm text-gray-500">
-                <%= ride.scheduled_time&.strftime("%b %d, %I:%M %p") %>
+                <%= ride.scheduled_time&.in_time_zone(current_user.timezone)&.strftime("%b %d, %I:%M %p") %>
               </p>
             </div>
             

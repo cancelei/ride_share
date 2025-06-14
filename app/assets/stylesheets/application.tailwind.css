@@ -36,6 +36,63 @@
   transition: opacity 0.5s ease-out;
 }
 
+/* Button Loading Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@-moz-keyframes spin {
+  0% { -moz-transform: rotate(0deg); }
+  100% { -moz-transform: rotate(360deg); }
+}
+
+.btn-loader {
+  position: relative;
+  transition: color 0.2s;
+}
+
+.btn-loader.loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+  transition: all 0.2s;
+}
+
+.btn-loader.loading::after {
+  content: "";
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  height: 1.2em;
+  width: 1.2em;
+  margin: -0.6em 0 0 -0.6em;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-right-color: transparent;
+  -webkit-animation: spin 0.75s linear infinite;
+  -moz-animation: spin 0.75s linear infinite;
+  animation: spin 0.75s linear infinite;
+  box-sizing: border-box;
+}
+
+/* Custom button loading colors */
+.btn-loader.loading.btn-loader-dark::after {
+  border: 3px solid rgba(75, 85, 99, 0.8);
+  border-right-color: transparent;
+}
+
+.btn-loader.loading.btn-loader-light::after {
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-right-color: transparent;
+}
+
 /* Map Controls */
 .custom-map-control {
   @apply m-2;

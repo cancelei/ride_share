@@ -20,6 +20,7 @@ gem "stimulus-rails"
 gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+gem "phonelib"
 
 
 
@@ -66,6 +67,7 @@ group :development do
   gem "letter_opener"
   gem "letter_opener_web"  # Use web interface instead of GTK
   gem "pry"
+  gem "bullet"
 end
 
 group :test do
@@ -88,3 +90,7 @@ gem "active_storage_validations"
 
 # Analytics
 gem "posthog-ruby"
+
+gem "grover"
+gem "chartkick"
+gem "groupdate"

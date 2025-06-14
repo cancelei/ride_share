@@ -1,28 +1,16 @@
 module EmailNotification
   extend ActiveSupport::Concern
-
-  class_methods do
-    # Define class methods for configuring email notifications
-    def notify_by_email(options = {})
-      after_create options[:on] || :send_creation_email if options[:after_create]
-      after_update options[:on] || :send_update_email if options[:after_update]
-      after_save options[:on] || :send_save_email if options[:after_save]
-      after_destroy options[:on] || :send_destroy_email if options[:after_destroy]
-    end
-  end
-
   # Helper to deliver emails in the background if in production/staging
   # or just log in development
   def deliver_email(mailer_class, method_name, *args)
-    if Rails.env.production? || Rails.env.staging?
+    begin
       # Send in background using solid_queue
+      Rails.logger.info "Queuing #{mailer_class}##{method_name} email with args: #{args.map(&:class).join(', ')}"
       mailer_class.send(method_name, *args).deliver_later(queue: :mailers)
-    else
-      # Just log in development
-      Rails.logger.info "===== DEVELOPMENT EMAIL NOTIFICATION ====="
-      Rails.logger.info "Would deliver email: #{mailer_class}.#{method_name}"
-      Rails.logger.info "With args: #{args.inspect}"
-      Rails.logger.info "========================================"
+    rescue => e
+      Rails.logger.error "Error queuing email #{mailer_class}##{method_name}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      # Don't re-raise to prevent cascade failures
     end
   end
 end

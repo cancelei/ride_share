@@ -1,0 +1,16 @@
+<div class="bg-white p-6 rounded shadow mb-6">
+  <h2 class="text-xl font-bold mb-4">Generate <%= @report_title || "Report" %></h2>
+  <%= form_with url: @form_url, method: :get, local: true do |f| %>
+    <div class="mb-4">
+      <%= label_tag :start_date, "Start Date", class: "block text-gray-700 font-semibold mb-1" %>
+      <%= date_field_tag :start_date, params[:start_date] || Date.current.beginning_of_month, class: "border rounded px-3 py-2 w-full" %>
+    </div>
+    <div class="mb-4">
+      <%= label_tag :end_date, "End Date", class: "block text-gray-700 font-semibold mb-1" %>
+      <%= date_field_tag :end_date, params[:end_date] || Date.current.end_of_month, class: "border rounded px-3 py-2 w-full" %>
+    </div>
+    <div>
+      <%= submit_tag "Generate Report", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded btn-loader btn-loader-light", data: { controller: "button-loader" } %>
+    </div>
+  <% end %>
+</div>
