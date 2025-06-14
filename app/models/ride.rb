@@ -10,10 +10,6 @@ class Ride < ApplicationRecord
   include EmailNotification
   default_scope -> { kept }
 
-  scope :active_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }) }
-  scope :passenger_active, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
-  scope :driver_pending, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :pending ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
-  scope :driver_active, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
   belongs_to :vehicle, optional: true
@@ -27,29 +23,17 @@ class Ride < ApplicationRecord
   before_validation :set_coordinates_from_params
   before_save :sync_locations
 
+  scope :active_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }) }
+  scope :passenger_active, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :pending, :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required, :waiting_for_passenger_boarding ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
+  scope :driver_pending, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :pending ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
+  scope :driver_active, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ] }).where.not(rides: { id: RideStatus.where(status: :cancelled, user_id: user_id).pluck(:ride_id) }) }
   scope :historical_rides, ->(user_id) { includes(:ride_statuses).where(ride_statuses: { status: [ :completed, :cancelled ] }).where.not(rides: { id: RideStatus.where(user_id: user_id, status: :pending).pluck(:ride_id) }) }
-  scope :last_thirty_days, -> { where("start_time > ?", 30.days.ago) }
-  scope :past, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }).where.not(rides: { id: RideStatus.where(status: :pending).pluck(:ride_id) }) }
-  scope :pending, -> { joins(:ride_statuses).where(ride_statuses: { status: [ :pending ] }) }
-  scope :completed_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }) }
+  scope :pending, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :pending ] }) }
   scope :completed, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :completed ] }).where.not(rides: { id: RideStatus.where(status: :pending).pluck(:ride_id) }) }
-  scope :cancelled_rides, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :cancelled ] }) }
+  scope :cancelled, -> { includes(:ride_statuses).where(ride_statuses: { status: [ :cancelled ] }) }
   scope :for_company, ->(company_id) { where(company_profile_id: company_id).includes(:driver, :passenger).order("rides.scheduled_time desc") }
-
-  scope :total_estimated_price_for_24_hours, -> {
-    where("created_at >= ? AND paid = true", 1.day.ago)
-    .sum(:estimated_price)
-  }
-
-  scope :total_estimated_price_for_last_week, -> {
-    where("rides.created_at >= ? AND paid = true", 1.week.ago)
-    .sum(:estimated_price)
-  }
-
-  scope :total_estimated_price_for_last_thirty_days, -> {
-    where("rides.created_at >= ? AND paid = true", 30.days.ago)
-    .sum(:estimated_price)
-  }
+  scope :total_estimated_price_for_last_week, -> { where("rides.created_at >= ?", 1.week.ago).sum(:estimated_price) }
+  scope :total_estimated_price_for_last_thirty_days, -> { where("rides.created_at >= ? AND paid = true", 30.days.ago).sum(:estimated_price) }
 
   validates :pickup_address, presence: true
   validates :dropoff_address, presence: true
@@ -193,14 +177,6 @@ class Ride < ApplicationRecord
     end
   end
 
-  def self.total_estimated_price_for_24_hours
-    where("created_at >= ?", 1.day.ago).sum(:estimated_price)
-  end
-
-  def self.total_estimated_price_for_last_week
-    where("rides.created_at >= ?", 1.week.ago).sum(:estimated_price)
-  end
-
   def calculate_price
     return unless distance_km.present?
 
@@ -246,9 +222,9 @@ class Ride < ApplicationRecord
 
   def broadcast_payment_update
     # Get fresh calculations after the update
-    fresh_past_rides = driver.rides.past.order(created_at: :desc).limit(5)
-    weekly_total = driver.rides.past.total_estimated_price_for_last_week
-    monthly_total = driver.rides.past.total_estimated_price_for_last_thirty_days
+    fresh_past_rides = driver.rides.completed.order(created_at: :desc).limit(5)
+    weekly_total = driver.rides.completed.total_estimated_price_for_last_week
+    monthly_total = driver.rides.completed.total_estimated_price_for_last_thirty_days
 
     Turbo::StreamsChannel.broadcast_replace_to(
       [ driver.user, "dashboard" ],

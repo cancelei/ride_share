@@ -11,7 +11,7 @@ class DashboardController < ApplicationController
     when "driver"
       @driver_profile = @user.driver_profile
       @current_vehicle = @driver_profile&.selected_vehicle
-      @pending_rides = Ride.pending.reject { |r| r.ride_statuses.any? { |s| s.user_id == @user.id && s.status == "cancelled" } }
+      @pending_rides = Ride.pending.includes(passenger: :user).reject { |r| r.ride_statuses.any? { |s| s.user_id == @user.id && s.status == "cancelled" } }
     when "passenger"
       @passenger_profile = @user.passenger_profile
     when "admin"
@@ -58,7 +58,7 @@ class DashboardController < ApplicationController
       @filtered_rides = helpers.filter_rides_by_tab(all_rides, @tab_type, @user.id)
 
       # Additional data needed for driver dashboard
-      @pending_rides = Ride.driver_pending(@user.id)
+      @pending_rides = Ride.driver_pending(@user.id).includes(passenger: :user)
       @active_rides = Ride.driver_active(@user.id).where(driver: @driver_profile)
       @past_rides = all_rides.completed.order("rides.created_at DESC").limit(5)
       @last_week_rides_total = @past_rides.total_estimated_price_for_last_week
