@@ -85,11 +85,29 @@ class UsersController < ApplicationController
 
     # Check if the role is valid using the User model's role enum
     if User.roles.keys.include?(new_role)
-      current_user.update(role: new_role)
+      # Store the previous role for potential handling
+      previous_role = current_user.role
 
-      # If switching to company role and no company profile exists
-      if new_role == "company" && !current_user.company_profile.present?
-        flash[:notice] = "Please create a company profile to use all company features"
+      # Update role with validation
+      begin
+        ActiveRecord::Base.transaction do
+          current_user.update!(role: new_role)
+
+          # If switching to company role and no company profile exists
+          if new_role == "company" && !current_user.company_profile.present?
+            flash[:notice] = "Please create a company profile to use all company features"
+          end
+
+          # If switching to driver role and no driver profile exists
+          if new_role == "driver" && !current_user.driver_profile.present?
+            # Create a basic driver profile to prevent initialization errors
+            current_user.create_driver_profile! if current_user.driver_profile.nil?
+            flash[:notice] = "Please complete your driver profile to start accepting rides"
+          end
+        end
+      rescue => e
+        Rails.logger.error("Role toggle failed: #{e.message}")
+        flash[:alert] = "Could not change your role. Please try again."
       end
     end
 

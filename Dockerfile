@@ -36,4 +36,4 @@ RUN npm install --global yarn && \
 
 EXPOSE $PORT
 
-CMD "bundle exec puma -C config/puma.rb"
+CMD ["bash", "-c", "bundle exec puma -C config/puma.rb"]
