@@ -36,4 +36,7 @@ RUN npm install --global yarn && \
 
 EXPOSE $PORT
 
+# Ensure proper path for command execution
+WORKDIR $SOURCE
+
 CMD ["bash", "-c", "bundle exec puma -C config/puma.rb"]
