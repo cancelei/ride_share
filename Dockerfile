@@ -33,7 +33,7 @@ RUN npm install --global yarn && \
     yarn install --frozen-lockfile && \
     bundle exec rails assets:precompile
 
-ENTRYPOINT ["/usr/src/app/bin/docker-entrypoint"]
+ENTRYPOINT ["/app/bin/docker-entrypoint"]
 
 EXPOSE $PORT
 
