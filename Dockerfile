@@ -13,7 +13,9 @@ RUN apt-get update -qq && \
     apt-get update -qq && \
     apt-get install -y nodejs google-chrome-stable
 
-ENV BUNDLE_DEPLOYMENT="1" \
+ENV RAILS_ENV="production" \
+    BUNDLE_WITHOUT="development test" \
+    BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     CHROME_PATH="/usr/bin/google-chrome-stable" \
     GOOGLE_CHROME_SHIM="/usr/bin/google-chrome-stable" \
@@ -31,7 +33,7 @@ RUN npm install --global yarn && \
     yarn install --frozen-lockfile && \
     bundle exec rails assets:precompile
 
-# ENTRYPOINT ["/usr/src/app/bin/docker-entrypoint"]
+ENTRYPOINT ["/usr/src/app/bin/docker-entrypoint"]
 
 EXPOSE $PORT
 
