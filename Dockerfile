@@ -38,4 +38,4 @@ ENTRYPOINT ["/app/bin/docker-entrypoint"]
 
 EXPOSE $PORT
 
-CMD ["cd /app && /app/bin/rails server"]
+CMD ["bin/rails", "server"]
