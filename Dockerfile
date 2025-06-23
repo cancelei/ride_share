@@ -36,4 +36,4 @@ RUN npm install --global yarn && \
 
 EXPOSE $PORT
 
-CMD "bin/rails server"
+CMD "/app/bin/rails server"
