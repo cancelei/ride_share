@@ -36,7 +36,4 @@ RUN npm install --global yarn && \
 
 EXPOSE $PORT
 
-# Ensure proper path for command execution
-WORKDIR $SOURCE
-
-CMD "bundle exec puma -C config/puma.rb"
+CMD "rails server"
