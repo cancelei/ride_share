@@ -30,8 +30,9 @@ ADD . $SOURCE
 RUN bundle config set path /usr/local/bundle && bundle install
 
 RUN npm install --global yarn && \
-    yarn install --frozen-lockfile && \
-    bundle exec rails assets:precompile
+    yarn install --frozen-lockfile
+    
+RUN SECRET_KEY_BASE=temporary_key_for_precompile bundle exec rails assets:precompile
 
 ENTRYPOINT ["/app/bin/docker-entrypoint"]
 
