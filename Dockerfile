@@ -13,8 +13,7 @@ RUN apt-get update -qq && \
     apt-get update -qq && \
     apt-get install -y nodejs google-chrome-stable
 
-ENV RAILS_ENV="development" \
-    BUNDLE_DEPLOYMENT="1" \
+ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     CHROME_PATH="/usr/bin/google-chrome-stable" \
     GOOGLE_CHROME_SHIM="/usr/bin/google-chrome-stable" \
@@ -36,4 +35,4 @@ RUN npm install --global yarn && \
 
 EXPOSE $PORT
 
-CMD "/app/bin/rails server"
+CMD ["cd /app && /app/bin/rails server"]
