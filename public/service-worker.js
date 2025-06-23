@@ -9,8 +9,7 @@ const ASSETS_TO_CACHE = [
   '/icon-192x192.png',
   '/icon-512x512.png',
   '/manifest.json',
-  '/assets/application.css',
-  '/assets/tailwind.css'
+  '/assets/application.css'
 ];
 
 // Install event - cache essential assets
