@@ -21,7 +21,7 @@ services:
       - "80:3000"
     volumes:
       - bundle_cache:/usr/local/bundle
-    command: "bundle exec puma -C config/puma.rb -b tcp://0.0.0.0 -p 3000"
+    command: "bin/rails server"
     profiles:
       - app
 
