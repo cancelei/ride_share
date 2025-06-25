@@ -22,8 +22,6 @@ services:
     volumes:
       - bundle_cache:/usr/local/bundle
     command: "/app/bin/rails server"
-    profiles:
-      - app
 
 volumes:
   bundle_cache:
