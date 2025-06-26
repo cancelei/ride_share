@@ -7,7 +7,5 @@ class CreateRideStatuses < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-
-    remove_column :rides, :status, :string, default: "pending", null: false
   end
 end
