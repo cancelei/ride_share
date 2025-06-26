@@ -3,13 +3,13 @@ class MigrateRideStatuses < ActiveRecord::Migration[8.0]
     Ride.all.includes(driver: :user, passenger: :user).each do |ride|
       # Create a new RideStatus for each ride with the current status
       RideStatus.create!(
-        status: ride.status,
+        status: ride.status || "pending",
         ride: ride,
         user: ride.passenger.user
       )
 
       RideStatus.create!(
-        status: ride.status,
+        status: ride.status || "pending",
         ride: ride,
         user: ride.driver.user
       ) if ride.driver.present?
