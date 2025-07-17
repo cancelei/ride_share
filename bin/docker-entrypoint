@@ -11,8 +11,22 @@ if [ "$RAILS_ENV" == "production" ] || [ "$RAILS_ENV" == "staging" ]; then
     echo "Setting up SolidQueue migrations..."
     # First check if we need to install migrations
     bin/rails solid_queue:install:migrations
-    # Then run migrations to create tables if they don't exist
-    bin/rails db:migrate
+    
+    # Create the queue_migrate directory if it doesn't exist
+    mkdir -p db/queue_migrate
+    
+    # Copy the SolidQueue migrations to the queue_migrate directory
+    echo "Copying SolidQueue migrations to queue_migrate directory..."
+    for migration in $(find db/migrate -name '*solid_queue*')
+    do
+        filename=$(basename $migration)
+        cp $migration db/queue_migrate/$filename
+    done
+    
+    # Run migrations for the queue database specifically
+    echo "Running SolidQueue migrations in the queue database..."
+    bin/rails db:migrate:up RAILS_ENV=$RAILS_ENV DATABASE=queue VERSION=20240717000000 || true
+    bin/rails db:migrate RAILS_ENV=$RAILS_ENV DATABASE=queue
     echo "SolidQueue setup complete."
 fi
 
