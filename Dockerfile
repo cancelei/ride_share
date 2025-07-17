@@ -34,8 +34,9 @@ RUN npm install --global yarn && \
     
 RUN SECRET_KEY_BASE=temporary_key_for_precompile bundle exec rails assets:precompile
 
+RUN gem install foreman
+
 ENTRYPOINT ["/app/bin/docker-entrypoint"]
-
 EXPOSE $PORT
+CMD ["foreman", "start", "-f", "Procfile", "-m", "web=1,background_jobs=1"]
 
-CMD ["bin/rails", "server"]
