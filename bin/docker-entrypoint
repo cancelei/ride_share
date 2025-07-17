@@ -6,7 +6,17 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
+# Ensure SolidQueue tables are set up before starting any process
+if [ "$RAILS_ENV" == "production" ] || [ "$RAILS_ENV" == "staging" ]; then
+    echo "Setting up SolidQueue migrations..."
+    # First check if we need to install migrations
+    bin/rails solid_queue:install:migrations
+    # Then run migrations to create tables if they don't exist
+    bin/rails db:migrate
+    echo "SolidQueue setup complete."
+fi
+
+# If running the rails server directly (not through Foreman)
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
     ./bin/rails db:prepare
     
@@ -21,6 +31,12 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
     
     # Exit with status of process that exited first
     exit $?
+fi
+
+# If starting with Foreman, ensure database is prepared
+if [ "${@: -1:1}" == "foreman" ]; then
+    echo "Preparing database before starting Foreman..."
+    ./bin/rails db:prepare
 fi
 
 exec "${@}"
