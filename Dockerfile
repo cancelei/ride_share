@@ -13,7 +13,7 @@ RUN apt-get update -qq && \
     apt-get update -qq && \
     apt-get install -y nodejs google-chrome-stable
 
-ENV RAILS_ENV="staging" \
+ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development test" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
