@@ -8,6 +8,44 @@ fi
 
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+    # Check if SolidQueue tables exist
+    if [ "$RAILS_ENV" == "production" ] || [ "$RAILS_ENV" == "staging" ]; then
+        echo "Checking if SolidQueue tables exist..."
+        # Extract database connection details from Rails
+        DB_DETAILS=$(bin/rails runner 'puts ActiveRecord::Base.connection_db_config.configuration_hash.slice(:host, :database, :username, :password, :port).to_json')
+        
+        # Parse JSON output
+        DB_HOST=$(echo $DB_DETAILS | grep -o '"host":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+        DB_NAME=$(echo $DB_DETAILS | grep -o '"database":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+        DB_USER=$(echo $DB_DETAILS | grep -o '"username":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+        DB_PASS=$(echo $DB_DETAILS | grep -o '"password":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+        DB_PORT=$(echo $DB_DETAILS | grep -o '"port":[^,}]*' | cut -d':' -f2)
+        
+        # If port is not set, use default PostgreSQL port
+        if [ -z "$DB_PORT" ] || [ "$DB_PORT" == "null" ]; then
+            DB_PORT=5432
+        fi
+        
+        # Set PGPASSWORD environment variable for passwordless psql command
+        export PGPASSWORD="$DB_PASS"
+        
+        # Check if solid_queue_jobs table exists
+        TABLE_EXISTS=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS(SELECT FROM pg_tables WHERE tablename = 'solid_queue_jobs');")
+        
+        if [[ $TABLE_EXISTS == *t* ]]; then
+            echo "SolidQueue tables already exist."
+        else
+            echo "SolidQueue tables do not exist. Installing migrations..."
+            bin/rails solid_queue:install:migrations
+            echo "Running SolidQueue migrations..."
+            bin/rails db:migrate
+        fi
+        
+        # Unset PGPASSWORD for security
+        unset PGPASSWORD
+    fi
+    
+    # Run regular database migrations
     ./bin/rails db:prepare
     
     # Start the Rails server in the background
