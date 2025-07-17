@@ -9,8 +9,8 @@ fi
 # Ensure SolidQueue tables are set up before starting any process
 if [ "$RAILS_ENV" == "production" ] || [ "$RAILS_ENV" == "staging" ]; then
     echo "Setting up SolidQueue migrations..."
-    # First check if we need to install migrations
-    bin/rails solid_queue:install:migrations
+    # Install SolidQueue migrations
+    bin/rails solid_queue:install
     
     # Create the queue_migrate directory if it doesn't exist
     mkdir -p db/queue_migrate
