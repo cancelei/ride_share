@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage | Prospera Storage</title>
+    <meta name="description" content="Typical bay storage solutions coming soon. Reserve your space today.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>PROSPERA STORAGE</h1>
+    
+            </div>
+            <nav class="nav">
+                <a href="index.html">Home</a>
+                <a href="climate-controlled.html">CC Mini-Storage</a>
+                <a href="warehouse.html" class="active">Storage</a>
+                <a href="https://wa.me/19707690951?text=Hi!%20I'm%20interested%20in%20storage.%0A%0AName:%20%0ADate%20to%20deliver%20empty%20boxes:%20%0AWhere%20to%20deliver%20empty%20boxes:%20%0ADate%20to%20pick%20up,%20if%20known:%20%0AHow%20long,%20if%20known:%20%0ANumber%20and%20sizes%20of%20boxes,%20guess%20(only%20pay%20for%20ones%20you%20pack):%20" class="btn-nav" target="_blank">Request Storage</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="page-hero">
+        <div class="container">
+            <h2 class="glitch" data-text="COMING SOON">COMING SOON</h2>
+            <p class="page-subtitle">Storage</p>
+            <p class="page-description">Typical storage solutions for vehicles, equipment, and bulk items.</p>
+        </div>
+    </section>
+
+    <!-- Coming Soon Section -->
+    <section class="coming-soon">
+        <div class="container">
+            <div class="coming-soon-content">
+                <h2 class="section-title">We're Expanding Our Services</h2>
+                <p class="coming-soon-description">
+                    We're developing storage solutions for larger items like vehicles, boats, construction equipment, 
+                    and bulk inventory. Help us design the perfect solution for your needs by sharing your requirements below.
+                </p>
+
+                <div class="warehouse-features">
+            
+                    <div class="warehouse-feature">
+                        <div class="feature-icon">🏗️</div>
+                        <h3>Equipment Storage</h3>
+                        <p>Construction equipment, tools, machinery, cars, boats</p>
+                    </div>
+                    <div class="warehouse-feature">
+                        <div class="feature-icon">📦</div>
+                        <h3>Bulk Storage</h3>
+                        <p>Inventory, pallets, large quantities</p>
+                    </div>
+                    <div class="warehouse-feature">
+                        <div class="feature-icon">🏠</div>
+                        <h3>Furniture Storage</h3>
+                        <p>Large furniture, appliances, household items</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interest Form Section -->
+    <section class="interest-form-section">
+        <div class="container">
+            <h2 class="section-title">Tell Us What You Need</h2>
+            <p class="form-subtitle">Help us understand your storage requirements so we can build the right solution</p>
+            
+            <form class="interest-form" id="warehouseForm">
+                <div class="form-group">
+                    <label for="storage-items">What are you thinking of storing?</label>
+                    <input 
+                        type="text" 
+                        id="storage-items" 
+                        name="storage-items" 
+                        placeholder="e.g., Household goods, a car, construction equipment"
+                        required
+                    >
+                    <span class="form-hint">Be as specific as possible</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="space-needed">How much space do you need?</label>
+                    <select id="space-needed" name="space-needed" required>
+                        <option value="">Select a size...</option>
+                        <option value="5x5">5' × 5' (Small closet - 25 sq ft)</option>
+                        <option value="5x10">5' × 10' (Walk-in closet - 50 sq ft)</option>
+                        <option value="10x10">10' × 10' (Small bedroom - 100 sq ft)</option>
+                        <option value="10x15">10' × 15' (Large bedroom - 150 sq ft)</option>
+                        <option value="10x20">10' × 20' (One-car garage - 200 sq ft)</option>
+                        <option value="10x30">10' × 30' (Large garage - 300 sq ft)</option>
+                        <option value="20x20">20' × 20' (Two-car garage - 400 sq ft)</option>
+                        <option value="custom">Custom / Not sure</option>
+                    </select>
+                    <span class="form-hint">Common bay storage sizes</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="timeline">When do you need it by?</label>
+                    <select id="timeline" name="timeline" required>
+                        <option value="">Select a timeframe...</option>
+                        <option value="asap">As soon as possible</option>
+                        <option value="1-month">Within 1 month</option>
+                        <option value="2-3-months">2-3 months</option>
+                        <option value="3-6-months">3-6 months</option>
+                        <option value="6-plus-months">6+ months</option>
+                        <option value="just-exploring">Just exploring options</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">How long do you need storage?</label>
+                    <select id="duration" name="duration">
+                        <option value="">Select duration...</option>
+                        <option value="1-3-months">1-3 months</option>
+                        <option value="3-6-months">3-6 months</option>
+                        <option value="6-12-months">6-12 months</option>
+                        <option value="1-year-plus">1 year+</option>
+                        <option value="not-sure">Not sure yet</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="John Doe"
+                        required
+                    >
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">WhatsApp / Phone</label>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            name="phone" 
+                            placeholder="+504 1234 5678"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="additional-info">Additional Information (Climate Controlled or not?)</label>
+                    <textarea 
+                        id="additional-info" 
+                        name="additional-info" 
+                        rows="4"
+                        placeholder="Any other details about your storage needs..."
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn-large btn-primary">
+                    <span>Submit Interest</span>
+                    <span class="arrow">→</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Meanwhile Section -->
+    <section class="meanwhile-section">
+        <div class="container">
+            <h2 class="section-title">Need Storage Now?</h2>
+            <p>Check out our climate-controlled mini storage for household goods and sports equipment</p>
+            <a href="climate-controlled.html" class="btn-large btn-secondary">
+                <span>View CC Mini-Storage</span>
+                <span class="arrow">→</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>PROSPERA STORAGE</h4>
+                    <p>Future-forward storage solutions for Prospera residents</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="climate-controlled.html">CC Mini-Storage</a></li>
+                        <li><a href="warehouse.html">No CC Storage</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="https://wa.me/19707690951">WhatsApp</a></li>
+                        <li><a href="mailto:hello@prosperastorage.com">Email</a></li>
+                        <li>Duna Tower, Roatán</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Prospera Storage. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="form-handler.js"></script>
+</body>
+</html>
