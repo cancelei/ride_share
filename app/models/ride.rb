@@ -83,7 +83,23 @@ class Ride < ApplicationRecord
   end
 
   def can_be_cancelled_by_driver?
-    waiting_for_passenger_boarding?
+    return false unless driver.present?
+    return false if in_progress? || completed?
+
+    # If ride is waiting for passenger boarding (driver has arrived), allow cancellation
+    return true if waiting_for_passenger_boarding?
+
+    # For accepted rides, only allow cancellation if more than 4 hours until scheduled time
+    if accepted? && scheduled_time.present?
+      return scheduled_time > 4.hours.from_now
+    end
+
+    false
+  end
+
+  def hours_until_ride
+    return nil unless scheduled_time.present?
+    ((scheduled_time - Time.current) / 1.hour).round(1)
   end
 
   def start!
