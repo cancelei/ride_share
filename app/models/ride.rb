@@ -10,6 +10,9 @@ class Ride < ApplicationRecord
   include EmailNotification
   default_scope -> { kept }
 
+  # Minimum hours before ride that a driver can cancel
+  MINIMUM_CANCELLATION_HOURS = 4
+
   scope :active_rides, -> { where(status: [ :accepted, :waiting_for_passenger_boarding, :in_progress, :rating_required ]) }
   belongs_to :driver, class_name: "DriverProfile", optional: true
   belongs_to :passenger, class_name: "PassengerProfile", optional: true
@@ -89,9 +92,9 @@ class Ride < ApplicationRecord
     # If ride is waiting for passenger boarding (driver has arrived), allow cancellation
     return true if waiting_for_passenger_boarding?
 
-    # For accepted rides, only allow cancellation if more than 4 hours until scheduled time
+    # For accepted rides, only allow cancellation if more than MINIMUM_CANCELLATION_HOURS until scheduled time
     if accepted? && scheduled_time.present?
-      return scheduled_time > 4.hours.from_now
+      return scheduled_time > MINIMUM_CANCELLATION_HOURS.hours.from_now
     end
 
     false

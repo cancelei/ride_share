@@ -57,8 +57,8 @@
                 data: { turbo: true, confirm: "Are you sure you want to cancel this ride? The passenger will be notified." } do %>
               Cancel Ride
             <% end %>
-          <% elsif ride.accepted? && ride.scheduled_time.present? && ride.scheduled_time <= 4.hours.from_now %>
-            <span class="text-xs text-gray-500 italic">Cannot cancel (<%= ride.hours_until_ride %> hours until ride) - must be 4+ hours before scheduled time</span>
+          <% elsif ride.accepted? && ride.scheduled_time.present? && ride.scheduled_time <= Ride::MINIMUM_CANCELLATION_HOURS.hours.from_now %>
+            <span class="text-xs text-gray-500 italic">Cannot cancel (<%= ride.hours_until_ride %> hours until ride) - must be <%= Ride::MINIMUM_CANCELLATION_HOURS %>+ hours before scheduled time</span>
           <% end %>
         <% end %>
       </div>
