@@ -14,5 +14,5 @@ end
 
 # Enable debug logging in development and staging
 if Rails.env.development? || Rails.env.staging?
-  $posthog.logger.level = Logger::DEBUG
+  $posthog&.logger&.level = Logger::DEBUG
 end

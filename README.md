@@ -1,268 +1,157 @@
-# Prospera Storage - GitHub Pages Website
+# RideFlow - Community Ride Sharing Platform
 
-A professional, responsive website for Prospera Storage built with HTML, CSS, and JavaScript.
+A modern, community-powered ride-sharing platform built with Ruby on Rails. RideFlow enables passengers to request rides, drivers to offer services, and companies/event organizers to manage transportation fleets.
 
-## 🚀 Quick Setup Guide
+## 🚗 Overview
 
-### Step 1: Create GitHub Account (if you don't have one)
-1. Go to [github.com](https://github.com)
-2. Click "Sign up"
-3. Follow the registration process
+RideFlow is designed for communities, events, and organizations that need flexible transportation solutions. It features:
 
-### Step 2: Create a New Repository
-1. Log in to GitHub
-2. Click the "+" icon in the top right → "New repository"
-3. Repository name: `prosperastorage` (or any name you prefer)
-4. Description: "Prospera Storage website"
-5. Make it **Public**
-6. ✓ Check "Add a README file"
-7. Click "Create repository"
+- **Multi-role system**: Passengers, Drivers, Companies, and Admins
+- **Real-time tracking**: Live GPS location updates
+- **Crypto payments**: Bitcoin, Ethereum, and ICC support
+- **Fleet management**: Companies can manage driver pools
+- **Reporting**: Tax and managerial reports
 
-### Step 3: Upload Your Website Files
-1. In your new repository, click "Add file" → "Upload files"
-2. Drag and drop these files:
-   - `index.html`
-   - `styles.css`
-   - `script.js`
-3. Scroll down and click "Commit changes"
+## 🚀 Quick Start
 
-### Step 4: Enable GitHub Pages
-1. In your repository, click "Settings" (top menu)
-2. Scroll down to "Pages" in the left sidebar
-3. Under "Source", select "main" branch
-4. Click "Save"
-5. Wait 1-2 minutes for deployment
+### Prerequisites
+- Ruby 3.2+
+- PostgreSQL
+- Node.js & Yarn
 
-### Step 5: Access Your Website
-Your website will be live at:
-```
-https://[your-username].github.io/prosperastorage/
+### Setup
+```bash
+bin/setup
 ```
 
-For example, if your GitHub username is "johnsmith":
-```
-https://johnsmith.github.io/prosperastorage/
-```
-
----
-
-## 📝 Customization Checklist
-
-Before going live, update these items:
-
-### 1. Contact Information (in `index.html`)
-
-**Line 253** - WhatsApp number:
-```html
-<a href="https://wa.me/1234567890?text=Hi!%20I'm%20interested%20in%20Prospera%20Go%20Storage." 
-```
-Replace `1234567890` with your actual WhatsApp number (include country code, no + or spaces)
-
-**Line 255** - Email address:
-```html
-<a href="mailto:storage@prosperastorage.com">storage@prosperastorage.com</a>
-```
-Replace with your actual email
-
-**Line 269** - Footer WhatsApp:
-```html
-<li>WhatsApp: <a href="https://wa.me/1234567890">+1 (234) 567-890</a></li>
-```
-Replace with your actual WhatsApp number
-
-**Line 270** - Footer email:
-```html
-<li>Email: <a href="mailto:storage@prosperastorage.com">storage@prosperastorage.com</a></li>
-```
-Replace with your actual email
-
-### 2. Optional Customizations
-
-**Colors** (in `styles.css`, lines 13-15):
-```css
---primary-color: #6366f1;  /* Main purple color */
---primary-dark: #4f46e5;   /* Darker purple for hover */
---secondary-color: #10b981; /* Green accent */
+### Start Development Server
+```bash
+bin/dev
 ```
 
-**Hero Text** (in `index.html`, lines 27-28):
-```html
-<h2>Smart Storage for Prospera Residents</h2>
-<p class="hero-subtitle">Store your belongings securely while you travel...</p>
+### Start Background Jobs
+```bash
+bin/rails solid_queue:work
 ```
 
----
+## 🛠 Commands
 
-## 🔧 Advanced: Custom Domain (Optional)
+### Testing
+```bash
+# Run all tests
+bin/rails test
 
-If you want to use your own domain (e.g., `prosperagostorage.com`):
+# Run single test file
+bin/rails test TEST=test/models/ride_test.rb
 
-1. Buy a domain from Namecheap, GoDaddy, or Google Domains (~$15/year)
-2. In your domain provider's DNS settings, add these records:
-   ```
-   Type: A
-   Name: @
-   Value: 185.199.108.153
-   
-   Type: A
-   Name: @
-   Value: 185.199.109.153
-   
-   Type: A
-   Name: @
-   Value: 185.199.110.153
-   
-   Type: A
-   Name: @
-   Value: 185.199.111.153
-   
-   Type: CNAME
-   Name: www
-   Value: [your-username].github.io
-   ```
-3. In your GitHub repository, go to Settings → Pages
-4. Under "Custom domain", enter your domain
-5. Click "Save"
-6. Wait 24-48 hours for DNS propagation
+# Run specific test (line number)
+bin/rails test TEST=test/models/ride_test.rb:42
 
----
+# System tests
+bin/rails test:system
+```
 
-## 📱 Mobile Responsive
+### Linting & Security
+```bash
+# Run RuboCop
+bin/rubocop
 
-The website is fully responsive and looks great on:
-- Desktop computers
-- Tablets
-- Mobile phones
+# Auto-fix issues
+bin/rubocop -a
 
-Test it by resizing your browser window or viewing on different devices.
+# Security scanning
+bin/brakeman
+```
 
----
+## 👥 User Roles
 
-## 🎨 Features
+| Role | Description |
+|------|-------------|
+| **Passenger** | Request rides, track status, rate drivers |
+| **Driver** | Accept rides, manage vehicles, earn money |
+| **Company** | Manage driver fleet, view analytics, generate reports |
+| **Admin** | System administration, user management |
 
-✓ Professional design matching Prospera Go style
-✓ Responsive layout (mobile-friendly)
-✓ Smooth scrolling navigation
-✓ Pricing table with all box sizes
-✓ FAQ section
-✓ WhatsApp integration for easy booking
-✓ Fast loading (no external dependencies)
-✓ SEO-friendly structure
+## 📱 Key Features
 
----
+### For Passengers
+- Request rides with Google Places autocomplete
+- Real-time ride tracking
+- Price estimation before booking
+- Security code verification
+- Driver ratings and reviews
 
-## 📊 What's Included
+### For Drivers
+- Accept pending rides
+- Multiple vehicle registration
+- Real-time GPS tracking
+- Earnings dashboard
+- Crypto payment addresses
 
-- **Hero Section**: Eye-catching introduction with call-to-action
-- **Benefits**: Why choose Prospera Storage
-- **How It Works**: 4-step process
-- **Pricing Table**: All box sizes and durations
-- **FAQ**: Common questions answered
-- **Contact**: WhatsApp and email integration
-- **Footer**: Quick links and contact info
+### For Companies/Event Organizers
+- Driver fleet management
+- Performance analytics
+- Financial summaries
+- Tax and managerial reports
+- Real-time operations dashboard
 
----
+### For Admins
+- User management
+- Ride monitoring
+- Revenue tracking
+- Background job management (SolidQueue)
 
-## 🔄 Making Updates
+## 🔧 Configuration
 
-To update your website after it's live:
+### Required Environment Variables
+```bash
+GOOGLE_MAPS_API_KEY=     # Maps, Places, Distance Matrix APIs
+BREVO_API_KEY=           # Email service
+DATABASE_URL=            # PostgreSQL connection
+SECRET_KEY_BASE=         # Rails encryption key
+```
 
-1. Go to your GitHub repository
-2. Click on the file you want to edit (e.g., `index.html`)
-3. Click the pencil icon (Edit this file)
-4. Make your changes
-5. Scroll down and click "Commit changes"
-6. Changes will be live in 1-2 minutes
+### Optional Services
+```bash
+POSTHOG_API_KEY=         # Analytics (optional)
+```
 
----
+## 📚 Documentation
 
-## 💡 Tips
+- [Feature Review](doc/FEATURE_REVIEW.md) - Comprehensive feature analysis
+- [API Documentation](doc/API.md) - REST API endpoints (if available)
 
-1. **Test WhatsApp Link**: Click the "Request Storage" button to make sure it opens WhatsApp correctly
-2. **Check Email Link**: Click email links to ensure they open your email client
-3. **Mobile Testing**: View the site on your phone to check mobile experience
-4. **Share the Link**: Once live, share your GitHub Pages URL with customers
+## 🏗 Tech Stack
 
----
+- **Backend**: Ruby on Rails 8.0
+- **Database**: PostgreSQL
+- **Background Jobs**: SolidQueue
+- **WebSockets**: SolidCable
+- **Frontend**: Hotwire (Turbo + Stimulus), Tailwind CSS
+- **Maps**: Google Maps Platform
+- **Email**: Brevo (Sendinblue)
+- **Auth**: Devise
 
-## 🆘 Troubleshooting
+## 📊 Code Style
 
-**Website not showing up?**
-- Wait 2-3 minutes after enabling GitHub Pages
-- Make sure repository is Public
-- Check that files are in the root directory (not in a folder)
-- Clear your browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+- Ruby: Rubocop Rails Omakase
+- 2 spaces indentation
+- Single quotes (unless interpolation)
+- snake_case for methods/variables
+- CamelCase for classes/modules
 
-**WhatsApp link not working?**
-- Make sure phone number includes country code
-- Remove any spaces, dashes, or + symbols from the number
-- Format: `https://wa.me/15041234567` (example for Honduras)
+## 🤝 Contributing
 
-**Want to make changes?**
-- Edit files directly on GitHub (click file → pencil icon)
-- Or download files, edit locally, and re-upload
+1. Fork the repository
+2. Create a feature branch
+3. Run tests: `bin/rails test`
+4. Run linter: `bin/rubocop`
+5. Submit a pull request
 
----
+## 📄 License
 
-## 📈 Next Steps
-
-After launching your website:
-
-1. **Set up Stripe** for payment processing
-2. **Create Google Sheet** for customer tracking
-3. **Test the booking flow** with a friend
-4. **Share the link** in Prospera Go community
-5. **Monitor inquiries** via WhatsApp/email
-6. **Gather feedback** and iterate
+[Add license information here]
 
 ---
 
-## 🎯 Cost
-
-**GitHub Pages:** FREE  
-**Domain (optional):** $15/year  
-**Total:** $0-15/year
-
-Compare to:
-- Carrd: $19/year
-- Webflow: $168/year
-- Squarespace: $192/year
-
----
-
-## 📞 Support
-
-If you need help setting this up:
-1. Check the troubleshooting section above
-2. Google "GitHub Pages setup" for detailed guides
-3. Ask in the Prospera community
-
----
-
-**Ready to launch? Follow the Quick Setup Guide above!** 🚀
-
----
-
-## 🌐 Custom Domain Setup
-
-Your domain **prosperastorage.com** is ready to connect!
-
-See **CUSTOM_DOMAIN_SETUP.md** for complete instructions on:
-- Configuring Porkbun DNS
-- Connecting to GitHub Pages
-- Enabling HTTPS
-- Testing your domain
-
-**Your website will be live at:** https://prosperastorage.com
-
----
-
-## 📧 Email Setup
-
-Set up **hello@prosperastorage.com** for free!
-
-See **EMAIL_SETUP.md** for instructions on:
-- Free email forwarding with Porkbun
-- Sending from your custom domain
-- Upgrading to Google Workspace (optional)
-
+Built with ❤️ for community-powered transportation

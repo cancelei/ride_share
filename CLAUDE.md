@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Code Style Guidelines
 
-- Ruby version: 3.2.1
+- Ruby version: 3.2+
 - Rails follows Rubocop Rails Omakase style guide
 - Use 2 spaces for indentation
 - Prefer single quotes for strings unless interpolation is needed
