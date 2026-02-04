@@ -27,7 +27,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Driver Assigned to your Ride via RideFlow"
+        subject: "Your Ride Has Been Scheduled!"
       )
     end
 
@@ -40,7 +40,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Your Driver Arrived via RideFlow"
+        subject: "Your Driver is Here!"
       )
     end
 
@@ -101,7 +101,7 @@ class UserMailer < ApplicationMailer
 
       mail(
         to: @passenger.email,
-        subject: "Confirmed Ride Request via RideFlow"
+        subject: "Ride Requested Via RideFlow"
       )
     end
 
