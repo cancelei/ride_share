@@ -47,20 +47,18 @@
           <% end %>
         <% end %>
         
-        <%# Driver can cancel accepted rides if more than 4 hours before scheduled time %>
-        <% if current_user&.role_driver? && current_user.driver_profile == ride.driver && ride.can_be_cancelled_by_driver? %>
-          <% if ride.accepted? %>
-            <% if ride.scheduled_time.present? && ride.scheduled_time > 4.hours.from_now %>
-              <%= button_to cancel_ride_path(ride), 
-                  method: :post,
-                  params: { cancellation_reason: "Driver cancelled the ride" },
-                  class: "text-sm text-white bg-red-600 hover:bg-red-800 px-3 py-1 rounded-md cursor-pointer", 
-                  data: { turbo: true, confirm: "Are you sure you want to cancel this ride? The passenger will be notified." } do %>
-                Cancel Ride
-              <% end %>
-            <% else %>
-              <span class="text-xs text-gray-500 italic">Cannot cancel within 4 hours of ride</span>
+        <%# Driver can cancel rides based on status and time restrictions %>
+        <% if current_user&.role_driver? && current_user.driver_profile == ride.driver %>
+          <% if ride.can_be_cancelled_by_driver? %>
+            <%= button_to cancel_ride_path(ride), 
+                method: :post,
+                params: { cancellation_reason: "Driver cancelled the ride" },
+                class: "text-sm text-white bg-red-600 hover:bg-red-800 px-3 py-1 rounded-md cursor-pointer", 
+                data: { turbo: true, confirm: "Are you sure you want to cancel this ride? The passenger will be notified." } do %>
+              Cancel Ride
             <% end %>
+          <% elsif ride.accepted? && ride.scheduled_time.present? && ride.scheduled_time <= 4.hours.from_now %>
+            <span class="text-xs text-gray-500 italic">Cannot cancel (<%= ride.hours_until_ride %> hours until ride) - must be 4+ hours before scheduled time</span>
           <% end %>
         <% end %>
       </div>
