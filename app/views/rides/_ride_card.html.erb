@@ -211,18 +211,21 @@
         <%= render "rides/driver_waiting_message", ride: ride %>
         
         <h3 class="text-sm font-medium text-gray-900 mb-2 mt-4">Verify Security Code</h3>
-        <p class="text-xs text-gray-500 mb-2">Ask the passenger for their 4-digit security code to start the ride.</p>
+        <p class="text-xs text-gray-500 mb-3">Ask the passenger for their 4-digit security code to start the ride.</p>
         <%= form_with(url: verify_security_code_ride_path(ride), method: :post, 
-                      class: "flex items-center gap-2", 
+                      class: "flex items-center gap-3", 
                       id: "security_code_form_#{ride.id}",
                       data: { turbo: true }) do |form| %>
           <%= form.text_field :security_code,
-              class: "block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm",
-              placeholder: "Enter 4-digit code",
+              class: "block w-28 rounded-lg border-2 border-blue-400 bg-white shadow-md focus:border-blue-600 focus:ring-2 focus:ring-blue-500 text-center text-xl font-bold tracking-widest py-2.5",
+              placeholder: "0000",
               maxlength: 4,
-              required: true %>
+              required: true,
+              autocomplete: "off",
+              inputmode: "numeric",
+              pattern: "[0-9]*" %>
           <%= form.submit "Verify & Start",
-              class: "rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500",
+              class: "rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 shadow-sm",
               data: { disable_with: "Verifying..." } %>
         <% end %>
       </div>

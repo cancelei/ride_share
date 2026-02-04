@@ -1,13 +1,15 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
+  name: MyCompany One
   description: MyString
   whatsapp_number: MyString
   telegram_number: MyString
+  user: user_one
 
 two:
-  name: MyString
+  name: MyCompany Two
   description: MyString
   whatsapp_number: MyString
   telegram_number: MyString
+  user: user_two

@@ -1,17 +1,15 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  score: 1.5
-  comment: MyText
-  rateable: one
-  rateable_type: Rateable
-  rater: one
-  rater_type: Rater
+  score: 4.5
+  comment: Great ride!
+  rateable: one (DriverProfile)
+  rater: one (PassengerProfile)
+  ride: one
 
 two:
-  score: 1.5
-  comment: MyText
-  rateable: two
-  rateable_type: Rateable
-  rater: two
-  rater_type: Rater
+  score: 3.5
+  comment: Good service
+  rateable: one (PassengerProfile)
+  rater: one (DriverProfile)
+  ride: one
