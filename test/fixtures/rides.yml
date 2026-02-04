@@ -2,14 +2,24 @@
 
 one:
   driver: one
-  invitation_code: MyString
-  status: MyString
-  rating: 1.5
-  available_seats: 1
+  passenger: one
+  status: pending
+  available_seats: 4
+  pickup_address: 123 Main St
+  dropoff_address: 456 Oak Ave
+  pickup_location: Downtown
+  dropoff_location: Uptown
+  scheduled_time: <%= 1.day.from_now %>
+  requested_seats: 1
 
 two:
   driver: two
-  invitation_code: MyString
-  status: MyString
-  rating: 1.5
-  available_seats: 1
+  passenger: two
+  status: completed
+  available_seats: 3
+  pickup_address: 789 Pine Rd
+  dropoff_address: 012 Elm Blvd
+  pickup_location: East Side
+  dropoff_location: West Side
+  scheduled_time: <%= 2.days.from_now %>
+  requested_seats: 2
